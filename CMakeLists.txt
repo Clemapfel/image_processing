@@ -13,13 +13,23 @@ include_directories("./sol2/include")
 include_directories("/usr/include/lua5.3")
 find_package(Lua REQUIRED)
 
+# eigen
+include_directories("./eigen/Eigen")
+
 # common
 add_library(common STATIC
-        image.hpp
-)
+        .include/image.hpp
+        .include/color.hpp
+        .src/color.inl
+        .src/color.cpp .include/vector.hpp .src/vector.inl)
 
 set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
+
+# include directories for convenience
+include_directories("../image_processing") # for .inl files
+include_directories(".include")
+include_directories(".src") # for .inl files
 
 # executables
 add_executable(TEST .test/main.cpp)
