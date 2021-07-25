@@ -1,5 +1,6 @@
 //
-// Created by clem on 25.07.21.
+// Created by clem on 25.07.21
+// (c) Copyright Clemens Cords, 2021
 //
 
 #pragma once
@@ -8,7 +9,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <cstdint>
 
-namespace todo
+namespace cip
 {
     // color representation as RGB cube
     // values in [0, 255)
