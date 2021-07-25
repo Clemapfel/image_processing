@@ -1,0 +1,6 @@
+[submodule "SFML"]
+	path = SFML
+	url = https://github.com/SFML/SFML
+[submodule "sol2"]
+	path = sol2
+	url = https://github.com/ThePhD/sol2
