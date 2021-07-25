@@ -1,6 +1,6 @@
-# Digital Image Processing 
+# Interative Digital Image Processing with SFML
 
-A portable, lightweight C++ Library implementing most common features of digital image processing. Intended for educational purposes or personal use only.
+A portable, lightweight C++ Library implementing most common features of digital image processing as described in "Digital Image Processing" (R.C.Gonzales, R.E.Woods, 2017). Intended for educational purposes or personal use only.
 
 Supports on- and off-gpu processing of binary, 8-bit grey scale and 8-bit full color images. 
 Real-time rendering and thread safety possible
