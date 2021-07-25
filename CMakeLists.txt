@@ -21,7 +21,7 @@ add_library(common STATIC
         .include/image.hpp
         .include/color.hpp
         .src/color.inl
-        .src/color.cpp .include/vector.hpp .src/vector.inl)
+        .src/color.cpp .include/vector.hpp .src/vector.inl .include/test.cpp .src/test.hpp .src/test.hpp)
 
 set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
