@@ -1,3 +1,3 @@
 # Digital Image Processing 
 
-A small library implement common digital image processing features. Intended for teaching and prototyping, not industrial use
+A portable, lightweight C++ Library implementing most common features of digital image processing. Intended for educational or personal use only.
