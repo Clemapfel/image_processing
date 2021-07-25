@@ -1,4 +1,4 @@
-# Interative Digital Image Processing with SFML
+# Interative Digital Image Processing Library
 
 A portable, lightweight C++ Library implementing most common features of digital image processing as described in "Digital Image Processing" (R.C.Gonzales, R.E.Woods, 2017). Intended for educational purposes or personal use only.
 
