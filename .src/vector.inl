@@ -1,12 +1,12 @@
 //
 // Created by clem on 25.07.21.
+// (c) Copyright Clemens Cords, 2021
 //
 
 namespace todo
 {
 
     // ### Vector ##########################################################
-
     template<typename T, size_t n>
     Vector<T, n>::Iterator::Iterator(Vector<T, n>* holder, size_t i)
         : _holder(holder), _i(i)
