@@ -7,7 +7,7 @@
 #include <utility>
 #include <Dense>
 
-namespace todo
+namespace cip
 {
     // forward delcaration for easier readibility by putting the non-member functions before the class definition
     template<typename, size_t>
