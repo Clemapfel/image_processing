@@ -9,6 +9,102 @@
 
 namespace crisp
 {
+    // mix
+    template<typename Color_t>
+    Color_t mix(Color_t a, Color_t b, float weight)
+    {
+        static_assert(true, "mix template parameter is not a valid color representation");
+    }
+
+    template<>
+    Color mix(Color a, Color b, float weight_f)
+    {
+         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
+         weight = clamp<uint8_t>(0, 255, weight);
+
+         uint8_t af = uint8_t(255) - weight;
+         uint8_t bf = weight;
+
+         Color out;
+         out.r = a.r * af + b.r * bf;
+         out.g = a.g * af + b.g * bf;
+         out.b = a.b * af + b.g * bf;
+         out.a = a.a * af + b.a * bf;
+
+         return out;
+    }
+
+    template<>
+    RGB mix(RGB a, RGB b, float weight_f)
+    {
+         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
+         weight = clamp<uint8_t>(0, 255, weight);
+
+         uint8_t af = uint8_t(255) - weight;
+         uint8_t bf = weight;
+
+         RGB out;
+         out.r = a.r * af + b.r * bf;
+         out.g = a.g * af + b.g * bf;
+         out.b = a.b * af + b.g * bf;
+         out.a = a.a * af + b.a * bf;
+
+         return out;
+    }
+
+    template<>
+    HSV mix(HSV a, HSV b, float weight_f)
+    {
+         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
+         weight = clamp<uint8_t>(0, 255, weight);
+
+         uint8_t af = uint8_t(255) - weight;
+         uint8_t bf = weight;
+
+         HSV out;
+         out.h = a.h * af + b.h * bf;
+         out.s = a.s * af + b.s * bf;
+         out.v = a.v * af + b.v * bf;
+         out.a = a.a * af + b.a * bf;
+
+         return out;
+    }
+
+    template<>
+    HSL mix(HSL a, HSL b, float weight_f)
+    {
+         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
+         weight = clamp<uint8_t>(0, 255, weight);
+
+         uint8_t af = uint8_t(255) - weight;
+         uint8_t bf = weight;
+
+         HSL out;
+         out.h = a.h * af + b.h * bf;
+         out.s = a.s * af + b.s * bf;
+         out.l = a.l * af + b.l * bf;
+         out.a = a.a * af + b.a * bf;
+
+         return out;
+    }
+
+    template<>
+    GrayScale mix(GrayScale a, GrayScale b, float weight_f)
+    {
+         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
+         weight = clamp<uint8_t>(0, 255, weight);
+
+         uint8_t af = uint8_t(255) - weight;
+         uint8_t bf = weight;
+
+         GrayScale out;
+         out.v = a.v * af + b.v * bf;
+         out.a = a.a * af + b.a * bf;
+
+         return out;
+    }
+
+    // convert to
     template<typename T>
     T convert_to(T from)
     {

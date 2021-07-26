@@ -42,6 +42,15 @@ namespace crisp
         a = hsv.a;
     }
 
+    Color::Color(HSL hsl)
+    {
+        auto as_rgb = convert_to<RGB>(hsl);
+        r = as_rgb.r;
+        g = as_rgb.g;
+        b = as_rgb.b;
+        a = hsl.a;
+    }
+
     Color::Color(GrayScale grayscale)
     {
         r = grayscale.v;
@@ -58,6 +67,21 @@ namespace crisp
     HSV Color::as_hsv()
     {
         return convert_to<HSV>(*this);
+    }
+
+    HSL Color::as_hsl()
+    {
+        return convert_to<HSL>(*this);
+    }
+
+    Vector4f Color::as_float_vec()
+    {
+        auto rf = static_cast<float>(r / uint8_t(255));
+        auto gf = static_cast<float>(g / uint8_t(255));
+        auto bf = static_cast<float>(b / uint8_t(255));
+        auto af = static_cast<float>(a / uint8_t(255));
+
+        return Vector4f(rf, gf, bf, af);
     }
 
     GrayScale Color::as_grayscale()
@@ -103,30 +127,14 @@ namespace crisp
         return not (*this == other);
     }
 
-    Color && Color::invert() const
+    Color Color::invert() const
     {
         Color out;
         out.r = 1 - r;
         out.g = 1 - g;
         out.b = 1 - b;
         out.a = a;
-        return std::forward<Color &&>(out);
-    }
-
-    Color && mix(Color a, Color b, float weight)
-    {
-         weight = clamp(0.f, 1.f, weight);
-
-         float af = 1 - weight;
-         float bf = weight;
-
-         Color out;
-         out.r = a.r * af + b.r * bf;
-         out.g = a.g * af + b.g * bf;
-         out.b = a.b * af + b.g * bf;
-         out.a = a.a * af + b.a * bf;
-
-         return std::forward<Color &&>(out);
+        return out;
     }
 }
 
