@@ -48,10 +48,9 @@ while (window.is_open())  // closes when "x" is pressed
 {
   auto time = window.update();  // update things like the keyboard state
   
-  window.draw(&image, &shader, transform);
-  
   window.clear();
-  window.display();
+  window.draw(image, shader, transform);
+  window.display(); // vsyncs to reach at most target 60fps
 }
 ```
 
