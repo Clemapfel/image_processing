@@ -8,7 +8,7 @@
 #include <utility>
 #include <Dense>
 
-namespace cip
+namespace crisp
 {
     // forward delcaration for easier readibility by putting the non-member functions before the class definition
     template<typename, size_t>
@@ -66,14 +66,11 @@ namespace cip
             // @returns: writable reference to the element
             T& at(size_t i);
 
-            // forward declaration of internal iterator type
-            struct Iterator;
-
             // @returns: bi-directional iterator to the first element
-            Iterator begin();
+            auto begin();
 
             // @returns: bi-directional iterator pointing to past-the-end element
-            Iterator end();
+            auto end();
 
         private:
             // iterator class

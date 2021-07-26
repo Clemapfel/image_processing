@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace cip
+namespace crisp
 {
 
 }

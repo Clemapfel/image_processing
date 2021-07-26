@@ -3,7 +3,7 @@
 // Created on 25.07.21 by clem (mail@clemens-cords.com)
 //
 
-namespace todo
+namespace crisp
 {
 
     // ### Vector ##########################################################
@@ -87,13 +87,13 @@ namespace todo
     }
 
     template<typename T, size_t n>
-    typename Vector<T, n>::Iterator Vector<T, n>::begin()
+    auto Vector<T, n>::begin()
     {
         return Vector<T, n>::Iterator(this, 0);
     }
 
     template<typename T, size_t n>
-    typename Vector<T, n>::Iterator Vector<T, n>::end()
+    auto Vector<T, n>::end()
     {
         return Vector<T, n>::Iterator(this, n);
     }
