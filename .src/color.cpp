@@ -114,7 +114,7 @@ namespace crisp
         r = as_rgb.r;
         g = as_rgb.g;
         b = as_rgb.b;
-        a = hsv.a;
+        a = hsl.a;
         return *this;
     }
 

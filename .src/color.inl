@@ -4,20 +4,18 @@
 //
 
 #include <cassert>
-#include <type_traits>
-#include <vector.hpp>
 
 namespace crisp
 {
     // mix
     template<typename Color_t>
-    Color_t mix(Color_t a, Color_t b, float weight)
+    inline Color_t mix(Color_t a, Color_t b, float weight)
     {
         static_assert(true, "mix template parameter is not a valid color representation");
     }
 
     template<>
-    Color mix(Color a, Color b, float weight_f)
+    inline Color mix(Color a, Color b, float weight_f)
     {
          auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
          weight = clamp<uint8_t>(0, 255, weight);
@@ -35,7 +33,7 @@ namespace crisp
     }
 
     template<>
-    RGB mix(RGB a, RGB b, float weight_f)
+    inline RGB mix(RGB a, RGB b, float weight_f)
     {
          auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
          weight = clamp<uint8_t>(0, 255, weight);
@@ -53,7 +51,7 @@ namespace crisp
     }
 
     template<>
-    HSV mix(HSV a, HSV b, float weight_f)
+    inline HSV mix(HSV a, HSV b, float weight_f)
     {
          auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
          weight = clamp<uint8_t>(0, 255, weight);
@@ -71,7 +69,7 @@ namespace crisp
     }
 
     template<>
-    HSL mix(HSL a, HSL b, float weight_f)
+    inline HSL mix(HSL a, HSL b, float weight_f)
     {
          auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
          weight = clamp<uint8_t>(0, 255, weight);
@@ -89,7 +87,7 @@ namespace crisp
     }
 
     template<>
-    GrayScale mix(GrayScale a, GrayScale b, float weight_f)
+    inline GrayScale mix(GrayScale a, GrayScale b, float weight_f)
     {
          auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
          weight = clamp<uint8_t>(0, 255, weight);
@@ -106,7 +104,7 @@ namespace crisp
 
     // convert to
     template<typename T>
-    T convert_to(T from)
+    inline T convert_to(T from)
     {
         return from;
     }
@@ -129,27 +127,27 @@ namespace crisp
 
     // from Color
     template<>
-    HSV convert_to(Color from)
+    inline HSV convert_to(Color from)
     {
         auto as_rgb = RGB{from.r, from.g, from.b, from.a};
         return convert_to<HSV>(as_rgb);
     }
 
     template<>
-    HSL convert_to(Color from)
+    inline HSL convert_to(Color from)
     {
         auto as_rgb = RGB{from.r, from.g, from.b, from.a};
         return convert_to<HSL>(as_rgb);
     }
 
     template<>
-    RGB convert_to(Color from)
+    inline RGB convert_to(Color from)
     {
         return RGB{from.r, from.g, from.b, from.a};
     }
 
     template<>
-    GrayScale convert_to(Color from)
+    inline GrayScale convert_to(Color from)
     {
         uint8_t average = (from.r + from.g + from.b) / 3;
         return GrayScale{average, from.a};
@@ -157,7 +155,7 @@ namespace crisp
 
     // from RGB
     template<>
-    HSV convert_to(RGB from)
+    inline HSV convert_to(RGB from)
     {
         float r = from.r / uint8_t(255),
               g = from.g / uint8_t(255),
@@ -207,20 +205,20 @@ namespace crisp
     }
 
     template<>
-    HSL convert_to(RGB from)
+    inline HSL convert_to(RGB from)
     {
         auto as_hsv = convert_to<HSV>(from);
         return convert_to<HSL>(as_hsv);
     }
 
     template<>
-    Color convert_to(RGB from)
+    inline Color convert_to(RGB from)
     {
         return Color(from.r, from.g, from.b, from.a);
     }
 
     template<>
-    GrayScale convert_to(RGB from)
+    inline GrayScale convert_to(RGB from)
     {
         uint8_t average = (from.r + from.g + from.b) / 3;
         return GrayScale{average, from.a};
@@ -228,7 +226,7 @@ namespace crisp
 
     // from HSV
     template<>
-    RGB convert_to(HSV from)
+    inline RGB convert_to(HSV from)
     {
         float h = from.h / uint8_t(255),
               s = from.s / uint8_t(255),
@@ -292,7 +290,7 @@ namespace crisp
     }
 
     template<>
-    HSL convert_to(HSV from)
+    inline HSL convert_to(HSV from)
     {
         float hsv_s = from.s / uint8_t(255),
               hsv_v = from.v / uint8_t(255);
@@ -314,41 +312,41 @@ namespace crisp
     }
 
     template<>
-    Color convert_to(HSV from)
+    inline Color convert_to(HSV from)
     {
         auto as_rgb = convert_to<RGB>(from);
         return Color(as_rgb.r, as_rgb.g, as_rgb.b, from.a);
     }
 
     template<>
-    GrayScale convert_to(HSV from)
+    inline GrayScale convert_to(HSV from)
     {
         return GrayScale{from.v, from.a};
     }
 
     // from HSL
     template<>
-    Color convert_to(HSL from)
+    inline Color convert_to(HSL from)
     {
         auto as_hsv = convert_to<HSV>(from);
         auto as_rgb = convert_to<RGB>(as_hsv);
-        return Color(as_hsv.r, as_hsv.g, as_hsv.b, from.a);
+        return Color(as_rgb.r, as_rgb.g, as_rgb.b, from.a);
     }
 
     template<>
-    RGB convert_to(HSL from)
+    inline RGB convert_to(HSL from)
     {
         auto as_hsv = convert_to<HSV>(from);
         return convert_to<RGB>(as_hsv);
     }
 
     template<>
-    HSV convert_to(HSL from)
+    inline HSV convert_to(HSL from)
     {
         float hsl_l = from.l / uint8_t(255),
               hsl_s = from.s / uint8_t(255);
 
-        float hsv_v = hsl_l + hsl_s * std::minmin(hsl_l, 1.f - hsl_l);
+        float hsv_v = hsl_l + hsl_s * std::min(hsl_l, 1.f - hsl_l);
         float hsv_s = (hsv_v != 0) ? 2 * (1.f - hsl_l / hsv_v) : 0;
 
         HSV out;
@@ -360,32 +358,32 @@ namespace crisp
     }
 
     template<>
-    GrayScale convert_to(HSL from)
+    inline GrayScale convert_to(HSL from)
     {
         return GrayScale{from.l, from.a};
     }
 
     // from GreyScale
     template<>
-    Color convert_to(GrayScale from)
+    inline Color convert_to(GrayScale from)
     {
         return Color(from.v, from.v, from.v, from.a);
     }
 
     template<>
-    RGB convert_to(GrayScale from)
+    inline RGB convert_to(GrayScale from)
     {
         return RGB{from.v, from.v, from.v, from.a};
     }
 
     template<>
-    HSV convert_to(GrayScale from)
+    inline HSV convert_to(GrayScale from)
     {
         return HSV{0, 0, from.v, from.a};
     }
 
     template<>
-    HSL convert_to(GrayScale from)
+    inline HSL convert_to(GrayScale from)
     {
         return HSL{0, 0, from.v, from.a};
     }
