@@ -108,6 +108,16 @@ namespace crisp
         return *this;
     }
 
+    Color & Color::operator=(HSL hsl)
+    {
+        auto as_rgb = convert_to<RGB>(hsl);
+        r = as_rgb.r;
+        g = as_rgb.g;
+        b = as_rgb.b;
+        a = hsv.a;
+        return *this;
+    }
+
     Color & Color::operator=(GrayScale grayscale)
     {
         r = grayscale.v;

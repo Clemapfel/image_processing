@@ -78,7 +78,7 @@ namespace crisp
             // @brief: assignment from different representations
             Color & operator=(RGB);
             Color & operator=(HSV);
-            //Color & operator=(CMYK);
+            Color & operator=(HSL);
             Color & operator=(GrayScale);
 
             // @brief: comparison operator, compares element-wise as if the color was a RGB vector

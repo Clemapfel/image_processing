@@ -18,15 +18,17 @@ Until this section is fully formed please consider checking the headers directly
 Support for common color representations RGB, HSV, HSL and Grayscale including conversion and mixing between any of these.
 
 ```cpp 
-auto color = Color(123, 140, 129, 255); // elements are uint8_t
+auto as_rgb = RGB{123, 140, 129, 255}; // elements are uint8_t
+Color color = rgb;
 color = color.invert();
+
 HSV in_hsv = convert_to<HSV>(color);
 HSL in_hsl = convert_to<HSL>(as_hsv);
 
 assert(convert_to<HSL>(color) == color.as_hsl());
 
 float in_gray = convert_to<GrayScale>(as_hsl);
-Color mixed = mix<Color>(color, Color(as_gray), 0.5);
+auto mixed = mix<Color>(color, Color(as_gray), 0.5);
 ```
 
 ### Authors
