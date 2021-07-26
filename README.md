@@ -32,11 +32,11 @@ float in_gray = convert_to<GrayScale>(as_hsl);
 auto mixed = mix<Color>(color, Color(as_gray), 0.5);
 ```
 
-### [render_window.hpp](include/render_window.hpp)
+#### [render_window.hpp](include/render_window.hpp)
 Creates a window that can be used for rendering in real-time at an arbitrary refresh rate
 
 ```cpp
-RenderWindow window;
+crisp::RenderWindow window;
 window.create(1920, 1080, true, 60); // create a 1920x1080 fullscreen-only window with a max refresh rate of 60fps
 window.set_background_color(Color(255, 255, 0, 1)); // set background to magenta for better contrast
 
