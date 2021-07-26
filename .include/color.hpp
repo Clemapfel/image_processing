@@ -9,7 +9,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <cstdint>
 
-namespace cip
+namespace crisp
 {
     // color representation as RGB cube
     // values in [0, 255)
@@ -25,20 +25,20 @@ namespace cip
     // values in [0, 255)
     struct HSV
     {
-        uint8_t h, // hue (chroma)
+        uint8_t h, // hue
                 s, // saturation
-                v, // value
+                v, // value (brightness), maximum value corresponds to a white light shining onto a colored object
                 a; // alpha
     };
 
-    // color representation in CYMK system common in printing
+    // color representation in HSL system
     // values in [0, 255)
-    struct CMYK
+    struct HSL
     {
-        uint8_t c, // cyan
-                m, // magenta
-                y, // yellow
-                k; // black
+        uint8_t h, // hue
+                s, // saturation
+                l, // lightness, maximum lightness corresponds to a pure white color
+                a; // alpha
     };
 
     // color representation as one grey-scale intensity v equivalent in RGB to the grey tone (v, v, v, alpha)
@@ -48,6 +48,28 @@ namespace cip
         uint8_t v, // value
                 a; // alpha
     };
+
+    /*
+        // color representation in CMY system, including alpha
+        // values in [0, 255)
+        struct CMY
+        {
+            uint8_t c, // cyan
+                    m, // magenta
+                    y, // yellow
+                    a; // black
+        };
+
+        // color representation in CYMK system common in printing
+        // values in [0, 255)
+        struct CMYK
+        {
+            uint8_t c, // cyan
+                    m, // magenta
+                    y, // yellow
+                    k; // black
+        };
+     */
 
     // class representing 8-bit colors
     class Color : protected sf::Color
@@ -62,20 +84,20 @@ namespace cip
             // CTORS
             Color();
             Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha);
-            Color(RGB rgb);
-            Color(HSV hsv);
-            Color(GrayScale grayscale);
+            explicit Color(RGB rgb);
+            explicit Color(HSV hsv);
+            explicit Color(GrayScale grayscale);
 
             // @brief: transform color into different representation
-            [[nodiscard]] RGB && as_rgb();
-            [[nodiscard]] HSV && as_hsv();
-            [[nodiscard]] CMYK && as_cmyk();
-            [[nodiscard]] GrayScale && as_grayscale();
+            [[nodiscard]] RGB as_rgb();
+            [[nodiscard]] HSV as_hsv();
+            //[[nodiscard]] CMYK as_cmyk();
+            [[nodiscard]] GrayScale as_grayscale();
 
             // @brief: assignment from different representations
             Color & operator=(RGB);
             Color & operator=(HSV);
-            Color & operator=(CMYK);
+            //Color & operator=(CMYK);
             Color & operator=(GrayScale);
 
             // @brief: comparison operator, compares element-wise as if the color was a RGB vector
@@ -90,14 +112,43 @@ namespace cip
     // @param from: original representation of type T1
     // @returns: converted representation of type T2
     // @note: Will trigger a static assertion unless T1 and T2 are any of {Color, RGB, HSV; CMYK, GrayScale}
-    template<typename T1, typename T2>
-    extern T2&& convert(T1 from);
+    //template<typename T1, typename T2>
+    //extern T2&& convert(T1 from);
 
     // @brief: mix override for colors, c.f. vector.hpp for the generalized function
     // @param a: first color
     // @param b: second color
     // @param weight: weight, 0 for 100% first color, 1 for 100% second color. Values outside of [0,1] are clamped
     Color && mix(Color a, Color b, float weight);
+
+    // @brief: convert one color representation into another
+    // @param from: any of type {RGB, HSV, HSL, GrayScale, Color}
+    // @returns: any of type {RBG, HSV, HSL, GrayScale, Color}
+    template<typename T>
+    T convert_to(T from);
+
+    template<typename T>
+    T convert_to(Color from);
+
+    template<typename T>
+    T convert_to(RGB from);
+
+    template<typename T>
+    T convert_to(HSV from);
+
+    template<typename T>
+    T convert_to(HSL from);
+
+    template<typename T>
+    T convert_to(GrayScale from);
+
+    template<typename T1, typename T2>
+    T2 convert_to(T1 from)
+    {
+        // will only be called with incorrect use
+        static_assert(true, "conver_to template parameter and/or argument is not a valid color representation");
+    }
 }
 
 #include ".src/color.inl"
+

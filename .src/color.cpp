@@ -7,7 +7,7 @@
 #include <vector.hpp>
 #include <utility>
 
-namespace todo
+namespace crisp
 {
     Color::Color()
     {
@@ -35,7 +35,7 @@ namespace todo
 
     Color::Color(HSV hsv)
     {
-        auto as_rgb = convert<HSV, RGB>(hsv);
+        auto as_rgb = convert_to<RGB>(hsv);
         r = as_rgb.r;
         g = as_rgb.g;
         b = as_rgb.b;
@@ -50,19 +50,19 @@ namespace todo
         a = grayscale.a;
     }
 
-    RGB && Color::as_rgb()
+    RGB Color::as_rgb()
     {
-        return convert<Color, RGB>(*this);
+        return convert_to<RGB>(*this);
     }
 
-    HSV && Color::as_hsv()
+    HSV Color::as_hsv()
     {
-        return convert<Color, HSV>(*this);
+        return convert_to<HSV>(*this);
     }
 
-    GrayScale && Color::as_grayscale()
+    GrayScale Color::as_grayscale()
     {
-        return convert<Color, GrayScale>(*this);
+        return convert_to<GrayScale>(*this);
     }
 
     Color & Color::operator=(RGB rgb)
@@ -76,7 +76,7 @@ namespace todo
 
     Color & Color::operator=(HSV hsv)
     {
-        auto as_rgb = convert<HSV, RGB>(hsv);
+        auto as_rgb = convert_to<RGB>(hsv);
         r = as_rgb.r;
         g = as_rgb.g;
         b = as_rgb.b;

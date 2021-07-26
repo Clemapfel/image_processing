@@ -7,57 +7,290 @@
 #include <type_traits>
 #include <vector.hpp>
 
-namespace todo
+namespace crisp
 {
-    template<typename T1, typename T2>
-    T2&& convert(T1 from)
+    template<typename T>
+    T convert_to(T from)
     {
-        /*
-        static constexpr auto is_color_model = []<class T>(T dummy)
+        return from;
+    }
+
+    // forward declarations
+    template<>
+    HSV convert_to(RGB);
+    template<>
+    HSL convert_to(RGB);
+
+    template<>
+    RGB convert_to(HSV);
+    template<>
+    HSL convert_to(HSV);
+
+    template<>
+    RGB convert_to(HSL);
+    template<>
+    HSV convert_to(HSL);
+
+    // from Color
+    template<>
+    HSV convert_to(Color from)
+    {
+        auto as_rgb = RGB{from.r, from.g, from.b, from.a};
+        return convert_to<HSV>(as_rgb);
+    }
+
+    template<>
+    HSL convert_to(Color from)
+    {
+        auto as_rgb = RGB{from.r, from.g, from.b, from.a};
+        return convert_to<HSL>(as_rgb);
+    }
+
+    template<>
+    RGB convert_to(Color from)
+    {
+        return RGB{from.r, from.g, from.b, from.a};
+    }
+
+    template<>
+    GrayScale convert_to(Color from)
+    {
+        uint8_t average = (from.r + from.g + from.b) / 3;
+        return GrayScale{average, from.a};
+    }
+
+    // from RGB
+    template<>
+    HSV convert_to(RGB from)
+    {
+        float r = from.r / uint8_t(255),
+              g = from.g / uint8_t(255),
+              b = from.b / uint8_t(255);
+
+        float h, s, v;
+        float max = fmax(fmax(r, g), b);
+        float min = fmin(fmin(r, g), b);
+        float delta = max - min;
+
+        if (delta > 0)
         {
-            return std::is_same_v<T, Color> or std::is_same_v<T, RGB> or std::is_same_v<T, HSV> or std::is_same_v<T, CMYK> or std::is_same_v<T, GrayScale>;
-        };
+            if (max == r)
+                h = 60 * (fmod(((g - b) / delta), 6));
 
-        static_assert(is_color_model(T1()) and is_color_model(T2()), "argument is not a valid color representation");
+            else if (max == g)
+                h = 60 * (((b - r) / delta) + 2);
 
-        // RGB to CMYK
-        if (std::is_same_v<T1, RGB> and std::is_same_v<T2, CMYK>)
+            else if (max == b)
+                h = 60 * (((r - g) / delta) + 4);
+
+
+            if (max > 0)
+                s = delta / max;
+            else
+                s = 0;
+
+            v = max;
+        }
+        else
         {
-            CMYK out;
-            out.c = 1 - from.r;
-            out.m = 1 - from.g;
-            out.y = 1 - from.b;
-
-            auto vec = Vector3u8(out.c, out.m, out.y);
-            uint8_t k = min(vec);
+            h = 0;
+            s = 0;
+            v = max;
         }
 
+        if (h < 0)
+            h = 360 + h;
 
-        // HSV to RGB
-        if (std::is_same_v<T1, HSV> and std::is_same_v<T2, RGB>)
-        {
-        }
-        // RGB to HSV
-        else if (std::is_same_v<T1, RGB> and std::is_same_v<T2, HSV>)
-        {
+        HSV out;
+        out.h = h * uint8_t(255);
+        out.s = s * uint8_t(255);
+        out.v = v * uint8_t(255);
+        out.a = from.a;
 
-        }
-        // to grey scale
-        else if (std::is_same_v<T2, GrayScale>)
+        return out;
+    }
+
+    template<>
+    HSL convert_to(RGB from)
+    {
+        auto as_hsv = convert_to<HSV>(from);
+        return convert_to<HSL>(as_hsv);
+    }
+
+    template<>
+    Color convert_to(RGB from)
+    {
+        return Color(from.r, from.g, from.b, from.a);
+    }
+
+    template<>
+    GrayScale convert_to(RGB from)
+    {
+        uint8_t average = (from.r + from.g + from.b) / 3;
+        return GrayScale{average, from.a};
+    }
+
+    // from HSV
+    template<>
+    RGB convert_to(HSV from)
+    {
+        float h = from.h / uint8_t(255),
+              s = from.s / uint8_t(255),
+              v = from.v / uint8_t(255);
+
+        float c = v * s;
+        float h_2 = h / 60;
+        float x = c * (1 - std::fabs(std::fmod(h_2, 2) - 1));
+
+        float r, g, b;
+
+        if (0 <= h_2 and h_2 < 1)
         {
-            if (std::is_same_v<T1, RGB>)
-            {
-                // convert to hsv
-                // lower v to 0
-            }
-            else if (std::is_same_v<T1, HSV>)
-            {
-                // lower v to 0
-                // convert to rgb
-            }
+            r = c;
+            g = x;
+            b = 0;
         }
-        else 
-            assert(true && "TODO");
-            */
+        else if (1 <= h_2 and h_2 < 2)
+        {
+            r = x;
+            g = c;
+            b = 0;
+        }
+        else if (2 <= h_2 and h_2 < 3)
+        {
+            r = 0;
+            g = c;
+            x = b;
+        }
+        else if (3 <= h_2 and h_2 < 4)
+        {
+            r = 0;
+            g = x;
+            b = c;
+        }
+        else if (4 <= h_2 and h_2 < 5)
+        {
+            r = x;
+            g = 0;
+            b = c;
+        }
+        else if (5 <= h_2 and h_2 <= 6)
+        {
+            r = c;
+            g = 0;
+            b = x;
+        }
+
+        float m = v - c;
+        r += m;
+        g += m;
+        b += m;
+
+        RGB out;
+        out.r = r * uint8_t(255);
+        out.g = g * uint8_t(255);
+        out.b = b * uint8_t(255);
+        out.a = from.a;
+
+        return out;
+    }
+
+    template<>
+    HSL convert_to(HSV from)
+    {
+        float hsv_s = from.s / uint8_t(255),
+              hsv_v = from.v / uint8_t(255);
+
+        float hsl_l = hsv_v * (1 - hsv_s / 2),
+              hsl_s;
+
+        if (hsl_l == 0 or hsl_l == 1)
+            hsl_s = 0;
+        else
+            hsv_s = (hsv_v - hsl_l) / std::min(hsl_l, 1.f - hsl_l);
+
+        HSL out;
+        out.h = from.h;
+        out.s = hsl_s * uint8_t(255);
+        out.l = hsl_l * uint8_t(255);
+
+        return out;
+    }
+
+    template<>
+    Color convert_to(HSV from)
+    {
+        auto as_rgb = convert_to<RGB>(from);
+        return Color(as_rgb.r, as_rgb.g, as_rgb.b, from.a);
+    }
+
+    template<>
+    GrayScale convert_to(HSV from)
+    {
+        return GrayScale{from.v, from.a};
+    }
+
+    // from HSL
+    template<>
+    Color convert_to(HSL from)
+    {
+        auto as_hsv = convert_to<HSV>(from);
+        auto as_rgb = convert_to<RGB>(as_hsv);
+        return Color(as_hsv.r, as_hsv.g, as_hsv.b, from.a);
+    }
+
+    template<>
+    RGB convert_to(HSL from)
+    {
+        auto as_hsv = convert_to<HSV>(from);
+        return convert_to<RGB>(as_hsv);
+    }
+
+    template<>
+    HSV convert_to(HSL from)
+    {
+        float hsl_l = from.l / uint8_t(255),
+              hsl_s = from.s / uint8_t(255);
+
+        float hsv_v = hsl_l + hsl_s * std::minmin(hsl_l, 1.f - hsl_l);
+        float hsv_s = (hsv_v != 0) ? 2 * (1.f - hsl_l / hsv_v) : 0;
+
+        HSV out;
+        out.h = from.h;
+        out.s = hsv_s * uint8_t(255);
+        out.v = hsv_v * uint8_t(255);
+
+        return out;
+    }
+
+    template<>
+    GrayScale convert_to(HSL from)
+    {
+        return GrayScale{from.l, from.a};
+    }
+
+    // from GreyScale
+    template<>
+    Color convert_to(GrayScale from)
+    {
+        return Color(from.v, from.v, from.v, from.a);
+    }
+
+    template<>
+    RGB convert_to(GrayScale from)
+    {
+        return RGB{from.v, from.v, from.v, from.a};
+    }
+
+    template<>
+    HSV convert_to(GrayScale from)
+    {
+        return HSV{0, 0, from.v, from.a};
+    }
+
+    template<>
+    HSL convert_to(GrayScale from)
+    {
+        return HSL{0, 0, from.v, from.a};
     }
 }
