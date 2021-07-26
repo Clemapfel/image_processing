@@ -10,12 +10,15 @@
 namespace crisp
 {
     // @brief ID of keyboard and mouse keys
-    // @note does not support all characters to assure portability and consistency across all keyboard types
+    // @note does not support all characters to assure portability and consistency across all keyboard and mouse types
     enum KeyID : int
     {
-        UNKNOWN = sf::Keyboard::Key::Unknown, // any key not mentioned here
-        ESCAPE = sf::Keyboard::Key::Escape,   // escape key
-        SPACE = sf::Keyboard::Key::Space,     // space bar
+        UNKNOWN = sf::Keyboard::Key::Unknown, // any key not specifically mentioned below
+
+        ESCAPE = sf::Keyboard::Key::Escape,         // escape key
+        SPACE = sf::Keyboard::Key::Space,           // space bar
+        ENTER = sf::Keyboard::Key::Enter,           // enter key
+        BACKSPACE = sf::Keyboard::Key::BackSpace,   // backspace key
 
         UP = sf::Keyboard::Key::Up,           // up arrow
         DOWN = sf::Keyboard::Key::Down,       // down arrow
@@ -23,14 +26,17 @@ namespace crisp
         RIGHT = sf::Keyboard::Key::Right,     // right arrow
 
         SHIFT = sf::Keyboard::Key::LShift,    // left shift key, including caps lock
+        RSHIFT = sf::Keyboard::Key::RShift,   // right shift key, including caps lock
         CTRL = sf::Keyboard::Key::LControl,   // left control key
+        RCTRL = sf::Keyboard::Key::RControl,  // right control key
         ALT = sf::Keyboard::Key::LAlt,        // left alt key
+        RALT = sf::Keyboard::Key::RAlt,       // right alt key
 
         MOUSE_LEFT = -2,                      // left mouse button
         MOUSE_RIGHT = -3,                     // right mouse button
-        MOUSE_MIDDLE = -4,                    // the scrollwheel button
+                                              // scrollwheel or side-buttons are not supported
 
-        A = sf::Keyboard::Key::A,             // letter keys, umlaute and special letters are not supported
+        A = sf::Keyboard::Key::A,             // letter keys, umlaute and other special letters are not supported
         B = sf::Keyboard::Key::B,             // ...
         C = sf::Keyboard::Key::C,
         D = sf::Keyboard::Key::D,
@@ -66,7 +72,7 @@ namespace crisp
         NUM_7 = sf::Keyboard::Key::Num7,
         NUM_8 = sf::Keyboard::Key::Num8,
         NUM_9 = sf::Keyboard::Key::Num9,
-        F1 = sf::Keyboard::Key::F1,         // FX keys, X > 12 is not supported
+        F1 = sf::Keyboard::Key::F1,         // FN keys, N > 12 is not supported
         F2 = sf::Keyboard::Key::F2,         // ...
         F3 = sf::Keyboard::Key::F3,
         F4 = sf::Keyboard::Key::F4,

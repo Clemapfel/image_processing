@@ -142,11 +142,6 @@ namespace crisp
                 state.insert_or_assign(MOUSE_RIGHT, true);
                 _hold_duration.insert({MOUSE_RIGHT, sf::seconds(0)});
             }
-            else if (event.mouseButton.button == sf::Mouse::Middle)
-            {
-                state.insert_or_assign(MOUSE_MIDDLE, true);
-                _hold_duration.insert({MOUSE_MIDDLE, sf::seconds(0)});
-            }
         }
         else if (event.type == sf::Event::MouseButtonReleased)
         {
@@ -160,11 +155,6 @@ namespace crisp
                 state.insert_or_assign(MOUSE_RIGHT, false);
                 _hold_duration.erase(MOUSE_RIGHT);
             }
-            else if (event.mouseButton.button == sf::Mouse::Middle)
-            {
-                state.insert_or_assign(MOUSE_MIDDLE, false);
-                _hold_duration.erase(MOUSE_MIDDLE);
-            }
         }
         else if (event.type == sf::Event::MouseMoved)
         {
@@ -177,7 +167,8 @@ namespace crisp
         int cast = static_cast<int>(sf);
 
         if ((cast >= 0 and cast <= 35) or    // a - z, 0 - 9 keys
-            (cast == UNKNOWN or cast == ESCAPE or cast == SPACE or cast == UP or cast == DOWN or cast == LEFT or cast == RIGHT or cast == SHIFT or cast == CTRL or cast == ALT))
+            (cast >= 85 and cast <= 96) or   // F1 - F12 keys
+            (cast == UNKNOWN or cast == ESCAPE or cast == SPACE or cast == BACKSPACE or cast == UP or cast == DOWN or cast == LEFT or cast == RIGHT or cast == SHIFT or cast == RSHIFT or cast == CTRL or cast == RCTRL or cast == ALT or cast == RALT))
         {
             return static_cast<KeyID>(sf);
         }

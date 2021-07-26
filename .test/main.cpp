@@ -19,7 +19,7 @@ enum to : char {TO_TWO = TWO};
 
 int main()
 {
-    std::cout << sf::Keyboard::Key::Num9 << std::endl;
+    std::cout << sf::Keyboard::Key::F1 << " " << sf::Keyboard::Key::F12 << std::endl;
     return 0;
 
     RenderWindow window;
