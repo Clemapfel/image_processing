@@ -16,7 +16,7 @@ namespace crisp
         InputHandler::set_window(this);
     }
 
-    void RenderWindow::draw(Drawable*, Shader*)
+    void RenderWindow::draw(Drawable*, Shader*, sf::Transform)
     {
         //sf::RenderWindow::draw
     }
