@@ -14,7 +14,7 @@ Supports on- and off-gpu processing of 8-bit color images and modern C++ feature
 ### Documentation
 Until this section is fully formed please consider checking the headers directly. They are intentionally formatted to be very easily referenced back to for questions.
 
-#### [color.hpp](.include/colors.hpp)
+#### [color.hpp](.include/color.hpp)
 Support for common color representations RGB, HSV, HSL and Grayscale including conversion and mixing between any of these.
 
 ```cpp 
