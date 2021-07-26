@@ -18,11 +18,11 @@ include_directories("./eigen/Eigen")
 
 # common
 add_library(common STATIC
-        .include/image.hpp
-        .include/color.hpp
+        include/image.hpp
+        include/color.hpp
         .src/color.inl
         .src/color.cpp
-        .include/vector.hpp
+        include/vector.hpp
         .src/vector.inl)
 
 set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
@@ -30,7 +30,7 @@ target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
 
 # include directories for convenience
 include_directories("../image_processing") # for .inl files
-include_directories(".include")
+include_directories("include")
 include_directories(".src") # for .inl files
 
 # executables
