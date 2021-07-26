@@ -1,6 +1,6 @@
 # CRISP: real-time, interactive signal processing library
 
-A portable, lightweight modern C++20 Library implementing most common features of digital image processing as described in "Digital Image Processing" (R.C.Gonzales, R.E.Woods, 2017). Intended for educational purposes or personal use only.
+A portable, lightweight modern C++20 Library implementing most common features of digital image processing as mentioned in "Digital Image Processing" (R.C.Gonzales, R.E.Woods, 2017). Intended for educational purposes or personal use only.
 
 Supports on- and off-gpu processing of 8-bit color images on Mac, Windows and Linux. 
 
