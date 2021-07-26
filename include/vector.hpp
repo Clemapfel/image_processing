@@ -10,7 +10,7 @@
 
 namespace crisp
 {
-    // forward delcaration for easier readibility by putting the non-member functions before the class definition
+    // forward delcaration
     template<typename, size_t>
     class Vector;
 

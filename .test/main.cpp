@@ -8,11 +8,20 @@
 #include <vector.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <color.hpp>
+#include <render_window.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <input_handler.hpp>
 
 using namespace crisp;
 
+enum from : char {ONE = 1, TWO = 2, THREE = 4};
+enum to : char {TO_TWO = TWO};
+
 int main()
 {
+    RenderWindow window;
+    window.create(1280, 740);
+
     auto lua = sol::state();
     auto tex = sf::Texture();
 
@@ -20,7 +29,15 @@ int main()
 
     HSV hsv = convert_to<HSV>(col);
 
+    while (window.is_open())
+    {
+        auto time = window.update();
 
-    std::cout << "hello world" << std::endl;
+        if (InputHandler::was_key_pressed(SPACE))
+            std::cout << "SPACE" << std::endl;
+
+        window.clear();
+        window.display();
+    }
 }
 

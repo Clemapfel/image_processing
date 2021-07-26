@@ -5,8 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 project(image_processing)
 
 # sfml
-include_directories("./SFML/include")
-find_package(SFML COMPONENTS graphics REQUIRED)
+# TODO make generic
+include_directories("/home/clem/Workspace/rat_game/submodules/SFML-2.5.1/include")
+set(SFML_DIR "/home/clem/Workspace/rat_game/submodules/SFML-2.5.1/lib/cmake/SFML")
+find_package(SFML 2.5.1 COMPONENTS graphics window system REQUIRED)
 
 # lua
 include_directories("./sol2/include")
@@ -23,9 +25,11 @@ add_library(common STATIC
         .src/color.inl
         .src/color.cpp
         include/vector.hpp
-        .src/vector.inl)
+        .src/vector.inl
+        include/render_window.hpp
+        .src/render_window.cpp include/key_id.hpp .src/input_handler.cpp)
 
-set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
+#set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
 
 # include directories for convenience
@@ -35,4 +39,4 @@ include_directories(".src") # for .inl files
 
 # executables
 add_executable(TEST .test/main.cpp)
-target_link_libraries(TEST common)
+target_link_libraries(TEST common sfml-graphics sfml-window sfml-system sfml-audio sfml-network ${LUA_LIBRARIES})
