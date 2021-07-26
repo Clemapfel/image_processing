@@ -174,12 +174,10 @@ namespace crisp
 
     KeyID InputHandler::sf_key_to_id(sf::Keyboard::Key sf)
     {
-        char cast = static_cast<char>(sf);
+        int cast = static_cast<int>(sf);
 
-        if ((cast >= 'a' and cast <= 'z') or    // a - z keys
-            (cast >= '0' and cast <= '9') or    // non numpad numbers
-            (cast >= 'U' and cast <= '`') or    // F1 - F12
-            (cast == ESCAPE or cast == UP or cast == DOWN or cast == LEFT or cast == RIGHT or cast == SHIFT or cast == CTRL or cast == ALT or cast == SPACE))
+        if ((cast >= 0 and cast <= 35) or    // a - z, 0 - 9 keys
+            (cast == UNKNOWN or cast == ESCAPE or cast == SPACE or cast == UP or cast == DOWN or cast == LEFT or cast == RIGHT or cast == SHIFT or cast == CTRL or cast == ALT))
         {
             return static_cast<KeyID>(sf);
         }

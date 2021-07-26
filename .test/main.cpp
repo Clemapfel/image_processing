@@ -19,6 +19,9 @@ enum to : char {TO_TWO = TWO};
 
 int main()
 {
+    std::cout << sf::Keyboard::Key::Num9 << std::endl;
+    return 0;
+
     RenderWindow window;
     window.create(1280, 740);
 
