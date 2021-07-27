@@ -20,14 +20,12 @@ using namespace crisp;
 int main()
 {
     RenderWindow window;
-    window.create(1920, 1080);
+    window.create(1280, 740);
+    window.set_background_color(Color(1, 0, 1, 1));
 
     Image image;
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
-    float x = window.get_resolution().at(0) * 0.5f;
-    float y = window.get_resolution().at(1) * 0.5f;
-    auto test = Vector2f(x, y);
-    image.align_center_with(test);
+    image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
 
     while (window.is_open())
     {

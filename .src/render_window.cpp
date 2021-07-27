@@ -23,7 +23,8 @@ namespace crisp
 
     void RenderWindow::clear(Color color)
     {
-        sf::RenderWindow::clear(sf::Color(color.r, color.g, color.b, color.a));
+        sf::RenderWindow::clear(sf::Color(color.r * 255, color.g * 255, color.b * 255, color.a * 255));
+        draw(_background_shape);
     }
 
     Vector2f RenderWindow::get_mouse_position()
@@ -55,7 +56,6 @@ namespace crisp
         sf::RenderWindow::create(sf::VideoMode(width, height), "", style, context_settings);
         _background_shape.setPosition(0, 0);
         _background_shape.setSize(sf::Vector2f(width, height));
-        _background_shape.setFillColor(sf::Color::Red);
     }
 
     bool RenderWindow::is_open() const
@@ -65,8 +65,8 @@ namespace crisp
 
     Vector2f RenderWindow::get_resolution()
     {
-        float x = float(_resolution.at(0));
-        float y = float(_resolution.at(1));
+        auto x = float(_resolution.at(0));
+        auto y = float(_resolution.at(1));
         auto out = Vector2f(x, y);
         return out;
     }
@@ -74,6 +74,9 @@ namespace crisp
     void RenderWindow::set_background_color(Color color)
     {
         _background_shape.setPosition(0, 0);
-        _background_shape.setFillColor(sf::Color(color.r, color.g, color.b, color.a));
+
+        auto to_uint = [](float in) -> uint8_t {return static_cast<uint8_t>(in * uint8_t(255));};
+
+        _background_shape.setFillColor(sf::Color(to_uint(color.r), to_uint(color.g), to_uint(color.b), to_uint(color.a)));
     }
 }
