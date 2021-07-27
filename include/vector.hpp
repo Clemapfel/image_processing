@@ -49,7 +49,7 @@ namespace crisp
 
     // @brief: wrapper for Eigen::Vector that offers std::vector-like style convenience
     template<typename T, size_t n>
-    class Vector : public Eigen::Matrix<T, n, 1>
+    class Vector : public Eigen::Matrix<T, 1, n>
     {
         public:
             // @brief: initialize the vector with an initializer list

@@ -68,13 +68,13 @@ namespace crisp
 
         size_t i = 0;
         for (auto it = list.begin(); i < n and it != list.end(); it += 1, ++i)
-            Eigen::Matrix<T, n, 1>::operator()(0) = *it;
+            Eigen::Matrix<T, 1, n>::operator()(0, i) = *it;
     }
 
     template<typename T, size_t n>
     T & Vector<T, n>::operator[](size_t i)
     {
-        return Eigen::Matrix<T, n, 1>::operator()(i, 0);
+        return Eigen::Matrix<T, 1, n>::operator()(0, i);
     }
 
     template<typename T, size_t n>
@@ -83,7 +83,7 @@ namespace crisp
         if (i >= n)
             throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(n));
 
-        return Eigen::Matrix<T, n, 1>::operator()(i, 0);;
+        return Eigen::Matrix<T, 1, n>::operator()(0, i);;
     }
 
     template<typename T, size_t n>
