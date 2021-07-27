@@ -12,7 +12,7 @@
 
 namespace crisp
 {
-    class Drawable;
+    using Drawable = sf::Drawable;
     class Shader;
 
     // @brief class that opens a window for rendering, works on Linux, Mac and Windows
@@ -55,6 +55,7 @@ namespace crisp
             // @param shader: optional shader of either type, will be applied to the drawable
             // @param states: optional transform to be applied before drawing
             void draw(Drawable* drawable, Shader* shader = nullptr, sf::Transform transform = sf::Transform());
+            using sf::RenderWindow::draw;
 
             // @brief clear the render area
             // @param color: overrides all pixels with the specified current, RGB{0, 0, 0, 0} (transparency) by default

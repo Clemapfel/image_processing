@@ -17,7 +17,7 @@ namespace crisp
         InputHandler::set_window(this);
     }
 
-    void RenderWindow::draw(Drawable*, Shader*, sf::Transform)
+    void RenderWindow::draw(Drawable* drawable, Shader* shader, sf::Transform)
     {
     }
 
@@ -41,7 +41,8 @@ namespace crisp
 
     void RenderWindow::create(size_t width, size_t height, bool fullscreen, size_t fps_limit)
     {
-        _resolution = Vector2ui(width, height);
+        _resolution[0] = width;
+        _resolution[1] = height;
 
         sf::ContextSettings context_settings;
         context_settings.antialiasingLevel = 0;
@@ -64,7 +65,10 @@ namespace crisp
 
     Vector2f RenderWindow::get_resolution()
     {
-        return Vector2f(float(_resolution.at(0)), float(_resolution.at(1)));
+        float x = float(_resolution.at(0));
+        float y = float(_resolution.at(1));
+        auto out = Vector2f(x, y);
+        return out;
     }
 
     void RenderWindow::set_background_color(Color color)
