@@ -19,11 +19,9 @@ enum to : char {TO_TWO = TWO};
 
 int main()
 {
-    std::cout << sf::Keyboard::Key::F1 << " " << sf::Keyboard::Key::F12 << std::endl;
-    return 0;
-
     RenderWindow window;
     window.create(1280, 740);
+    window.set_background_color(Color(255, 0, 0, 255));
 
     auto lua = sol::state();
     auto tex = sf::Texture();
@@ -40,6 +38,7 @@ int main()
             std::cout << "SPACE" << std::endl;
 
         window.clear();
+        window.sf::RenderWindow::draw(window._background_shape);
         window.display();
     }
 }

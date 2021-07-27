@@ -25,6 +25,14 @@ namespace crisp
         a = alpha;
     }
 
+    Color::Color(float red, float green, float blue, float alpha)
+    {
+        r = static_cast<uint8_t>(red * uint8_t(255));
+        g = static_cast<uint8_t>(green * uint8_t(255));
+        b = static_cast<uint8_t>(blue * uint8_t(255));
+        a = static_cast<uint8_t>(alpha * uint8_t(255));
+    }
+
     Color::Color(RGB rgb)
     {
         r = rgb.r;

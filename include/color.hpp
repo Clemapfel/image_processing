@@ -13,7 +13,7 @@
 namespace crisp
 {
     // color representation as RGB cube
-    // values in [0, 255)
+    // values in [0, 1]
     struct RGB
     {
         uint8_t r = 0, // red
@@ -23,7 +23,7 @@ namespace crisp
     };
 
     // color representation in HSV system
-    // values in [0, 255)
+    // values in [0, 1]
     struct HSV
     {
         uint8_t h = 0, // hue
@@ -33,7 +33,7 @@ namespace crisp
     };
 
     // color representation in HSL system
-    // values in [0, 255)
+    // values in [0, 1]
     struct HSL
     {
         uint8_t h = 0, // hue
@@ -43,7 +43,7 @@ namespace crisp
     };
 
     // color representation as one grey-scale intensity v equivalent in RGB to the grey tone (v, v, v, alpha)
-    // values in [0, 255)
+    // values in [0, 1]
     struct GrayScale
     {
         uint8_t v = 0, // value
@@ -62,7 +62,7 @@ namespace crisp
 
             // CTORS
             Color();
-            Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 1);
+            Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255);
             explicit Color(RGB rgb);
             explicit Color(HSV hsv);
             explicit Color(HSL hsl);

@@ -7,6 +7,7 @@
 #include <SFML/Window/Window.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <input_handler.hpp>
+#include <iostream>
 
 namespace crisp
 {
@@ -18,13 +19,11 @@ namespace crisp
 
     void RenderWindow::draw(Drawable*, Shader*, sf::Transform)
     {
-        //sf::RenderWindow::draw
     }
 
     void RenderWindow::clear(Color color)
     {
         sf::RenderWindow::clear(sf::Color(color.r, color.g, color.b, color.a));
-        sf::RenderWindow::draw(_background_shape);
     }
 
     Vector2f RenderWindow::get_mouse_position()
@@ -44,10 +43,6 @@ namespace crisp
     {
         _resolution = Vector2ui(width, height);
 
-        _background_shape.setFillColor(sf::Color::Transparent);
-        _background_shape.setPosition(0, 0);
-        _background_shape.setSize(sf::Vector2f(_resolution.at(0), _resolution.at(1)));
-
         sf::ContextSettings context_settings;
         context_settings.antialiasingLevel = 0;
 
@@ -57,6 +52,9 @@ namespace crisp
             style |= sf::Style::Fullscreen;
 
         sf::RenderWindow::create(sf::VideoMode(width, height), "", style, context_settings);
+        _background_shape.setPosition(0, 0);
+        _background_shape.setSize(sf::Vector2f(width, height));
+        _background_shape.setFillColor(sf::Color::Red);
     }
 
     bool RenderWindow::is_open() const
@@ -71,6 +69,7 @@ namespace crisp
 
     void RenderWindow::set_background_color(Color color)
     {
+        _background_shape.setPosition(0, 0);
         _background_shape.setFillColor(sf::Color(color.r, color.g, color.b, color.a));
     }
 }

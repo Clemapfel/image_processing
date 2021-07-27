@@ -16,7 +16,7 @@ namespace crisp
     class Shader;
 
     // @brief class that opens a window for rendering, works on Linux, Mac and Windows
-    class RenderWindow : protected sf::RenderWindow
+    class RenderWindow : public sf::RenderWindow
     {
         friend class InputHandler;
 
@@ -63,11 +63,11 @@ namespace crisp
             // @brief update the operating systems window by displayed all bound entities
             using sf::RenderWindow::display;
 
-        protected:
+        //protected:
             using sf::RenderWindow::pollEvent;
             Vector2f get_mouse_position();
 
-        private:
+        //private:
             sf::Clock _elapsed;
             Vector2ui _resolution = Vector2ui(0, 0);
             sf::RectangleShape _background_shape;
