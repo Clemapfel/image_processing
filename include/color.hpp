@@ -50,7 +50,7 @@ namespace crisp
                 a = 1; // alpha
     };
 
-    // class representing 32-bit colors
+    // class representing 32-bit floating point colors
     class Color
     {
         public:
@@ -96,30 +96,8 @@ namespace crisp
     // @brief: convert one color representation into another
     // @param from: any of type {RGB, HSV, HSL, GrayScale, Color}
     // @returns: any of type {RBG, HSV, HSL, GrayScale, Color}
-    template<typename T>
-    T convert_to(T from);
-
-    template<typename T>
-    T convert_to(Color from);
-
-    template<typename T>
-    T convert_to(RGB from);
-
-    template<typename T>
-    T convert_to(HSV from);
-
-    template<typename T>
-    T convert_to(HSL from);
-
-    template<typename T>
-    T convert_to(GrayScale from);
-
     template<typename T1, typename T2>
-    T2 convert_to(T1 from)
-    {
-        // will only be called with incorrect use
-        static_assert(true, "convert_to template parameter and/or argument is not a valid color representation");
-    }
+    T2 convert_to(T1 from);
 }
 
 #include ".src/color.inl"
