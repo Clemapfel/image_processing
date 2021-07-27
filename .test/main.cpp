@@ -11,24 +11,23 @@
 #include <render_window.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <input_handler.hpp>
+#include <SFML/OpenGL.hpp>
+
+#include <image.hpp>
 
 using namespace crisp;
-
-enum from : char {ONE = 1, TWO = 2, THREE = 4};
-enum to : char {TO_TWO = TWO};
 
 int main()
 {
     RenderWindow window;
-    window.create(1280, 740);
-    window.set_background_color(Color(255, 0, 0, 255));
+    window.create(1920, 1080);
 
-    auto lua = sol::state();
-    auto tex = sf::Texture();
-
-    auto col = Color(213, 200, 23, 1);
-
-    HSV hsv = convert_to<HSV>(col);
+    Image image;
+    image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
+    float x = window.get_resolution().at(0) * 0.5f;
+    float y = window.get_resolution().at(1) * 0.5f;
+    auto test = Vector2f(x, y);
+    image.align_center_with(test);
 
     while (window.is_open())
     {
@@ -38,7 +37,7 @@ int main()
             std::cout << "SPACE" << std::endl;
 
         window.clear();
-        window.sf::RenderWindow::draw(window._background_shape);
+        window.draw(image);
         window.display();
     }
 }

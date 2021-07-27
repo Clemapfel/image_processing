@@ -20,14 +20,22 @@ include_directories("./eigen/Eigen")
 
 # common
 add_library(common STATIC
+
         include/image.hpp
+        .src/image.cpp
+
         include/color.hpp
         .src/color.inl
         .src/color.cpp
+
         include/vector.hpp
         .src/vector.inl
+
         include/render_window.hpp
-        .src/render_window.cpp include/key_id.hpp .src/input_handler.cpp)
+        .src/render_window.cpp
+
+        include/key_id.hpp
+        .src/input_handler.cpp )
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})

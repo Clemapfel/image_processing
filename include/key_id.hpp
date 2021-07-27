@@ -10,7 +10,7 @@
 namespace crisp
 {
     // @brief ID of keyboard and mouse keys
-    // @note does not support all characters to assure portability and consistency across all keyboard and mouse types
+    // @note does not support all keys to assure portability and consistency across all keyboard and mouse types
     enum KeyID : int
     {
         UNKNOWN = sf::Keyboard::Key::Unknown, // any key not specifically mentioned below
