@@ -16,53 +16,50 @@ namespace crisp
     // values in [0, 1]
     struct RGB
     {
-        uint8_t r = 0, // red
+        float r = 0, // red
                 g = 0, // green
                 b = 0, // blue
-                a = 255; // alpha
+                a = 1; // alpha
     };
 
     // color representation in HSV system
     // values in [0, 1]
     struct HSV
     {
-        uint8_t h = 0, // hue
+        float h = 0, // hue
                 s = 0, // saturation
                 v = 0, // value (brightness), maximum value corresponds to a white light shining onto a colored object
-                a = 255; // alpha
+                a = 1; // alpha
     };
 
     // color representation in HSL system
     // values in [0, 1]
     struct HSL
     {
-        uint8_t h = 0, // hue
+        float h = 0, // hue
                 s = 0, // saturation
                 l = 0, // lightness, maximum lightness corresponds to a pure white color
-                a = 255; // alpha
+                a = 1; // alpha
     };
 
     // color representation as one grey-scale intensity v equivalent in RGB to the grey tone (v, v, v, alpha)
     // values in [0, 1]
     struct GrayScale
     {
-        uint8_t v = 0, // value
-                a = 255; // alpha
+        float v = 0, // value
+                a = 1; // alpha
     };
 
-    // class representing 8-bit colors
-    class Color : protected sf::Color
+    // class representing 32-bit colors
+    class Color
     {
         public:
-            // values identical to those of the RGB representation
-            using sf::Color::r;
-            using sf::Color::g;
-            using sf::Color::b;
-            using sf::Color::a;
+
+            float r, g, b, a = 1;
 
             // CTORS
             Color();
-            Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255);
+            Color(float red, float green, float blue, float alpha = 1);
             explicit Color(RGB rgb);
             explicit Color(HSV hsv);
             explicit Color(HSL hsl);

@@ -17,22 +17,14 @@ namespace crisp
         a = 1;
     }
 
-    Color::Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
+    Color::Color(float red, float green, float blue, float alpha)
     {
         r = red;
         g = green;
         b = blue;
         a = alpha;
     }
-
-    Color::Color(float red, float green, float blue, float alpha)
-    {
-        r = static_cast<uint8_t>(red * uint8_t(255));
-        g = static_cast<uint8_t>(green * uint8_t(255));
-        b = static_cast<uint8_t>(blue * uint8_t(255));
-        a = static_cast<uint8_t>(alpha * uint8_t(255));
-    }
-
+    
     Color::Color(RGB rgb)
     {
         r = rgb.r;
@@ -43,19 +35,19 @@ namespace crisp
 
     Color::Color(HSV hsv)
     {
-        auto as_rgb = convert_to<RGB>(hsv);
-        r = as_rgb.r;
-        g = as_rgb.g;
-        b = as_rgb.b;
+        auto asrgb = convert_to<RGB>(hsv);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
         a = hsv.a;
     }
 
     Color::Color(HSL hsl)
     {
-        auto as_rgb = convert_to<RGB>(hsl);
-        r = as_rgb.r;
-        g = as_rgb.g;
-        b = as_rgb.b;
+        auto asrgb = convert_to<RGB>(hsl);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
         a = hsl.a;
     }
 
@@ -84,12 +76,7 @@ namespace crisp
 
     Vector4f Color::as_float_vec()
     {
-        auto rf = static_cast<float>(r / uint8_t(255));
-        auto gf = static_cast<float>(g / uint8_t(255));
-        auto bf = static_cast<float>(b / uint8_t(255));
-        auto af = static_cast<float>(a / uint8_t(255));
-
-        return Vector4f(rf, gf, bf, af);
+        return Vector4f(r, g, b, a);
     }
 
     GrayScale Color::as_grayscale()
@@ -108,20 +95,20 @@ namespace crisp
 
     Color & Color::operator=(HSV hsv)
     {
-        auto as_rgb = convert_to<RGB>(hsv);
-        r = as_rgb.r;
-        g = as_rgb.g;
-        b = as_rgb.b;
+        auto asrgb = convert_to<RGB>(hsv);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
         a = hsv.a;
         return *this;
     }
 
     Color & Color::operator=(HSL hsl)
     {
-        auto as_rgb = convert_to<RGB>(hsl);
-        r = as_rgb.r;
-        g = as_rgb.g;
-        b = as_rgb.b;
+        auto asrgb = convert_to<RGB>(hsl);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
         a = hsl.a;
         return *this;
     }

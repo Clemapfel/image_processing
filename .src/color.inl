@@ -15,13 +15,12 @@ namespace crisp
     }
 
     template<>
-    inline Color mix(Color a, Color b, float weight_f)
+    inline Color mix(Color a, Color b, float weight)
     {
-         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
-         weight = clamp<uint8_t>(0, 255, weight);
+         weight = clamp<float>(0, 1, weight);
 
-         uint8_t af = uint8_t(255) - weight;
-         uint8_t bf = weight;
+         float af = 1 - weight;
+         float bf = weight;
 
          Color out;
          out.r = a.r * af + b.r * bf;
@@ -33,13 +32,12 @@ namespace crisp
     }
 
     template<>
-    inline RGB mix(RGB a, RGB b, float weight_f)
+    inline RGB mix(RGB a, RGB b, float weight)
     {
-         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
-         weight = clamp<uint8_t>(0, 255, weight);
+         weight = clamp<float>(0, 1, weight);
 
-         uint8_t af = uint8_t(255) - weight;
-         uint8_t bf = weight;
+         float af = 1 - weight;
+         float bf = weight;
 
          RGB out;
          out.r = a.r * af + b.r * bf;
@@ -51,13 +49,12 @@ namespace crisp
     }
 
     template<>
-    inline HSV mix(HSV a, HSV b, float weight_f)
+    inline HSV mix(HSV a, HSV b, float weight)
     {
-         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
-         weight = clamp<uint8_t>(0, 255, weight);
+         weight = clamp<float>(0, 1, weight);
 
-         uint8_t af = uint8_t(255) - weight;
-         uint8_t bf = weight;
+         float af = 1 - weight;
+         float bf = weight;
 
          HSV out;
          out.h = a.h * af + b.h * bf;
@@ -69,13 +66,12 @@ namespace crisp
     }
 
     template<>
-    inline HSL mix(HSL a, HSL b, float weight_f)
+    inline HSL mix(HSL a, HSL b, float weight)
     {
-         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
-         weight = clamp<uint8_t>(0, 255, weight);
+         weight = clamp<float>(0, 1, weight);
 
-         uint8_t af = uint8_t(255) - weight;
-         uint8_t bf = weight;
+         float af = 1 - weight;
+         float bf = weight;
 
          HSL out;
          out.h = a.h * af + b.h * bf;
@@ -87,13 +83,12 @@ namespace crisp
     }
 
     template<>
-    inline GrayScale mix(GrayScale a, GrayScale b, float weight_f)
+    inline GrayScale mix(GrayScale a, GrayScale b, float weight)
     {
-         auto weight = static_cast<uint8_t>(weight_f * uint8_t(255));
-         weight = clamp<uint8_t>(0, 255, weight);
+         weight = clamp<float>(0, 1, weight);
 
-         uint8_t af = uint8_t(255) - weight;
-         uint8_t bf = weight;
+         float af = 1 - weight;
+         float bf = weight;
 
          GrayScale out;
          out.v = a.v * af + b.v * bf;
@@ -149,7 +144,7 @@ namespace crisp
     template<>
     inline GrayScale convert_to(Color from)
     {
-        uint8_t average = (from.r + from.g + from.b) / 3;
+        float average = (from.r + from.g + from.b) / 3;
         return GrayScale{average, from.a};
     }
 
@@ -157,9 +152,9 @@ namespace crisp
     template<>
     inline HSV convert_to(RGB from)
     {
-        float r = from.r / uint8_t(255),
-              g = from.g / uint8_t(255),
-              b = from.b / uint8_t(255);
+        float r = from.r,
+              g = from.g,
+              b = from.b;
 
         float h, s, v;
         float max = fmax(fmax(r, g), b);
@@ -196,9 +191,9 @@ namespace crisp
             h = 360 + h;
 
         HSV out;
-        out.h = h * uint8_t(255);
-        out.s = s * uint8_t(255);
-        out.v = v * uint8_t(255);
+        out.h = h;
+        out.s = s;
+        out.v = v;
         out.a = from.a;
 
         return out;
@@ -220,7 +215,7 @@ namespace crisp
     template<>
     inline GrayScale convert_to(RGB from)
     {
-        uint8_t average = (from.r + from.g + from.b) / 3;
+        float average = (from.r + from.g + from.b) / 3;
         return GrayScale{average, from.a};
     }
 
@@ -228,9 +223,9 @@ namespace crisp
     template<>
     inline RGB convert_to(HSV from)
     {
-        float h = from.h / uint8_t(255),
-              s = from.s / uint8_t(255),
-              v = from.v / uint8_t(255);
+        float h = from.h,
+              s = from.s,
+              v = from.v;
 
         float c = v * s;
         float h_2 = h / 60;
@@ -281,9 +276,9 @@ namespace crisp
         b += m;
 
         RGB out;
-        out.r = r * uint8_t(255);
-        out.g = g * uint8_t(255);
-        out.b = b * uint8_t(255);
+        out.r = r;
+        out.g = g;
+        out.b = b;
         out.a = from.a;
 
         return out;
@@ -292,8 +287,8 @@ namespace crisp
     template<>
     inline HSL convert_to(HSV from)
     {
-        float hsv_s = from.s / uint8_t(255),
-              hsv_v = from.v / uint8_t(255);
+        float hsv_s = from.s,
+              hsv_v = from.v;
 
         float hsl_l = hsv_v * (1 - hsv_s / 2),
               hsl_s;
@@ -305,8 +300,8 @@ namespace crisp
 
         HSL out;
         out.h = from.h;
-        out.s = hsl_s * uint8_t(255);
-        out.l = hsl_l * uint8_t(255);
+        out.s = hsl_s;
+        out.l = hsl_l;
 
         return out;
     }
@@ -343,16 +338,16 @@ namespace crisp
     template<>
     inline HSV convert_to(HSL from)
     {
-        float hsl_l = from.l / uint8_t(255),
-              hsl_s = from.s / uint8_t(255);
+        float hsl_l = from.l,
+              hsl_s = from.s;
 
         float hsv_v = hsl_l + hsl_s * std::min(hsl_l, 1.f - hsl_l);
         float hsv_s = (hsv_v != 0) ? 2 * (1.f - hsl_l / hsv_v) : 0;
 
         HSV out;
         out.h = from.h;
-        out.s = hsv_s * uint8_t(255);
-        out.v = hsv_v * uint8_t(255);
+        out.s = hsv_s;
+        out.v = hsv_v;
 
         return out;
     }
