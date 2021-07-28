@@ -11,9 +11,16 @@
 
 namespace crisp
 {
+    // ### Image ##################################################
+
     GrayScaleImage::GrayScaleImage()
     {
         _sprite.setPosition(0, 0);
+    }
+
+    float & GrayScaleImage::operator()(long x, long y)
+    {
+        return _value(x, y);
     }
 
     void GrayScaleImage::create(long width, long height, BitDepth depth)
@@ -73,6 +80,7 @@ namespace crisp
     void GrayScaleImage::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         states.transform.translate(_center_pos.x - 0.5f * _size.x, _center_pos.y - 0.5f * _size.y);
+        states.transform.scale(_zoom_factor, _zoom_factor);
         target.draw(_sprite, states);
     }
 
@@ -87,6 +95,81 @@ namespace crisp
         _center_pos.x = center.at(0);
         _center_pos.y = center.at(1);
     }
+
+    void GrayScaleImage::zoom(float factor, bool smooth)
+    {
+        _zoom_factor = factor;
+        if (smooth != _texture.isSmooth())
+            _texture.setSmooth(smooth);
+    }
+
+    GrayScaleImage::Iterator GrayScaleImage::begin()
+    {
+        return GrayScaleImage::Iterator(&_value, 0, 0);
+    }
+
+    GrayScaleImage::Iterator GrayScaleImage::end()
+    {
+        return GrayScaleImage::Iterator(&_value, _size.x, _size.y);
+    }
+
+    // ### Iterator ##################################################
+
+    GrayScaleImage::Iterator::Iterator(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>* data, size_t x, size_t y)
+        : _data(data), _x(x), _y(y), _size(_data->rows(), _data->cols())
+    {}
+
+    bool GrayScaleImage::Iterator::operator==(Iterator& other) const
+    {
+        return _data == other._data and _x == other._x and _y == other._y;
+    }
+
+    bool GrayScaleImage::Iterator::operator!=(Iterator& other) const
+    {
+        return not operator==(other);
+    }
+
+    GrayScaleImage::Iterator & GrayScaleImage::Iterator::operator++()
+    {
+        if (_x < _size.x - 1)
+            _x++;
+        else if (_y < _size.y - 1)
+        {
+            _x = 0;
+            _y++;
+        }
+        else
+        {
+            _x++;
+            _y++;
+        }
+
+        return *this;
+    }
+
+    GrayScaleImage::Iterator & GrayScaleImage::Iterator::operator--()
+    {
+        if (_x > 0)
+            _x--;
+        else if (_y > 0)
+        {
+            _x = _size.x - 1;
+            _y--;
+        }
+
+        return *this;
+    }
+
+    float & GrayScaleImage::Iterator::operator*() const
+    {
+        return _data->operator()(_x, _y);
+    }
+
+    void GrayScaleImage::Iterator::operator=(float new_value)
+    {
+        _data->operator()(_x, _y) = new_value;
+    }
+
 
     /*
     Image::Image()

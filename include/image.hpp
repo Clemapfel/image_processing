@@ -16,10 +16,19 @@
 
 namespace crisp
 {
+    template<typename Value_t>
+    class Image : protected sf::Drawable
+    {
+        public:
+            Value_t operator()(long x, long y) = 0;
+
+    };
+
     // an image living in ram, treated by the CPU
     class GrayScaleImage : public sf::Drawable
     {
         friend class RenderWindow;
+        class Iterator;
 
         public:
             GrayScaleImage();
@@ -28,8 +37,17 @@ namespace crisp
             void create(long width, long height, BitDepth = BIT_8);
             void create_from_file(std::string path, BitDepth = BIT_8);
 
+            float& operator()(long x, long y);
+
+            // transformations that only apply to rendering
             void align_topleft_with(Vector2f);
             void align_center_with(Vector2f);
+            void zoom(float factor, bool smooth = false);
+
+            void update_image();
+
+            Iterator begin();
+            Iterator end();
 
         protected:
             void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -40,12 +58,43 @@ namespace crisp
             Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> _value;
 
             // render
-            void update_image();
             sf::Image _image;
             sf::Texture _texture;
             sf::Sprite _sprite;
 
+            float _zoom_factor = 1;
+
             sf::Vector2f _center_pos;
+
+            // iterator
+            struct Iterator
+            {
+                public:
+                    Iterator(Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>* data, size_t x, size_t y);
+
+                    using iterator_category = std::bidirectional_iterator_tag;
+                    using value_type = float;
+                    using difference_type = int;
+                    using pointer = float*;
+                    using reference = float&;
+
+                    bool operator==(Iterator& other) const;
+                    bool operator!=(Iterator& other) const;
+
+                    Iterator& operator++();
+                    Iterator& operator--();
+
+                    float& operator*() const;
+                    explicit operator float() const;
+
+                    void operator=(float new_value);
+
+                private:
+                    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>* _data;
+
+                    sf::Vector2<long> _size;
+                    long _x, _y = 0;
+            };
     };
 
 
