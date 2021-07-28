@@ -54,6 +54,8 @@ namespace crisp
             style |= sf::Style::Fullscreen;
 
         sf::RenderWindow::create(sf::VideoMode(width, height), "", style, context_settings);
+        setFramerateLimit(fps_limit);
+
         _background_shape.setPosition(0, 0);
         _background_shape.setSize(sf::Vector2f(width, height));
     }

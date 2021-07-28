@@ -12,10 +12,45 @@
 #include <SFML/Graphics/Texture.hpp>
 
 #include <vector.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 
 namespace crisp
 {
+    // an image living in ram, treated by the CPU
+    class GrayScaleImage : public sf::Drawable
+    {
+        friend class RenderWindow;
 
+        public:
+            GrayScaleImage();
+            enum BitDepth {BIT_8, BIT_16, BIT_32};
+
+            void create(long width, long height, BitDepth = BIT_8);
+            void create_from_file(std::string path, BitDepth = BIT_8);
+
+            void align_topleft_with(Vector2f);
+            void align_center_with(Vector2f);
+
+        protected:
+            void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
+        private:
+            BitDepth _bit_depth = BIT_8;
+            sf::Vector2<long> _size;
+            Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> _value;
+
+            // render
+            void update_image();
+            sf::Image _image;
+            sf::Texture _texture;
+            sf::Sprite _sprite;
+
+            sf::Vector2f _center_pos;
+    };
+
+
+    // an image living on the graphics card
+    /*
     class Image : public sf::Drawable
     {
         friend class RenderWindow;
@@ -50,4 +85,5 @@ namespace crisp
             sf::Vector2f _center_pos;
             sf::RectangleShape _sprite;
     };
+     */
 }

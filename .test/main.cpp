@@ -23,7 +23,7 @@ int main()
     window.create(1280, 740);
     window.set_background_color(Color(1, 0, 1, 1));
 
-    Image image;
+    GrayScaleImage image;
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
     image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
 
