@@ -6,12 +6,13 @@ Supports video-game-like interactivity, real-time rendering, on- and off-gpu pro
 
 ### Dependencies
 - **fftw** (3.39): for fourier-transform computation
+- **ranges-v3**: for ranges
 - **Eigen** (3.3.3): for matrix operations
 - **OpenGL** (3.3+ core): for gpu-side processing
 - **SFML** (2.5.1): for interactivity and interfacing with OpenGL 
 - **Lua** (5.4): for code generation
 - **sol** (3.0): for interfacing with lua
-- 
+
 ### Documentation
 Until this section is fully formed please consider checking the headers directly. They are intentionally formatted to be very easily referenced back to for questions.
 
