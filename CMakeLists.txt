@@ -18,6 +18,9 @@ find_package(Lua REQUIRED)
 # eigen
 include_directories("./eigen/Eigen")
 
+# ranges
+include_directories("./range-v3/include")
+
 # common
 add_library(common STATIC
 
@@ -35,7 +38,7 @@ add_library(common STATIC
         .src/render_window.cpp
 
         include/key_id.hpp
-        .src/input_handler.cpp )
+        .src/input_handler.cpp include/cpu_side_image_handler.hpp)
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
