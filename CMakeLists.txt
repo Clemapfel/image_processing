@@ -25,7 +25,7 @@ include_directories("./range-v3/include")
 add_library(common STATIC
 
         include/image.hpp
-        .src/image.cpp
+        .src/image.inl
 
         include/color.hpp
         .src/color.inl
@@ -38,7 +38,7 @@ add_library(common STATIC
         .src/render_window.cpp
 
         include/key_id.hpp
-        .src/input_handler.cpp include/cpu_side_image_handler.hpp)
+        .src/input_handler.cpp include/cpu_side_image_handler.hpp .src/grayscale_image.cpp include/grayscale_image.hpp )
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})

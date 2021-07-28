@@ -16,6 +16,7 @@
 #include <range/v3/algorithm/count.hpp> // specific includes
 #include <range/v3/view.hpp>
 #include <image.hpp>
+#include <grayscale_image.hpp>
 
 using namespace crisp;
 
