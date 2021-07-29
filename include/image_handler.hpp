@@ -17,6 +17,7 @@ namespace crisp
         [[nodiscard]] static BinaryImage get_nths_bitplane(GrayScaleImage&, Int_t which_bit);
     };
 
+    // @param which_bit: index of bit where 0 is the most significant bit
     template<typename Int_t>
     BinaryImage ImageHandler::get_nths_bitplane(GrayScaleImage& image, Int_t which_bit)
     {

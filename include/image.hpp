@@ -19,6 +19,8 @@ namespace crisp
         class Iterator;
 
         public:
+            using value_t = Value_t;
+
             virtual Value_t & operator()(long x, long y) = 0;
             virtual Value_t operator()(long x, long y) const = 0;
             virtual sf::Vector2<long> get_size() const = 0;

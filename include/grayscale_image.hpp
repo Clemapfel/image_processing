@@ -18,7 +18,7 @@ namespace crisp
 
             float& operator()(long x, long y) override;
             float operator()(long x, long y) const override;
-            sf::Vector2<long> get_size() const override;
+            [[nodiscard]] sf::Vector2<long> get_size() const override;
 
         private:
             sf::Vector2<long> _size;

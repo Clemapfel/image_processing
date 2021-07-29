@@ -18,6 +18,7 @@
 #include <binary_image.hpp>
 #include <image_handler.hpp>
 #include <sprite.hpp>
+#include <neighbourhood.hpp>
 
 using namespace crisp;
 
@@ -29,7 +30,17 @@ int main()
 
     GrayScaleImage image;
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
+    Sprite sprite;
 
+    SubimageView<GrayScaleImage> view;
+    view.create_from(image, [](long x, long y, GrayScaleImage::value_t value) -> bool {return x < 30 and y < 30;});
+    for (auto& i : view)
+        i = 0;
+
+    sprite.load_from(image);
+    sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
+
+      /*
     std::vector<BinaryImage> bitplanes;
     bitplanes.reserve(8);
 
@@ -44,7 +55,7 @@ int main()
         sprites.emplace_back();
         sprites.back().load_from(bitplanes.at(i));
         sprites.at(i).align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
-    }
+    }*/
 
     float zoom = 1;
     float step = 3;
@@ -63,26 +74,15 @@ int main()
 
 
         if (InputHandler::was_key_pressed(KeyID::UP))
-            if (which_bitplane < bitplanes.size()-1)
-                which_bitplane++;
-            //offset.y -= step;
-
         if (InputHandler::was_key_pressed(KeyID::DOWN))
-            if (which_bitplane > 0)
-                which_bitplane--;
-            //offset.y += step;
-
         if (InputHandler::is_key_down(KeyID::LEFT))
             offset.x -= step;
 
         if (InputHandler::is_key_down(KeyID::RIGHT))
             offset.x += step;
 
-        //if (offset_before != offset)
-            //image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f + offset.x, window.get_resolution().at(1) * 0.5f + offset.y));
-
         window.clear();
-        window.draw(sprites.at(which_bitplane));
+        window.draw(sprite);
         window.display();
     }
 }
