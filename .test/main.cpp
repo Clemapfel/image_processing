@@ -20,6 +20,8 @@
 #include <sprite.hpp>
 #include <neighbourhood.hpp>
 
+#include <intensity_transform.hpp>
+
 using namespace crisp;
 
 int main()
@@ -37,25 +39,12 @@ int main()
     for (auto& i : view)
         i = 0;
 
+    IntensityTransform<float> invert;
+    invert.set_function(IntensityTransform<float>::invert());
+    invert.apply_to(image);
+
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
-
-      /*
-    std::vector<BinaryImage> bitplanes;
-    bitplanes.reserve(8);
-
-    for (uint8_t i = 0; i < 8; ++i)
-        bitplanes.push_back(ImageHandler::get_nths_bitplane(image, i));
-
-    std::vector<Sprite> sprites;
-    sprites.reserve(8);
-
-    for (uint8_t i = 0; i < 8; ++i)
-    {
-        sprites.emplace_back();
-        sprites.back().load_from(bitplanes.at(i));
-        sprites.at(i).align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
-    }*/
 
     float zoom = 1;
     float step = 3;
