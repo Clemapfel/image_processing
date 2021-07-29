@@ -25,6 +25,8 @@ namespace crisp
             virtual Value_t operator()(long x, long y) const = 0;
             virtual sf::Vector2<long> get_size() const = 0;
 
+            virtual void create(long width, long height) = 0;
+
             Iterator begin();
             Iterator end();
 

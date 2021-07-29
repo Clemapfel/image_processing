@@ -13,7 +13,7 @@ namespace crisp
     {
         public:
             GrayScaleImage();
-            void create(long width, long height);
+            void create(long width, long height) override;
             void create_from_file(std::string path);
 
             float& operator()(long x, long y) override;

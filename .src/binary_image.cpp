@@ -4,6 +4,7 @@
 //
 
 #include <binary_image.hpp>
+#include <SFML/Graphics/Image.hpp>
 
 namespace crisp
 {
@@ -12,10 +13,29 @@ namespace crisp
         _size.x = width;
         _size.y = height;
         _value.resize(width, height);
+        _value.setConstant(false);
+    }
 
-        for (long x = 0; x < width; ++x)
-            for (long y = 0; y < height; ++y)
-                _value(x, y) = false;
+    void BinaryImage::create_from_file(std::string path, float cutoff)
+    {
+        assert(cutoff > 0 and cutoff < 1 && "specifying a cutoff outside of (0, 1) will create a picture that is all a single color, if you want that behavior please use create(long, long)");
+
+        sf::Image image;
+        image.loadFromFile(path);
+
+        _size.x = image.getSize().x;
+        _size.y = image.getSize().y;
+        _value.resize(image.getSize().x, image.getSize().y);
+
+        for (long x = 0; x < image.getSize().x; ++x)
+        {
+            for (long y = 0; y < image.getSize().y; ++y)
+            {
+                auto color = image.getPixel(x, y);
+                float value = (color.r / 255.f + color.g / 255.f + color.b / 255.f) / 3;
+                _value(x, y) = value > cutoff;
+            }
+        }
     }
 
     bool & BinaryImage::operator()(long x, long y)
