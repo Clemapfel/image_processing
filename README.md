@@ -16,6 +16,23 @@ Supports video-game-like interactivity, real-time rendering, on- and off-gpu pro
 ### Documentation
 Until this section is fully formed please consider checking the headers directly. They are intentionally formatted to be very easily referenced back to for questions.
 
+## [Images](include/image.hpp)
+Images are at the heart of crisp and most of operations and math is performed on them as objects. In crisp there are two way of representing a picture: An **image** a rectangular array of values that lives in the ram and operations that interact with them happen on the CPU. A **texture** in comparison lives on the graphics cards ram (gram) and most of the operations concerning textures happen on the GPU which may drastically increase performance at the cost of ease of use and flexibility. For this section we will only concern ourself with **images** which are best to think of a simply m\*n matrices.
+
+#### [binary_image.hpp](include(binary_image.hpp)
+Binary images are matrices of ``bool``s, each of their elements can only be zero or one. In real-life you can think of them as black-and-white images, think a QR code or barcode or maybe a really bad scan your teacher handed out because the printer was out of ink. 
+Binary images have the advantage of being fairly light memory-wise, a common use-case for binary images is morphological segmentation or bitplane seperation for the purpose of compression.
+
+#### [grayscale_image.hpp](include/grayscale_image.hpp)
+Grayscale images are matrices where each element is a single float in the range [0, 1]. While at first seeming limited for modern applications grayscale images are at the heart of any image processing pipeline because any other color system can be segmented into them. If you want to process a full color rgba image you can just split each component into it's plane and process those as grayscale images. 
+
+#### [rgba_image.hpp](include/rgba_image.hpp)
+Which is essentially what rgba images are, just 4 greyscale images stacked on top of each other with plane 1 respresenting red, 2 green, 3 blue and 4 the transparency value. These are as close to actual image files as you will get, you can however convert any picture representation mentioned so far into any commonly available file format
+
+### Image Examples
+TODO
+
+
 #### [color.hpp](include/color.hpp)
 Support for common color representations RGB, HSV, HSL and Grayscale including conversion and mixing between any of them.
 
