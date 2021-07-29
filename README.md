@@ -17,21 +17,52 @@ Supports video-game-like interactivity, real-time rendering, on- and off-gpu pro
 Until this section is fully formed please consider checking the headers directly. They are intentionally formatted to be very easily referenced back to for questions.
 
 ## [Images](include/image.hpp)
-Images are at the heart of crisp and most of operations and math is performed on them as objects. In crisp there are two way of representing a picture: An **image** a rectangular array of values that lives in the ram and operations that interact with them happen on the CPU. A **texture** in comparison lives on the graphics cards ram (gram) and most of the operations concerning textures happen on the GPU which may drastically increase performance at the cost of ease of use and flexibility. For this section we will only concern ourself with **images** which are best to think of a simply m\*n matrices.
+Images are at the heart of crisp and operations in a image processing application are performed on them as objects. In crisp there are two way of representing a picture: An **image**, a rectangular array of values, lives on the ram and operations that interact with them happen on the CPU. A **texture**, in comparison, lives entirely on the graphics cards ram (gram) and most of the operations concerning textures happen on the GPU insted. This can drastically increase performance at the cost of ease of use and flexibility. For this section we will only concern ourself with **images** which are best to think of a simply m\*n matrices of arbitrary values.
 
-#### [binary_image.hpp](include(binary_image.hpp)
-Binary images are matrices of ``bool``s, each of their elements can only be zero or one. In real-life you can think of them as black-and-white images, think a QR code or barcode or maybe a really bad scan your teacher handed out because the printer was out of ink. 
-Binary images have the advantage of being fairly light memory-wise, a common use-case for binary images is morphological segmentation or bitplane seperation for the purpose of compression.
+#### [binary_image.hpp](include/binary_image.hpp)
+Binary images are matrices of ``bool``s, each of their elements can only be zero or one. In real-life you can think of them as black-and-white images, think a QR code, a barcode or maybe a really bad scan your teacher had to fax to themself because the printer was out of ink.
+Binary images have the advantage of being fairly light memory-wise and allow for bit-arithmetics making them overall the best-suited cpu-side image to use in real-time processing. A common use-case for binary are as outputs of morphological segmentation, bitplane seperation for the purpose of compression or as elements that represent images as background- xor foreground-pixels.
 
 #### [grayscale_image.hpp](include/grayscale_image.hpp)
-Grayscale images are matrices where each element is a single float in the range [0, 1]. While at first seeming limited for modern applications grayscale images are at the heart of any image processing pipeline because any other color system can be segmented into them. If you want to process a full color rgba image you can just split each component into it's plane and process those as grayscale images. 
+Grayscale images are matrices where each element is a single float in the range [0, 1]. While at first seeming limited for modern applications, grayscale images are at the heart of any image processing pipeline because even if an image is using a completely different color system, it can usually still be represented by one or more grayscale images. For example the problem processing a full-color rgba image can be segmented into processing 4 grayscale images representing each color component respectively.
 
 #### [rgba_image.hpp](include/rgba_image.hpp)
-Which is essentially what rgba images are, just 4 greyscale images stacked on top of each other with plane 1 respresenting red, 2 green, 3 blue and 4 the transparency value. These are as close to actual image files as you will get, you can however convert any picture representation mentioned so far into any commonly available file format
+Which is essentially what rgba images are in crisp too, just 4 greyscale images stacked on top of each other with the first plane respresenting red, 2nd green, 3rd blue and 4th the transparency value. These are as close to actual image files as you will get, however if you actually want to save them to memory you will have to do so through a fourth image class:
 
 ### Image Examples
-TODO
+There's no point in processing images if we can't see them so let's do that right now:
 
+```cpp
+int main() {
+  // create a render window for display
+  RenderWindow window;
+  window.create(1280, 740);
+  
+  // load an image
+  auto image = GreyScaleImage();
+  image.create_from_file("./test_file.png");
+  
+  // to display an image we need to bind it to renderable sprite
+  auto sprite = Sprite();
+  sprite.load_from(image);
+  sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
+  
+while (window.is_open())
+{
+  auto time = window.update();
+  
+  window.clear();
+  window.draw(sprite);
+  window.display();
+}
+```
+You may have noticed that we're loading from a .png which is obviously full-color but the image is only a greyscale image. When loading from a file the image class automatically converts the image into the correct color domain via a pre-defined process so you don't have to worry about file-compatibility issues. Even if those were a case transforming one image type into a another is as simple as casting them (though you might want to be careful as this may quadruple the space taken in ram):
+```cpp
+auto color_img = ColorImage(...
+auto binary_img = BinaryImage(...
+
+auto grey_img = GrayScaleImage(binary_img);
+``` 
 
 #### [color.hpp](include/color.hpp)
 Support for common color representations RGB, HSV, HSL and Grayscale including conversion and mixing between any of them.
