@@ -15,7 +15,7 @@
 
 namespace crisp
 {
-    // renderable entity images need to be bound to do draw them
+    // renderable entity images need to be bound to do draw them or save them
     class Sprite : public sf::Drawable
     {
         public:
