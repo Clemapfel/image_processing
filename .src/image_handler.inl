@@ -5,13 +5,7 @@
 
 #pragma once
 
-#include <image.hpp>
-
 namespace crisp
 {
-    struct ImageHandler
-    {
-        static void invert(GrayScaleImage& image);
-        static
-    };
+
 }

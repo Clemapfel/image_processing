@@ -38,7 +38,7 @@ add_library(common STATIC
         .src/render_window.cpp
 
         include/key_id.hpp
-        .src/input_handler.cpp include/cpu_side_image_handler.hpp .src/grayscale_image.cpp include/grayscale_image.hpp )
+        .src/input_handler.cpp include/image_handler.hpp .src/grayscale_image.cpp include/grayscale_image.hpp include/binary_image.hpp .src/binary_image.cpp .src/image_handler.inl)
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})

@@ -45,7 +45,7 @@ namespace crisp
 
             float _zoom_factor = 1;
 
-            sf::Vector2f _center_pos;
+            sf::Vector2f _top_left_pos;
 
             // iterator
             struct Iterator
@@ -54,10 +54,10 @@ namespace crisp
                     Iterator(Image<Value_t>*, size_t x, size_t y);
 
                     using iterator_category = std::bidirectional_iterator_tag;
-                    using value_type = float;
+                    using value_type = Value_t;
                     using difference_type = int;
-                    using pointer = float*;
-                    using reference = float&;
+                    using pointer = Value_t*;
+                    using reference = Value_t&;
 
                     bool operator==(Iterator& other) const;
                     bool operator!=(Iterator& other) const;
@@ -65,10 +65,8 @@ namespace crisp
                     Iterator& operator++();
                     Iterator& operator--();
 
-                    float& operator*() const;
-                    explicit operator float() const;
-
-                    void operator=(float new_value);
+                    Value_t& operator*() const;
+                    Iterator& operator=(Value_t);
 
                 private:
                     Image<Value_t>* _data;

@@ -17,6 +17,8 @@
 #include <range/v3/view.hpp>
 #include <image.hpp>
 #include <grayscale_image.hpp>
+#include <binary_image.hpp>
+#include <image_handler.hpp>
 
 using namespace crisp;
 
@@ -30,24 +32,23 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
     image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
 
-    bool now = false;
-    for (float& f : image)
+    std::vector<BinaryImage> bitplanes;
+    bitplanes.reserve(8);
+
+    for (uint8_t i = 0; i < 8; ++i)
+        bitplanes.push_back(ImageHandler::get_nths_bitplane(image, i));
+
+    for (uint8_t i = 0; i < 8; ++i)
     {
-        if (now)
-            f = 0;
-        else
-            f = f;
-
-        now = not now;
+        bitplanes.at(i).update_image();
+        bitplanes.at(i).align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
     }
-
-    std::cout << "done" << std::endl;
-
-    image.update_image();
 
     float zoom = 1;
     float step = 3;
     sf::Vector2f offset = {0, 0};
+
+    size_t which_bitplane = 0;
 
     while (window.is_open())
     {
@@ -70,11 +71,15 @@ int main()
             else
                 image.zoom((zoom /= 2));
 
-        if (InputHandler::is_key_down(KeyID::UP))
-            offset.y -= step;
+        if (InputHandler::was_key_pressed(KeyID::UP))
+            if (which_bitplane < bitplanes.size()-1)
+                which_bitplane++;
+            //offset.y -= step;
 
-        if (InputHandler::is_key_down(KeyID::DOWN))
-            offset.y += step;
+        if (InputHandler::was_key_pressed(KeyID::DOWN))
+            if (which_bitplane > 0)
+                which_bitplane--;
+            //offset.y += step;
 
         if (InputHandler::is_key_down(KeyID::LEFT))
             offset.x -= step;
@@ -86,7 +91,7 @@ int main()
             image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f + offset.x, window.get_resolution().at(1) * 0.5f + offset.y));
 
         window.clear();
-        window.draw(image);
+        window.draw(bitplanes.at(which_bitplane));
         window.display();
     }
 }
