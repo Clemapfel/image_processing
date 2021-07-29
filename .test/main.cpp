@@ -13,12 +13,11 @@
 #include <input_handler.hpp>
 #include <SFML/OpenGL.hpp>
 
-#include <range/v3/algorithm/count.hpp> // specific includes
-#include <range/v3/view.hpp>
 #include <image.hpp>
 #include <grayscale_image.hpp>
 #include <binary_image.hpp>
 #include <image_handler.hpp>
+#include <sprite.hpp>
 
 using namespace crisp;
 
@@ -30,7 +29,6 @@ int main()
 
     GrayScaleImage image;
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
-    image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
 
     std::vector<BinaryImage> bitplanes;
     bitplanes.reserve(8);
@@ -38,10 +36,14 @@ int main()
     for (uint8_t i = 0; i < 8; ++i)
         bitplanes.push_back(ImageHandler::get_nths_bitplane(image, i));
 
+    std::vector<Sprite> sprites;
+    sprites.reserve(8);
+
     for (uint8_t i = 0; i < 8; ++i)
     {
-        bitplanes.at(i).update_image();
-        bitplanes.at(i).align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
+        sprites.emplace_back();
+        sprites.back().load_from(bitplanes.at(i));
+        sprites.at(i).align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
     }
 
     float zoom = 1;
@@ -59,17 +61,6 @@ int main()
         if (InputHandler::was_key_pressed(SPACE))
             std::cout << "SPACE" << std::endl;
 
-        if (InputHandler::was_key_pressed(KeyID::B))
-            if (zoom > 1)
-                image.zoom(++zoom);
-            else
-                image.zoom((zoom *= 2));
-
-        if (InputHandler::was_key_pressed(KeyID::V))
-             if (zoom > 1)
-                image.zoom(--zoom);
-            else
-                image.zoom((zoom /= 2));
 
         if (InputHandler::was_key_pressed(KeyID::UP))
             if (which_bitplane < bitplanes.size()-1)
@@ -87,11 +78,11 @@ int main()
         if (InputHandler::is_key_down(KeyID::RIGHT))
             offset.x += step;
 
-        if (offset_before != offset)
-            image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f + offset.x, window.get_resolution().at(1) * 0.5f + offset.y));
+        //if (offset_before != offset)
+            //image.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f + offset.x, window.get_resolution().at(1) * 0.5f + offset.y));
 
         window.clear();
-        window.draw(bitplanes.at(which_bitplane));
+        window.draw(sprites.at(which_bitplane));
         window.display();
     }
 }

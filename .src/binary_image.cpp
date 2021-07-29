@@ -13,16 +13,17 @@ namespace crisp
         _size.y = height;
         _value.resize(width, height);
 
-        align_center_with({width * 0.5f, height * 0.5f});
-
         for (long x = 0; x < width; ++x)
             for (long y = 0; y < height; ++y)
                 _value(x, y) = false;
-
-        update_image();
     }
 
     bool & BinaryImage::operator()(long x, long y)
+    {
+        return _value(x, y);
+    }
+
+    bool BinaryImage::operator()(long x, long y) const
     {
         return _value(x, y);
     }

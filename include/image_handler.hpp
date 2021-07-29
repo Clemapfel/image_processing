@@ -43,7 +43,6 @@ namespace crisp
             }
         }
 
-        out.update_image();
         return out;
     }
 }

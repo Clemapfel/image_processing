@@ -17,6 +17,7 @@ namespace crisp
             void create_from_file(std::string path);
 
             float& operator()(long x, long y) override;
+            float operator()(long x, long y) const override;
             sf::Vector2<long> get_size() const override;
 
         private:

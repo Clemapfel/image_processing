@@ -7,46 +7,26 @@
 
 #include <string>
 
-#include <SFML/Graphics/Drawable.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/Texture.hpp>
+#include <SFML/System/Vector2.hpp>
 
 #include <vector.hpp>
-#include <SFML/Graphics/Sprite.hpp>
 
 namespace crisp
 {
     template<typename Value_t>
-    class Image : public sf::Drawable
+    class Image
     {
         class Iterator;
 
         public:
             virtual Value_t & operator()(long x, long y) = 0;
+            virtual Value_t operator()(long x, long y) const = 0;
             virtual sf::Vector2<long> get_size() const = 0;
 
             Iterator begin();
             Iterator end();
 
-            // render
-            void align_topleft_with(Vector2f);
-            void align_center_with(Vector2f);
-            void zoom(float factor, bool smooth = false);
-            void update_image();
-
-        protected:
-            sf::Image _image;
-            sf::Texture _texture;
-
         private:
-            // render
-            void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
-            sf::Sprite _sprite;
-
-            float _zoom_factor = 1;
-
-            sf::Vector2f _top_left_pos;
-
             // iterator
             struct Iterator
             {

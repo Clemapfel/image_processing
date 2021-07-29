@@ -16,6 +16,7 @@ namespace crisp
             void create(long width, long height);
 
             bool& operator()(long x, long y) override;
+            bool operator()(long x, long y) const override;
             sf::Vector2<long> get_size() const override;
 
         private:
