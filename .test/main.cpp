@@ -30,18 +30,15 @@ int main()
     window.create(1280, 740);
     window.set_background_color(Color(1, 0, 1, 1));
 
-    GrayScaleImage image;
-    image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
+    BinaryImage image;
+    image.create_from_file("/home/clem/Workspace/image_processing/test_image.png", 0.5);
     Sprite sprite;
 
-    SubimageView<GrayScaleImage> view;
+    SubimageView<BinaryImage> view;
     view.create_from(image, [](long x, long y, GrayScaleImage::value_t value) -> bool {return x < 30 and y < 30;});
-    for (auto& i : view)
-        i = 0;
 
-    IntensityTransform<float> invert;
-    invert.set_function(IntensityTransform<float>::invert());
-    invert.apply_to(image);
+    IntensityTransform<bool> invert;
+    invert.set_function(IntensityTransform<bool>::invert());
 
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
@@ -59,8 +56,10 @@ int main()
         auto offset_before = offset;
 
         if (InputHandler::was_key_pressed(SPACE))
-            std::cout << "SPACE" << std::endl;
-
+        {
+            invert.apply_to(image);
+            sprite.load_from(image);
+        }
 
         if (InputHandler::was_key_pressed(KeyID::UP))
         if (InputHandler::was_key_pressed(KeyID::DOWN))
