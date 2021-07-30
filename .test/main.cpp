@@ -21,6 +21,7 @@
 #include <neighbourhood.hpp>
 
 #include <intensity_transform.hpp>
+#include <spatial_filter.hpp>
 
 using namespace crisp;
 

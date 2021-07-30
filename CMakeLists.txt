@@ -38,7 +38,7 @@ add_library(common STATIC
         .src/render_window.cpp
 
         include/key_id.hpp
-        .src/input_handler.cpp include/image_handler.hpp .src/grayscale_image.cpp include/grayscale_image.hpp include/binary_image.hpp .src/binary_image.cpp .src/image_handler.inl include/sprite.hpp .src/sprite.cpp .src/sprite.inl include/kernel.hpp include/neighbourhood.hpp include/intensity_transform.hpp .src/intensity_transform.inl)
+        .src/input_handler.cpp include/image_handler.hpp .src/grayscale_image.cpp include/grayscale_image.hpp include/binary_image.hpp .src/binary_image.cpp .src/image_handler.inl include/sprite.hpp .src/sprite.cpp .src/sprite.inl include/spatial_filter.hpp include/neighbourhood.hpp include/intensity_transform.hpp .src/intensity_transform.inl .src/spatial_filter.cpp)
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
