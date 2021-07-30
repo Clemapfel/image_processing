@@ -16,8 +16,6 @@ namespace crisp
             void create(long width, long height) override;
             void create_from_file(std::string path, float cutoff);
 
-            bool& operator()(long x, long y) override;
-            bool operator()(long x, long y) const override;
             sf::Vector2<long> get_size() const override;
 
             BinaryImage operator!() const;
@@ -29,6 +27,10 @@ namespace crisp
             BinaryImage& operator&=(const BinaryImage&);
             BinaryImage& operator|=(const BinaryImage&);
             BinaryImage& operator^=(const BinaryImage&);
+
+        protected:
+            virtual bool  get_pixel(long x, long y) const;
+            virtual bool& get_pixel(long x, long y);
 
         private:
             sf::Vector2<long> _size;

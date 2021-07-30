@@ -18,12 +18,12 @@ namespace crisp
     GrayScaleImage::GrayScaleImage()
     {}
 
-    float & GrayScaleImage::operator()(long x, long y)
+    float & GrayScaleImage::get_pixel(long x, long y)
     {
         return _value(x, y);
     }
 
-    float GrayScaleImage::operator()(long x, long y) const
+    float GrayScaleImage::get_pixel(long x, long y) const
     {
         return _value(x, y);
     }

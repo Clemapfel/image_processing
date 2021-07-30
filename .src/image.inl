@@ -22,6 +22,55 @@ namespace crisp
         return Image::Iterator(this, get_size().x, get_size().y);
     }
 
+
+    template<typename Value_t>
+    typename Image<Value_t>::PaddingType Image<Value_t>::get_padding_type() const
+    {
+        return _padding_type;
+    }
+
+    template<typename Value_t>
+    void Image<Value_t>::set_padding_type(PaddingType type)
+    {
+        _padding_type = type;
+    }
+
+    template<typename Value_t>
+    Value_t Image<Value_t>::operator()(long x, long y) const
+    {
+        return get_pixel_out_of_bounds(x, y);
+    }
+
+    template<typename Value_t>
+    Value_t& Image<Value_t>::operator()(long x, long y)
+    {
+        if (x < 0 or x > get_size().x or y < 0 or y > get_size().y)
+            throw std::out_of_range("index outside of image bounds, please use Value_t operator()(long, long) const to access padding");
+
+        return get_pixel(x, y);
+    }
+
+    template<typename Value_t>
+    Value_t Image<Value_t>::get_pixel_out_of_bounds(long x, long y) const
+    {
+        if (x >= 0 and x < get_size().x and y >= 0 and y < get_size().y)
+            return get_pixel(x, y);
+
+        switch (_padding_type)
+        {
+            case ZERO:
+                return Value_t(0);
+            case ONE:
+                return Value_t(1);
+            case REPEAT:
+                return get_pixel(x % get_size().x, y % get_size().y);
+            case MIRROR:
+                return get_pixel(get_size().x - (x % get_size().x), get_size().y - (y % get_size().y));
+            case STRETCH:
+                return get_pixel(x < 0 ? 0 : get_size().x - 1, y < 0 ? 0 : get_size().y - 1);
+        }
+    }
+
     // ### Iterator ##################################################
     template<typename Value_t>
     Image<Value_t>::Iterator::Iterator(Image<Value_t>* data, size_t x, size_t y)

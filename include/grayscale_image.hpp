@@ -16,9 +16,11 @@ namespace crisp
             void create(long width, long height) override;
             void create_from_file(std::string path);
 
-            float& operator()(long x, long y) override;
-            float operator()(long x, long y) const override;
             [[nodiscard]] sf::Vector2<long> get_size() const override;
+
+        protected:
+            virtual float  get_pixel(long x, long y) const override;
+            virtual float& get_pixel(long x, long y) override;
 
         private:
             sf::Vector2<long> _size;

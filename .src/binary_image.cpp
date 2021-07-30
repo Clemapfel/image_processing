@@ -38,12 +38,12 @@ namespace crisp
         }
     }
 
-    bool & BinaryImage::operator()(long x, long y)
+    bool & BinaryImage::get_pixel(long x, long y)
     {
         return _value(x, y);
     }
 
-    bool BinaryImage::operator()(long x, long y) const
+    bool BinaryImage::get_pixel(long x, long y) const
     {
         return _value(x, y);
     }
