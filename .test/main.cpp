@@ -35,7 +35,7 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
     Sprite sprite;
 
-    SpatialFilter<float> blur;
+    SpatialFilter<GrayScaleImage> blur;
 
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
@@ -54,7 +54,7 @@ int main()
 
         if (InputHandler::was_key_pressed(SPACE))
         {
-            invert.apply_to(image);
+            //blur.apply_to(image);
             sprite.load_from(image);
         }
 

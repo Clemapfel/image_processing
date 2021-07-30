@@ -41,13 +41,13 @@ namespace crisp
             struct EvaluationFunction
             {
                 // @note according to p. 158 each element of element-wise sum is kernel(s, t) * f(x + s, y + t)
-                static EvaluationFunction_t&& correlation(bool normalize = true);
-                static EvaluationFunction_t&& convolution(bool normalize = true);
-                static EvaluationFunction_t&& mean();
-                static EvaluationFunction_t&& median();
-                static EvaluationFunction_t&& min();
-                static EvaluationFunction_t&& max();
-                static EvaluationFunction_t&& n_ths_k_quantile(size_t n, size_t k);
+                static auto&& correlation(bool normalize = true);
+                static auto&& convolution(bool normalize = true);
+                static auto&& mean();
+                static auto&& median();
+                static auto&& min();
+                static auto&& max();
+                static auto&& n_ths_k_quantile(size_t n, size_t k);
             };
 
         private:
