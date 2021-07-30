@@ -50,6 +50,33 @@ namespace crisp
     }
 
     template<typename Image_t, typename Value_t>
+    void SpatialFilter<Image_t, Value_t>::rotate_kernel(size_t n)
+    {
+        n = n % 4;
+
+        if (n == 0 or n == 4)
+            return;
+
+        long size = _kernel.cols();
+
+        while (n > 0)
+        {
+            for (long x = 0; x < size / 2; ++x)
+            {
+                for (long y = x; y < size - x - 1; ++y)
+                {
+                    Value_t temp = _kernel(x, y);
+                    _kernel[x][y] = _kernel[y][size - 1 - x];
+                    _kernel[y][size - 1 - x] = _kernel[size - 1 - x][size - 1 - y];
+                    _kernel[size - 1 - x][size - 1 - y] = _kernel[size - 1 - y][x];
+                    _kernel[size - 1 - y][x] = temp;
+                }
+            }
+            n -= 1;
+        }
+    }
+
+    template<typename Image_t, typename Value_t>
     void SpatialFilter<Image_t, Value_t>::set_kernel(Kernel_t&& kernel)
     {
         assert(kernel.cols() % 2 == 1 and kernel.rows() % 2 == 1 && "kernel has to be of odd dimensions in order to have a centered origin");
@@ -183,32 +210,6 @@ namespace crisp
     // ### EVAL FUNCTIONS ####################################################################
 
     template<typename Image_t, typename Value_t>
-    auto && SpatialFilter<Image_t, Value_t>::EvaluationFunction::correlation(bool normalize)
-    {
-        return std::move([normalize](const Image_t& image, long x, long y, const Kernel_t& kernel) -> Value_t
-        {
-            long a = (kernel.cols() - 1) / 2;
-            long b = (kernel.rows() - 1) / 2;
-
-            Value_t sum_of_elements = 1;
-            if (normalize)
-            {
-                sum_of_elements = 0;
-                for (long i = 0; i < kernel.rows(); ++i)
-                    for (long j = 0; j < kernel.cols(); ++j)
-                        sum_of_elements += kernel(i, j);
-            }
-
-            Value_t current_sum = 0;
-            for (long s = -a; s <= a; ++s)
-                for (long t = -b; t <= b; ++t)
-                    current_sum += kernel(s + a, t + b) * image(x + a, y + b);
-
-            return current_sum / sum_of_elements;
-        });
-    }
-
-    template<typename Image_t, typename Value_t>
     auto && SpatialFilter<Image_t, Value_t>::EvaluationFunction::convolution(bool normalize)
     {
         return std::move([normalize](const Image_t& image, long x, long y, const Kernel_t& kernel) -> Value_t
@@ -228,7 +229,7 @@ namespace crisp
             Value_t current_sum = 0;
             for (long s = -a; s <= a; ++s)
                 for (long t = -b; t <= b; ++t)
-                    current_sum += kernel(s + a, t + b) * image(x - a, y - b); // - rotates kernel
+                    current_sum += kernel(s + a, t + b) * image(x + a, y + b);
 
             return current_sum / sum_of_elements;
         });
