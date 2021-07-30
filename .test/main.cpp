@@ -31,15 +31,11 @@ int main()
     window.create(1280, 740);
     window.set_background_color(Color(1, 0, 1, 1));
 
-    BinaryImage image;
-    image.create_from_file("/home/clem/Workspace/image_processing/test_image.png", 0.5);
+    GrayScaleImage image;
+    image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
     Sprite sprite;
 
-    SubimageView<BinaryImage> view;
-    view.create_from(image, [](long x, long y, GrayScaleImage::value_t value) -> bool {return x < 30 and y < 30;});
-
-    IntensityTransform<bool> invert;
-    invert.set_function(IntensityTransform<bool>::invert());
+    SpatialFilter<float> blur;
 
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));

@@ -10,25 +10,18 @@
 
 namespace crisp
 {
-    template<typename Value_t>
+    template<typename Image_t, typename Value_t = typename Image_t::value_t>
     class SpatialFilter
     {
         public:
-            using Kernel_t = Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic>;
-            using EvaluationFunction_t = std::function<Value_t(Image<Value_t>, long, long, Kernel_t)>;
+            using Kernel_t = Eigen::Matrix<typename Image_t::value_t, Eigen::Dynamic, Eigen::Dynamic>;
+            using EvaluationFunction_t = std::function<typename Image_t::value_t(Image_t, long, long, Kernel_t)>;
 
             SpatialFilter();
-
-            template<typename Other_t>
-            explicit operator SpatialFilter<Other_t>();
-
-            template<typename OtherValue_t>
-            [[nodiscard]] SpatialFilter<OtherValue_t> cast_to() const;
 
             Value_t& operator()(long x, long y);
             Value_t operator()(long x, long y) const;
 
-            template<typename Image_t>
             void apply_to(Image_t&);
 
             void set_kernel(Kernel_t&&);
