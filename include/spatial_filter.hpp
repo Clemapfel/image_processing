@@ -7,7 +7,6 @@
 
 #include <Dense>
 
-
 namespace crisp
 {
     // Filters in the spatial (2d image) domain
