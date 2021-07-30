@@ -15,7 +15,7 @@ namespace crisp
     {
         public:
             using Kernel_t = Eigen::Matrix<typename Image_t::value_t, Eigen::Dynamic, Eigen::Dynamic>;
-            using EvaluationFunction_t = std::function<typename Image_t::value_t(Image_t, long, long, Kernel_t)>;
+            using EvaluationFunction_t = std::function<typename Image_t::value_t(const Image_t&, long, long, const Kernel_t&)>;
 
             SpatialFilter();
 
@@ -29,13 +29,13 @@ namespace crisp
 
             struct Kernel
             {
-                static Kernel_t&& identity(long dimensions);
-                static Kernel_t&& one(long dimensions);
-                static Kernel_t&& zero(long dimensions);
-                static Kernel_t&& box(long dimensions, Value_t value);
-                static Kernel_t&& normalized_box(long dimension);
-                static Kernel_t&& gaussian(long dimension);
-                static Kernel_t&& isotropic_laplacian_3x3(bool diagonal_edges = true);
+                static Kernel_t identity(long dimensions);
+                static Kernel_t one(long dimensions);
+                static Kernel_t zero(long dimensions);
+                static Kernel_t box(long dimensions, Value_t value);
+                static Kernel_t normalized_box(long dimension);
+                static Kernel_t gaussian(long dimension);
+                static Kernel_t isotropic_laplacian_3x3(bool diagonal_edges = true);
             };
 
             struct EvaluationFunction
@@ -54,6 +54,9 @@ namespace crisp
             Kernel_t _kernel;
             EvaluationFunction_t _eval;
     };
+
+    using GrayScaleFilter = SpatialFilter<GrayScaleImage, GrayScaleImage::value_t>;
+    using BinaryFilter = SpatialFilter<BinaryImage, BinaryImage::value_t>;
 }
 
 #include ".src/spatial_filter.inl"

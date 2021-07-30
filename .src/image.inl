@@ -44,7 +44,7 @@ namespace crisp
     template<typename Value_t>
     Value_t& Image<Value_t>::operator()(long x, long y)
     {
-        if (x < 0 or x > get_size().x or y < 0 or y > get_size().y)
+        if (x < 0 or x >= get_size().x or y < 0 or y >= get_size().y)
             throw std::out_of_range("index outside of image bounds, please use Value_t operator()(long, long) const to access padding");
 
         return get_pixel(x, y);
