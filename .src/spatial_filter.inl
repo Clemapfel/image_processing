@@ -9,7 +9,7 @@ namespace crisp
 {
     template<typename Image_t, typename Value_t>
     SpatialFilter<Image_t, Value_t>::SpatialFilter()
-        : _kernel(Kernel::identity(1)), _eval(EvaluationFunction::correlation(true))
+        : _kernel(Kernel::identity(1)), _eval(EvaluationFunction::convolution(true))
     {}
 
     /*
@@ -274,7 +274,7 @@ namespace crisp
     template<typename Image_t, typename Value_t>
     auto && SpatialFilter<Image_t, Value_t>::EvaluationFunction::mean()
     {
-        return correlation(true);
+        return SpatialFilter<Image_t, Value_t>::EvaluationFunction::convolution(true);
     }
 
     template<typename Image_t, typename Value_t>

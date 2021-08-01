@@ -25,6 +25,7 @@ namespace crisp
         }
 
         _texture.loadFromImage(temp);
+        _sprite.setTextureRect(sf::IntRect(0, 0, temp.getSize().x, temp.getSize().y));
         _sprite.setTexture(_texture);
         _sprite.setPosition(0, 0);
     }

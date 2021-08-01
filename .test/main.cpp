@@ -22,6 +22,7 @@
 
 #include <intensity_transform.hpp>
 #include <spatial_filter.hpp>
+#include <morphological_transform.hpp>
 
 using namespace crisp;
 
@@ -45,7 +46,53 @@ int main()
     float step = 3;
     sf::Vector2f offset = {0, 0};
 
-    size_t which_bitplane = 0;
+    BinaryImage test;
+    long nrows = 301, ncols = 273;
+    test.create(nrows, ncols);
+
+    long half_nrows = (nrows - 1) / 2;
+    long half_ncols = (ncols - 1) / 2;
+
+    long row_i = 0;
+    int  col_offset = 0;
+
+    if (nrows >= ncols)
+    {
+        long row_i = 0;
+        int col_offset = 0;
+
+        while (row_i <= half_nrows)
+        {
+            for (int offset = -col_offset; offset < col_offset; ++offset)
+            {
+                test(row_i, half_ncols + offset) = 1;
+                test(nrows - row_i, half_ncols + offset) = 1;
+            }
+
+            row_i += 1;
+            col_offset += floor(float(ncols) / float(nrows));
+        }
+    }
+    else
+    {
+        long col_i = 0;
+        int row_offset = 0;
+
+        while (col_i <= half_ncols)
+        {
+            for (int offset = -row_offset; offset < row_offset; ++offset)
+            {
+                test(half_nrows + offset, col_i) = 1;
+                test(half_nrows + offset, ncols - col_i) = 1;
+            }
+
+            col_i += 1;
+            row_offset += ncols / nrows;
+        }
+    }
+
+
+    sprite.load_from(test);
 
     while (window.is_open())
     {
