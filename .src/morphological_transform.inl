@@ -204,28 +204,43 @@ namespace crisp
 
     template<typename Value_t>
     typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::circle(long dimensinos)
+    MorphologicalTransform<Value_t>::StructuringElement::circle(long dimensions)
+    {
+        assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
+        auto out = MorphologicalTransform<Value_t>::StructuringElement(dimensions, dimensions);
+        
+        long radius = (dimensions - 1) / 2;
+
+        auto mark = [dimensions, r = radius](long x, long y) -> bool {return (sqrt((x-r)*(x-r) + (y-r)*(y-r))) < r;};
+
+        for (long i = 0; i < dimensions; ++i)
+            for (long j = 0; j < dimensions; ++j)
+                if (mark(i, j))
+                    out.set_foreground(i, j);
+                else
+                    out.set_background(i, j);
+
+        return out;
+    }
+
+    template<typename Value_t>
+    typename MorphologicalTransform<Value_t>::StructuringElement
+    MorphologicalTransform<Value_t>::StructuringElement::square_pyramid(long dimensions)
     {
         //
     }
 
     template<typename Value_t>
     typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::square_pyramid(long dimensinos)
+    MorphologicalTransform<Value_t>::StructuringElement::diamond_pyramid(long dimensions)
     {
         //
     }
 
     template<typename Value_t>
     typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::diamond_pyramid(long dimensinos)
-    {
-        //
-    }
-
-    template<typename Value_t>
-    typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::hemisphere(long dimensinos)
+    MorphologicalTransform<Value_t>::StructuringElement::hemisphere(long dimensions
+    )
     {
         //
     }

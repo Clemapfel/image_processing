@@ -47,11 +47,10 @@ int main()
     sf::Vector2f offset = {0, 0};
 
     BinaryImage test;
-    long nrows = 301, ncols = 273;
     test.create_from_file("/home/clem/Workspace/image_processing/test_binary_image.png", 0.5);
 
     auto morph = MorphologicalTransform<bool>();
-    morph.set_structuring_element(FlatStructuringElement::all_foreground(3, 3));
+    morph.set_structuring_element(FlatStructuringElement::diamond(5));
 
     sprite.load_from(test);
 
