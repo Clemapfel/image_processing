@@ -89,7 +89,7 @@ namespace crisp
     using StructuringElement = typename MorphologicalTransform<T>::StructuringElement;
 
     using FlatStructuringElement = typename MorphologicalTransform<bool>::StructuringElement;
-    using NonFlatStructuringElement = typename MorphologicalTransform<bool>::StructuringElement;
+    using NonFlatStructuringElement = typename MorphologicalTransform<float>::StructuringElement;
 
     template<typename Value_t>
     void MorphologicalTransform<Value_t>::set_structuring_element(MorphologicalTransform::StructuringElement element)

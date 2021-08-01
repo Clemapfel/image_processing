@@ -150,7 +150,6 @@ namespace crisp
         return out;
     }
 
-
     template<typename Value_t>
     MorphologicalTransform<Value_t>::MorphologicalTransform()
         : _structuring_element(MorphologicalTransform<Value_t>::StructuringElement::all_dont_care(1, 1))
@@ -286,7 +285,33 @@ namespace crisp
         }
 
         return out;
+    }
 
+    template<typename Value_t>
+    typename MorphologicalTransform<Value_t>::StructuringElement
+    MorphologicalTransform<Value_t>::StructuringElement::cone(long dimensions, Value_t min, Value_t max)
+    {
+        if (not std::is_floating_point_v<Value_t>)
+            return circle(dimensions);
+
+        assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
+        auto out = all_background(dimensions, dimensions);
+
+        long radius = (dimensions - 1) / 2;
+        auto dist = [dimensions, r = radius](long x, long y) -> float {return sqrt((x-r)*(x-r) + (y-r)*(y-r));};
+
+        const Value_t step = (max - min) / ((dimensions - 1) / 2);
+        Value_t current_color = Value_t(min);
+        size_t offset = 0;
+
+        for (long i = 0; i < dimensions; ++i)
+            for (long j = 0; j < dimensions; ++j)
+                if (dist(i, j) <= radius)
+                    out.set_offset(i, j, (1 - (dist(i, j) / radius)) * (max - min) + min);
+                else
+                    out.set_background(i, j);
+
+        return out;
     }
 
     template<typename Value_t>
@@ -294,16 +319,6 @@ namespace crisp
     MorphologicalTransform<Value_t>::StructuringElement::hemisphere(long dimensions, Value_t min, Value_t max)
     {
         //
-    }
-
-    template<typename Value_t>
-    typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::cone(long dimensions, Value_t min, Value_t max)
-    {
-        auto out = circle(dimensions);
-
-        if (not std::is_floating_point_v<Value_t>)
-            return out;
     }
 
     template<typename Value_t>

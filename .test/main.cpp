@@ -47,30 +47,11 @@ int main()
     long dimensions = 201;
     test.create(dimensions, dimensions);
 
-    float max = 0.8;
-    float min = 0.3;
-    
-    const float step = (max - min) / ((dimensions - 1) / 2);
-    float current_color = min;
-    size_t offset = 0;
+    auto element = NonFlatStructuringElement::cone(dimensions, 0.5, 1);
 
-    long half = ((dimensions - 1) / 2);
-        while (offset < half)
-        {
-            for (long x = half, y = offset; x < dimensions and y <= half; x++, y++)
-            {
-                test(x, y) = current_color;
-                test(dimensions - x - 1, y) = current_color;
-                test(x, dimensions - y - 1) = current_color;
-                test(dimensions - x - 1, dimensions - y - 1) = current_color;
-            }
-            
-            offset += 1;
-            current_color += step;
-        }
-
-    auto morph = MorphologicalTransform<bool>();
-    morph.set_structuring_element(FlatStructuringElement::diamond(5));
+    for (long x = 0; x < element.get_size().x; ++x)
+        for (long y = 0; y < element.get_size().y; ++y)
+            test(x, y) = element.get_value(x, y).value_or(0);
 
     sprite.load_from(test);
 
@@ -78,11 +59,10 @@ int main()
     {
         auto time = window.update();
 
-        auto offset_before = offset;
 
         if (InputHandler::was_key_pressed(SPACE))
         {
-            morph.erode(test);
+            //morph.erode(test);
             sprite.load_from(test);
         }
 
