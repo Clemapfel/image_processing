@@ -17,7 +17,7 @@ namespace crisp
             BinaryImage() = default;
 
             // @override c.f. Image<...>::create in image.hpp
-            void create(long width, long height) override;
+            void create(long width, long height, bool init = false) override;
 
             // @brief loads the image from the disk
             // @param path: the absolute path to the file

@@ -29,11 +29,17 @@ namespace crisp
             // @returns a reference to the value, can be written to
             Value_t & operator()(long x, long y);
 
-            // @brief access a specific pixel in a const context
+            // @brief access a specific pixel in a const context, if the pixel is out of bound the padding is instead accessed
             // @param x: the row index
             // @param y: the column index
             // @returns a copy of the value
             Value_t operator()(long x, long y) const;
+
+            // @brief explicit overload for operator(long, long) const for clarity
+            // @param x: the row index
+            // @param y: the column index
+            // @returns a copy of the value
+            Value_t get_pixel_or_padding(long x, long y) const;
 
             // @brief get the images size
             // @return vector v such that v.x = #rows, v.y = #cols
@@ -42,8 +48,7 @@ namespace crisp
             // @brief resize an image and clear each pixel
             // @param width: number of rows
             // @param height: number of columns
-            // @note each pixel should be initialized to Value_t(0.f)
-            virtual void create(long width, long height) = 0;
+            virtual void create(long width, long height, Value_t init) = 0;
 
             // enum that governs what values indices out of bounds will return
             enum PaddingType

@@ -28,13 +28,13 @@ namespace crisp
         return _value(x, y);
     }
 
-    void GrayScaleImage::create(long width, long height)
+    void GrayScaleImage::create(long width, long height, float init)
     {
         _size.x = width;
         _size.y = height;
 
         _value.resize(static_cast<Eigen::Index>(width), static_cast<Eigen::Index>(height));
-        _value.setConstant(0);
+        _value.setConstant(init);
     }
 
     void GrayScaleImage::create_from_file(std::string path)

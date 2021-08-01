@@ -8,12 +8,12 @@
 
 namespace crisp
 {
-    void BinaryImage::create(long width, long height)
+    void BinaryImage::create(long width, long height, bool init)
     {
         _size.x = width;
         _size.y = height;
         _value.resize(width, height);
-        _value.setConstant(false);
+        _value.setConstant(init);
     }
 
     void BinaryImage::create_from_file(std::string path, float cutoff)

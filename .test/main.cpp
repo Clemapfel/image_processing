@@ -48,49 +48,10 @@ int main()
 
     BinaryImage test;
     long nrows = 301, ncols = 273;
-    test.create(nrows, ncols);
+    test.create_from_file("/home/clem/Workspace/image_processing/test_binary_image.png", 0.5);
 
-    long half_nrows = (nrows - 1) / 2;
-    long half_ncols = (ncols - 1) / 2;
-
-    long row_i = 0;
-    int  col_offset = 0;
-
-    if (nrows >= ncols)
-    {
-        long row_i = 0;
-        int col_offset = 0;
-
-        while (row_i <= half_nrows)
-        {
-            for (int offset = -col_offset; offset < col_offset; ++offset)
-            {
-                test(row_i, half_ncols + offset) = 1;
-                test(nrows - row_i, half_ncols + offset) = 1;
-            }
-
-            row_i += 1;
-            col_offset += floor(float(ncols) / float(nrows));
-        }
-    }
-    else
-    {
-        long col_i = 0;
-        int row_offset = 0;
-
-        while (col_i <= half_ncols)
-        {
-            for (int offset = -row_offset; offset < row_offset; ++offset)
-            {
-                test(half_nrows + offset, col_i) = 1;
-                test(half_nrows + offset, ncols - col_i) = 1;
-            }
-
-            col_i += 1;
-            row_offset += ncols / nrows;
-        }
-    }
-
+    auto morph = MorphologicalTransform<bool>();
+    morph.set_structuring_element(FlatStructuringElement::all_foreground(3, 3));
 
     sprite.load_from(test);
 
@@ -102,8 +63,8 @@ int main()
 
         if (InputHandler::was_key_pressed(SPACE))
         {
-            blur.apply_to(image);
-            sprite.load_from(image);
+            morph.erode(test);
+            sprite.load_from(test);
         }
 
         if (InputHandler::was_key_pressed(KeyID::UP))

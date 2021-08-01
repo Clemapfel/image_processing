@@ -42,6 +42,12 @@ namespace crisp
     }
 
     template<typename Value_t>
+    Value_t Image<Value_t>::get_pixel_or_padding(long x, long y) const
+    {
+        return operator()(x, y);
+    }
+
+    template<typename Value_t>
     Value_t& Image<Value_t>::operator()(long x, long y)
     {
         if (x < 0 or x >= get_size().x or y < 0 or y >= get_size().y)
