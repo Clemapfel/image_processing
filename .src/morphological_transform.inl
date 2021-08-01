@@ -319,7 +319,37 @@ namespace crisp
     typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::hemisphere(long dimensions, Value_t min, Value_t max)
     {
-        //
+        // sqrt(radius*radius + x*x)
+        if (not std::is_floating_point_v<Value_t>)
+            return all_background(dimensions, dimensions);
+
+        assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
+        auto out = all_background(dimensions, dimensions);
+
+        long radius = (dimensions - 1) / 2;
+        auto dist = [dimensions, r = radius](long x, long y) -> float {return sqrt((x-r)*(x-r) + (y-r)*(y-r));};
+
+        const Value_t step = (max - min) / ((dimensions - 1) / 2);
+        Value_t current_color = Value_t(min);
+        size_t offset = 0;
+
+        for (long i = 0; i < dimensions; ++i)
+        {
+            for (long j = 0; j < dimensions; ++j)
+            {
+                if (dist(i, j) <= radius)
+                {
+                    Value_t v = dist(i, j) / radius;
+                    out.set_offset(i, j, sqrt(1 - v * v));
+                }
+                else
+                {
+                    out.set_background(i, j);
+                }
+            }
+        }
+
+        return out;
     }
 
     template<typename Value_t>
