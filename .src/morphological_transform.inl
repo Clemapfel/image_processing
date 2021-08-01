@@ -225,24 +225,63 @@ namespace crisp
 
     template<typename Value_t>
     typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::square_pyramid(long dimensions)
+    MorphologicalTransform<Value_t>::StructuringElement::square_pyramid(long dimensions, Value_t min, Value_t max)
+    {
+        auto out = square(dimensions);
+
+        if (not std::is_floating_point_v<Value_t>)
+            return out;
+
+        const Value_t step = (max - min) / ((dimensions - 1) / 2);
+        Value_t current_color = Value_t(min);
+        size_t offset = 0;
+
+        while (offset > ((dimensions - 1) / 2))
+        {
+            for (long x = offset; x < dimensions - offset; ++x)
+            {
+                out._matrix(x, offset) = current_color;
+                out._matrix(x, dimensions - offset - 1) = current_color;
+            }
+
+            for (long y = offset; y < dimensions - offset; ++y)
+            {
+                out._matrix(offset, y) = current_color;
+                out._matrix(dimensions - offset - 1, y) = current_color;
+            }
+
+            current_color += step;
+            offset += 1;
+        }
+
+        return out;
+    }
+
+    template<typename Value_t>
+    typename MorphologicalTransform<Value_t>::StructuringElement
+    MorphologicalTransform<Value_t>::StructuringElement::diamond_pyramid(long dimensions, Value_t min, Value_t max)
+    {
+        auto out = diamond(dimensions);
+
+        if (not std::is_floating_point_v<Value_t>)
+            return out;
+    }
+
+    template<typename Value_t>
+    typename MorphologicalTransform<Value_t>::StructuringElement
+    MorphologicalTransform<Value_t>::StructuringElement::hemisphere(long dimensions, Value_t min, Value_t max)
     {
         //
     }
 
     template<typename Value_t>
     typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::diamond_pyramid(long dimensions)
+    MorphologicalTransform<Value_t>::StructuringElement::cone(long dimensions, Value_t min, Value_t max)
     {
-        //
-    }
+        auto out = circle(dimensions);
 
-    template<typename Value_t>
-    typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::hemisphere(long dimensions
-    )
-    {
-        //
+        if (not std::is_floating_point_v<Value_t>)
+            return out;
     }
 
     template<typename Value_t>

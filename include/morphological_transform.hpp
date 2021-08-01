@@ -39,6 +39,8 @@ namespace crisp
 
             class StructuringElement
             {
+                using Value_t = StructuringElementValue_t;
+                    
                 public:
                     static StructuringElement all_dont_care(long nrows, long ncols);
                     static StructuringElement all_foreground(long nrows, long ncols);
@@ -49,9 +51,10 @@ namespace crisp
                     static StructuringElement diamond(long dimensions);
                     static StructuringElement circle(long dimensions);
 
-                    static StructuringElement square_pyramid(long dimensions);
-                    static StructuringElement diamond_pyramid(long dimensions);
-                    static StructuringElement hemisphere(long dimensions);
+                    static StructuringElement square_pyramid(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
+                    static StructuringElement diamond_pyramid(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
+                    static StructuringElement cone(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
+                    static StructuringElement hemisphere(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
 
                     StructuringElement(long nrows, long ncols);
                     sf::Vector2<long> get_size() const;

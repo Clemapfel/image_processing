@@ -42,12 +42,35 @@ int main()
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
 
-    float zoom = 1;
-    float step = 3;
-    sf::Vector2f offset = {0, 0};
+    GrayScaleImage test;
+    //test.create_from_file("/home/clem/Workspace/image_processing/test_binary_image.png", 0.5);
+    long dimensions = 201;
+    test.create(dimensions, dimensions);
 
-    BinaryImage test;
-    test.create_from_file("/home/clem/Workspace/image_processing/test_binary_image.png", 0.5);
+    float max = 0.8;
+    float min = 0.3;
+    
+    const float step = (max - min) / ((dimensions - 1) / 2);
+    float current_color = min;
+    size_t offset = 0;
+
+    while (offset < ((dimensions - 1) / 2))
+    {
+        for (long x = offset; x < dimensions - offset; ++x)
+        {
+            test(x, offset) = current_color;
+            test(x, dimensions - offset - 1) = current_color;
+        }
+
+        for (long y = offset; y < dimensions - offset; ++y)
+        {
+            test(offset, y) = current_color;
+            test(dimensions - offset - 1, y) = current_color;
+        }
+
+        current_color += step;
+        offset += 1;
+    }
 
     auto morph = MorphologicalTransform<bool>();
     morph.set_structuring_element(FlatStructuringElement::diamond(5));
@@ -65,14 +88,6 @@ int main()
             morph.erode(test);
             sprite.load_from(test);
         }
-
-        if (InputHandler::was_key_pressed(KeyID::UP))
-        if (InputHandler::was_key_pressed(KeyID::DOWN))
-        if (InputHandler::is_key_down(KeyID::LEFT))
-            offset.x -= step;
-
-        if (InputHandler::is_key_down(KeyID::RIGHT))
-            offset.x += step;
 
         window.clear();
         window.draw(sprite);
