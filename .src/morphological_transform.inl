@@ -236,7 +236,7 @@ namespace crisp
         Value_t current_color = Value_t(min);
         size_t offset = 0;
 
-        while (offset > ((dimensions - 1) / 2))
+        while (offset < ((dimensions - 1) / 2))
         {
             for (long x = offset; x < dimensions - offset; ++x)
             {
@@ -265,6 +265,28 @@ namespace crisp
 
         if (not std::is_floating_point_v<Value_t>)
             return out;
+
+        const Value_t step = (max - min) / ((dimensions - 1) / 2);
+        Value_t current_color = Value_t(min);
+        size_t offset = 0;
+
+        long half = ((dimensions - 1) / 2);
+        while (offset < half)
+        {
+            for (long x = half, y = offset; x < dimensions and y <= half; x++, y++)
+            {
+                out._matrix(x, y) = current_color;
+                out._matrix(dimensions - x - 1, y) = current_color;
+                out._matrix(x, dimensions - y - 1) = current_color;
+                out._matrix(dimensions - x - 1, dimensions - y - 1) = current_color;
+            }
+            
+            offset += 1;
+            current_color += step;
+        }
+
+        return out;
+
     }
 
     template<typename Value_t>

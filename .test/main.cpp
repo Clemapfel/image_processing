@@ -54,23 +54,20 @@ int main()
     float current_color = min;
     size_t offset = 0;
 
-    while (offset < ((dimensions - 1) / 2))
-    {
-        for (long x = offset; x < dimensions - offset; ++x)
+    long half = ((dimensions - 1) / 2);
+        while (offset < half)
         {
-            test(x, offset) = current_color;
-            test(x, dimensions - offset - 1) = current_color;
+            for (long x = half, y = offset; x < dimensions and y <= half; x++, y++)
+            {
+                test(x, y) = current_color;
+                test(dimensions - x - 1, y) = current_color;
+                test(x, dimensions - y - 1) = current_color;
+                test(dimensions - x - 1, dimensions - y - 1) = current_color;
+            }
+            
+            offset += 1;
+            current_color += step;
         }
-
-        for (long y = offset; y < dimensions - offset; ++y)
-        {
-            test(offset, y) = current_color;
-            test(dimensions - offset - 1, y) = current_color;
-        }
-
-        current_color += step;
-        offset += 1;
-    }
 
     auto morph = MorphologicalTransform<bool>();
     morph.set_structuring_element(FlatStructuringElement::diamond(5));
