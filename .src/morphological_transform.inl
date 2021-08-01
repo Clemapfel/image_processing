@@ -180,22 +180,23 @@ namespace crisp
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
         auto out = MorphologicalTransform<Value_t>::StructuringElement(dimensions, dimensions);
 
-        long half_nrows = (dimensions - 1) / 2;
-        long half_ncols = (dimensions - 1) / 2;
+        if (not std::is_floating_point_v<Value_t>)
+            return out;
 
-        long row_i = 0;
-        int col_offset = 0;
+        size_t offset = 0;
 
-        while (row_i <= half_nrows)
+        long half = ((dimensions - 1) / 2);
+        while (offset < half)
         {
-            for (int offset = -col_offset; offset < col_offset; ++offset)
+            for (long x = half, y = offset; x < dimensions and y <= half; x++, y++)
             {
-                out._matrix(row_i, half_ncols + offset) = 1;
-                out._matrix(dimensions - row_i, half_ncols + offset) = 1;
+                out._matrix(x, y) = Value_t(1);
+                out._matrix(dimensions - x - 1, y) = Value_t(1);
+                out._matrix(x, dimensions - y - 1) = Value_t(1);
+                out._matrix(dimensions - x - 1, dimensions - y - 1) = Value_t(1);
             }
 
-            row_i += 1;
-            col_offset += 1;
+            offset += 1;
         }
 
         return out;
@@ -226,7 +227,7 @@ namespace crisp
     typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::square_pyramid(long dimensions, Value_t min, Value_t max)
     {
-        auto out = square(dimensions);
+        auto out = all_background(dimensions, dimensions);
 
         if (not std::is_floating_point_v<Value_t>)
             return out;
@@ -260,7 +261,7 @@ namespace crisp
     typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::diamond_pyramid(long dimensions, Value_t min, Value_t max)
     {
-        auto out = diamond(dimensions);
+        auto out = all_background(dimensions, dimensions);
 
         if (not std::is_floating_point_v<Value_t>)
             return out;
@@ -292,7 +293,7 @@ namespace crisp
     MorphologicalTransform<Value_t>::StructuringElement::cone(long dimensions, Value_t min, Value_t max)
     {
         if (not std::is_floating_point_v<Value_t>)
-            return circle(dimensions);
+            return all_background(dimensions, dimensions);
 
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
         auto out = all_background(dimensions, dimensions);

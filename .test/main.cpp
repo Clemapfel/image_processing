@@ -47,7 +47,7 @@ int main()
     long dimensions = 201;
     test.create(dimensions, dimensions);
 
-    auto element = NonFlatStructuringElement::cone(dimensions, 0.5, 1);
+    auto element = NonFlatStructuringElement::cone(dimensions);//, 0.5, 1);
 
     for (long x = 0; x < element.get_size().x; ++x)
         for (long y = 0; y < element.get_size().y; ++y)
