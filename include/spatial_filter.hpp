@@ -79,7 +79,24 @@ namespace crisp
 
                 // @brief kernel implementing the discrete laplacian in all 4 (8) directions, useful for edge detection
                 // @param diagonal_edges: should the kernel also consider top-left, top-right, bottom-left and bottom-right directional derivatives
-                static Kernel_t isotropic_laplacian_3x3(bool diagonal_edges = true);
+                static Kernel_t isotropic_laplacian(bool diagonal_edges = true);
+
+                enum LineDirection : int {HORIZONTAL, PLUS_45, VERTICAL, MINUS_45};
+
+                static Kernel_t line_detection(LineDirection);
+
+                // x-gradient: f(x, y) - f(x+1, y), y-gradient: f(x, y) - f(x, y+1)
+                enum GradientDirection : int {X_DIRECTION, Y_DIRECTION};
+
+                // @returns a 2x1 matrix for x-direction, a 1x2 matrix for y-direction
+                static Kernel_t simple_gradient(GradientDirection);
+                static Kernel_t roberts(GradientDirection);
+                static Kernel_t prewitt(GradientDirection);
+                static Kernel_t sobel(GradientDirection);
+
+                enum KirschCompassDirection : int {NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST};
+
+                static Kernel_t kirsch_compass(KirschCompassDirection);
             };
 
             // pre defined evaluation functions, set with SpatialFilter.set_evaluation_function()

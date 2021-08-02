@@ -189,7 +189,7 @@ namespace crisp
     }
 
     template<typename Image_t, typename Value_t>
-    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::isotropic_laplacian_3x3(bool diagonal_edges)
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::isotropic_laplacian(bool diagonal_edges)
     {
         Kernel_t out;
         out.resize(3, 3);
@@ -203,6 +203,192 @@ namespace crisp
         out(2, 0) = diagonal_edges ? -1 : 0;
         out(2, 1) = -1;
         out(2, 2) = diagonal_edges ? -1 : 0;
+
+        return out;
+    }
+
+    template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::line_detection(LineDirection direction)
+    {
+        Kernel_t out;
+
+        switch (direction)
+        {
+            case HORIZONTAL:
+                out << -1, -1, -1,
+                        2,  2,  2,
+                       -1, -1, -1;
+                break;
+
+            case PLUS_45:
+                out <<  2, -1, -1,
+                       -1,  2, -1,
+                       -1, -1,  2;
+                break;
+
+            case VERTICAL:
+                out << -1,  2, -1,
+                       -1,  2, -1,
+                       -1,  2, -1;
+                break;
+
+            case MINUS_45:
+                out << -1, -1,  2,
+                       -1,  2, -1,
+                        2, -1,  2;
+                break;
+        }
+
+        return out;
+    }
+
+
+    template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::simple_gradient(GradientDirection direction)
+    {
+        Kernel_t out;
+
+        if (direction == X_DIRECTION)
+        {
+            out.resize(1, 2);
+            out(0, 0) = -1;
+            out(0, 1) = 1;
+        }
+        else
+        {
+            out.resize(2, 1);
+            out(0, 0) = -1;
+            out(1, 0) = 1;
+        }
+
+        return out;
+    }
+
+
+    template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::roberts(GradientDirection direction)
+    {
+        Kernel_t out;
+        out.resize(2, 2);
+
+        if (direction == X_DIRECTION)
+        {
+            out(0, 0) = -1;
+            out(0, 1) = 0;
+            out(1, 1) = 1;
+            out(1, 0) = 0;
+        }
+        else
+        {
+            out(0, 0) = 1;
+            out(0, 1) = 0;
+            out(1, 1) = -1;
+            out(1, 0) = 0;
+        }
+
+        return out;
+    }
+
+    template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::prewitt(GradientDirection direction)
+    {
+        Kernel_t out;
+        out.resize(3, 3);
+
+        if (direction == X_DIRECTION)
+        {
+            out << -1, -1, -1,
+                    0,  0,  0,
+                    1,  1,  1 ;
+        }
+        else
+        {
+            out << -1,  0,  1,
+                   -1,  0,  1,
+                   -1,  0,  1 ;
+        }
+
+        return out;
+    }
+
+    template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::sobel(GradientDirection direction)
+    {
+        Kernel_t out;
+        out.resize(3, 3);
+
+        if (direction == X_DIRECTION)
+        {
+            out << -1, -2, -1,
+                    0,  0,  0,
+                    1,  2,  1 ;
+        }
+        else
+        {
+            out << -1,  0,  1,
+                   -2,  0,  2,
+                   -1,  0,  1 ;
+        }
+
+        return out;
+    }
+
+    template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::kirsch_compass(KirschCompassDirection direction)
+    {
+        Kernel_t out;
+        out.resize(3, 3);
+
+        switch (direction)
+        {
+            case NORTH:
+                out << -3, -3,  5,
+                       -3,  0,  5,
+                       -3, -3,  5;
+                break;
+
+            case NORTH_WEST:
+                out << -3,  5,  5,
+                       -3,  0,  5,
+                       -3, -3, -3;
+                break;
+
+            case WEST:
+                out <<  5,  5,  5,
+                       -3,  0, -3,
+                       -3, -3, -3;
+                break;
+
+            case SOUTH_WEST:
+                out <<  5,  5, -3,
+                        5,  0, -3,
+                       -3, -3, -3;
+                break;
+
+            case SOUTH:
+                out <<  5, -3, -3,
+                        5,  0, -3,
+                        5, -3, -3;
+                break;
+
+            case SOUTH_EAST:
+                out << -3, -3, -3,
+                        5,  0, -3,
+                        5,  5, -3;
+                break;
+
+            case EAST:
+                out << -3, -3, -3,
+                       -3,  0, -3,
+                        5,  5,  5;
+                break;
+
+            case NORTH_EAST:
+                out << -3, -3, -3,
+                       -3,  0,  5,
+                       -3,  5,  5;
+                break;
+        }
 
         return out;
     }
@@ -323,4 +509,6 @@ namespace crisp
                 return values.at(size_t(values.size() * (float(n) / float(k))));
         });
     }
+
+
 }

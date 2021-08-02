@@ -37,21 +37,61 @@ namespace crisp
             template<typename Image_t>
             void hit_or_miss_transform(Image_t& image);
 
+            // structuring element used in transforms, matrix of std::optional<Value_t>
             class StructuringElement
             {
                 using Value_t = StructuringElementValue_t;
                     
                 public:
+                    // @brief initialize the element with nrow*ncol "don't care" values (internally: std::nullopt)
+                    // @param nrows: number of rows
+                    // @param ncols: number of columns
+                    // @returns flat structuring element by value
                     static StructuringElement all_dont_care(long nrows, long ncols);
+
+                    // @brief initialize the element with all "foreground" values (internally: Value_t(1.f))
+                    // @param nrows: number of rows
+                    // @param ncols: number of columns
+                    // @returns flat structuring element by value
                     static StructuringElement all_foreground(long nrows, long ncols);
+
+                    // @brief initialize the element with all "background" values (internally: Value_t(0.f))
+                    // @param nrows: number of rows
+                    // @param ncols: number of columns
+                    // @returns flat structuring element by value
                     static StructuringElement all_background(long nrows, long ncols);
 
+                    // @brief initialize the element so that two lines originating at (x = 0, y = (dimensions-1) / 2) and (x = (dimensions - 1) / 2), y = 0) cross in the center point
+                    // @param dimensions: the number of rows and columns, has to be odd
+                    // @returns flat structuring element by value
                     static StructuringElement cross(long dimensions);
+
+                    // @brief initialize the element so that every pixel is a foreground value
+                    // @param dimensions: the number of rows and columns, can be odd or even
+                    // @notes this function is equivalent to called all_foreground(dimensions, dimensions)
+                    // @returns flat structuring element by value
                     static StructuringElement square(long dimensions);
+
+                    // @brief initialize the element as a 45° rhombus (lozenge) such that values inside the rhombus are in the foreground
+                    // @param dimensions: the height and width of the element and rhombus
+                    // @returns flat structuring element by value
                     static StructuringElement diamond(long dimensions);
+
+                    // @brief initialize the element as a circle
+                    // @param dimensions: twice the radius of the circle
+                    // @returns flat structuring element by value
                     static StructuringElement circle(long dimensions);
 
+                    // @brief initialize the element as a 3d square pyramid with it's peak value at the center
+                    // @param dimensions: size of the square
+                    // @param max_intensity: intensity at the outer edges of the element, default 0
+                    // @param min_intensity: intensity at the peak (center) of the element, default 1
+                    // @returns non-flat structuring elementy by value
+                    // @notes for Value_t = bool this function is equivalent to calling square(dimensions)
                     static StructuringElement square_pyramid(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
+
+                    // @brief initialize the element as a 3d diamond pyramid
+                    // TODO
                     static StructuringElement diamond_pyramid(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
                     static StructuringElement cone(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));
                     static StructuringElement hemisphere(long dimensions, Value_t min_intensity = Value_t(0.f), Value_t max_intensity = Value_t(1.f));

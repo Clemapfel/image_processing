@@ -157,12 +157,17 @@ namespace crisp
 
     template<typename Value_t>
     typename MorphologicalTransform<Value_t>::StructuringElement
+    MorphologicalTransform<Value_t>::StructuringElement::square(long dimensions)
+    {
+        return MorphologicalTransform<Value_t>::StructuringElement::all_foreground(dimensions, dimensions);
+    }
+
+    template<typename Value_t>
+    typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::cross(long dimensions)
     {
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
-        auto out = MorphologicalTransform<Value_t>::StructuringElement(dimensions, dimensions);
-
-        out._matrix.setConstant(Value_t(0));
+        auto out = all_dont_care(dimensions, dimensions);
 
         for (size_t col_i = 0; col_i < out._matrix.cols(); ++col_i)
             out._matrix((out._matrix.rows() - 1) / 2, col_i) = Value_t(1.f);
@@ -178,7 +183,7 @@ namespace crisp
     MorphologicalTransform<Value_t>::StructuringElement::diamond(long dimensions)
     {
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
-        auto out = MorphologicalTransform<Value_t>::StructuringElement(dimensions, dimensions);
+        auto out = all_dont_care(dimensions, dimensions);
 
         if (not std::is_floating_point_v<Value_t>)
             return out;
@@ -207,7 +212,7 @@ namespace crisp
     MorphologicalTransform<Value_t>::StructuringElement::circle(long dimensions)
     {
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
-        auto out = MorphologicalTransform<Value_t>::StructuringElement(dimensions, dimensions);
+        auto out = all_dont_care(dimensions, dimensions);
         
         long radius = (dimensions - 1) / 2;
 
@@ -217,8 +222,6 @@ namespace crisp
             for (long j = 0; j < dimensions; ++j)
                 if (mark(i, j))
                     out.set_foreground(i, j);
-                else
-                    out.set_background(i, j);
 
         return out;
     }
@@ -227,7 +230,7 @@ namespace crisp
     typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::square_pyramid(long dimensions, Value_t min, Value_t max)
     {
-        auto out = all_background(dimensions, dimensions);
+        auto out = all_dont_care(dimensions, dimensions);
 
         if (not std::is_floating_point_v<Value_t>)
             return out;
@@ -261,7 +264,7 @@ namespace crisp
     typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::diamond_pyramid(long dimensions, Value_t min, Value_t max)
     {
-        auto out = all_background(dimensions, dimensions);
+        auto out = all_dont_care(dimensions, dimensions);
 
         if (not std::is_floating_point_v<Value_t>)
             return out;
@@ -293,10 +296,10 @@ namespace crisp
     MorphologicalTransform<Value_t>::StructuringElement::cone(long dimensions, Value_t min, Value_t max)
     {
         if (not std::is_floating_point_v<Value_t>)
-            return all_background(dimensions, dimensions);
+            return circle(dimensions, dimensions);
 
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
-        auto out = all_background(dimensions, dimensions);
+        auto out = all_dont_care(dimensions, dimensions);
 
         long radius = (dimensions - 1) / 2;
         auto dist = [dimensions, r = radius](long x, long y) -> float {return sqrt((x-r)*(x-r) + (y-r)*(y-r));};
@@ -321,10 +324,10 @@ namespace crisp
     {
         // sqrt(radius*radius + x*x)
         if (not std::is_floating_point_v<Value_t>)
-            return all_background(dimensions, dimensions);
+            return circle(dimensions, dimensions);
 
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
-        auto out = all_background(dimensions, dimensions);
+        auto out = all_dont_care(dimensions, dimensions);
 
         long radius = (dimensions - 1) / 2;
         auto dist = [dimensions, r = radius](long x, long y) -> float {return sqrt((x-r)*(x-r) + (y-r)*(y-r));};
@@ -343,19 +346,10 @@ namespace crisp
                     out.set_offset(i, j, sqrt(1 - v * v));
                 }
                 else
-                {
                     out.set_background(i, j);
-                }
             }
         }
 
         return out;
-    }
-
-    template<typename Value_t>
-    typename MorphologicalTransform<Value_t>::StructuringElement
-    MorphologicalTransform<Value_t>::StructuringElement::square(long dimensions)
-    {
-        return MorphologicalTransform<Value_t>::StructuringElement::all_foreground(dimensions, dimensions);
     }
 }
