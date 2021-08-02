@@ -36,24 +36,13 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
     Sprite sprite;
 
-    GrayScaleFilter blur;
-    blur.set_kernel(GrayScaleFilter::Kernel::isotropic_laplacian_3x3(true));
+    GrayScaleFilter filter;
+    filter.set_kernel(GrayScaleFilter::Kernel::line_detection(crisp::SpatialFilter<GrayScaleImage, float>::Kernel::PLUS_45));//crisp::SpatialFilter<GrayScaleImage, float>::Kernel::X_DIRECTION));
 
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
 
-    GrayScaleImage test;
-    //test.create_from_file("/home/clem/Workspace/image_processing/test_binary_image.png", 0.5);
-    long dimensions = 201;
-    test.create(dimensions, dimensions);
-
-    auto element = NonFlatStructuringElement::hemisphere(dimensions);//, 0.5, 1);
-
-    for (long x = 0; x < element.get_size().x; ++x)
-        for (long y = 0; y < element.get_size().y; ++y)
-            test(x, y) = element.get_value(x, y).value_or(0);
-
-    sprite.load_from(test);
+    sprite.load_from(image);
 
     while (window.is_open())
     {
@@ -62,12 +51,8 @@ int main()
 
         if (InputHandler::was_key_pressed(SPACE))
         {
-            element = NonFlatStructuringElement::cone(dimensions);//, 0.5, 1);
-
-            for (long x = 0; x < element.get_size().x; ++x)
-                for (long y = 0; y < element.get_size().y; ++y)
-                    test(x, y) = element.get_value(x, y).value_or(0);
-            sprite.load_from(test);
+            filter.apply_to(image);
+            sprite.load_from(image);
         }
 
         window.clear();

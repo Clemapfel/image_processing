@@ -9,6 +9,13 @@
 
 namespace crisp
 {
+    // @brief convolute two matrices, useful for combining kernels
+    // @param left: the left operand of convolution
+    // @param right: the right operand
+    // @returns resulting matrix by value
+    template<typename Value_t>
+    Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> convolute(Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> left, Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> right);
+
     // Filters in the spatial (2d image) domain
     template<typename Image_t, typename Value_t = typename Image_t::value_t>
     class SpatialFilter
@@ -22,6 +29,10 @@ namespace crisp
             // @brief apply filter to an image
             // @param : Image of the appropraite type specific as the template parameter
             void apply_to(Image_t&);
+
+            // @brief apply filter to another kernel
+            // @param : kernel of the same type as the kernel used for the operation
+            void apply_to(Kernel_t&);
 
             // @brief set the filters kernel, a kernel is always square, has a odd-numbered dimensions and has it's origin at it's center
             // @param : the kernel
@@ -79,14 +90,15 @@ namespace crisp
 
                 // @brief kernel implementing the discrete laplacian in all 4 (8) directions, useful for edge detection
                 // @param diagonal_edges: should the kernel also consider top-left, top-right, bottom-left and bottom-right directional derivatives
-                static Kernel_t isotropic_laplacian(bool diagonal_edges = true);
+                static Kernel_t laplacian_first_derivative(bool diagonal_edges = true);
+                static Kernel_t laplacian_second_derivative(bool diagonal_edges = true);
 
                 enum LineDirection : int {HORIZONTAL, PLUS_45, VERTICAL, MINUS_45};
 
                 static Kernel_t line_detection(LineDirection);
 
                 // x-gradient: f(x, y) - f(x+1, y), y-gradient: f(x, y) - f(x, y+1)
-                enum GradientDirection : int {X_DIRECTION, Y_DIRECTION};
+                enum GradientDirection : int {X_DIRECTION = 0, Y_DIRECTION = 1};
 
                 // @returns a 2x1 matrix for x-direction, a 1x2 matrix for y-direction
                 static Kernel_t simple_gradient(GradientDirection);

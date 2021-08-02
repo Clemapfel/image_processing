@@ -324,7 +324,7 @@ namespace crisp
     {
         // sqrt(radius*radius + x*x)
         if (not std::is_floating_point_v<Value_t>)
-            return circle(dimensions, dimensions);
+            return circle(dimensions);
 
         assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
         auto out = all_dont_care(dimensions, dimensions);

@@ -7,9 +7,39 @@
 
 namespace crisp
 {
+
+    template<typename Value_t>
+    Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic>
+    convolute(Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> left,
+              Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> right)
+    {
+        sf::Vector2<long> size = {left.rows(), left.cols()};
+
+        Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> result;
+        result.resize(size.x, size.y);
+
+        long a = floor(size.x / 2.f);
+        long b = floor(size.y / 2.f);
+
+        for (long i = 0; i < size.x; ++i)
+        {
+            for (long j = 0; j < size.y; ++j)
+            {
+                Value_t current_sum = 0;
+                for (long s = -a; s <= a; ++s)
+                    for (long t = -b; t <= b; ++t)
+                        current_sum += right(a + s, b + t) * left(x + s, y + t);
+
+                result(i, j) = current_sum;
+            }
+        }
+
+        return result;
+    }
+
     template<typename Image_t, typename Value_t>
     SpatialFilter<Image_t, Value_t>::SpatialFilter()
-        : _kernel(Kernel::identity(1)), _eval(EvaluationFunction::convolution(true))
+        : _kernel(Kernel::identity(1)), _eval(EvaluationFunction::convolution())
     {}
 
     /*
@@ -79,7 +109,6 @@ namespace crisp
     template<typename Image_t, typename Value_t>
     void SpatialFilter<Image_t, Value_t>::set_kernel(Kernel_t&& kernel)
     {
-        assert(kernel.cols() % 2 == 1 and kernel.rows() % 2 == 1 && "kernel has to be of odd dimensions in order to have a centered origin");
         _kernel = kernel;
     }
 
@@ -109,11 +138,27 @@ namespace crisp
                 image(x, y) = result(x, y);
     }
 
+    template<typename Image_t, typename Value_t>
+    void SpatialFilter<Image_t, Value_t>::apply_to(Kernel_t& kernel)
+    {
+        Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> result;
+        result.resize(kernel.rows(), kernel.cols());
+
+        for (long x = 0; x < kernel.rows(); ++x)
+            for (long y = 0; y < kernel.cols(); ++y)
+                result(x, y) = _eval(kernel, x, y, _kernel);
+
+        for (long x = 0; x < kernel.rows(); ++x)
+            for (long y = 0; y < kernel.cols(); ++y)
+                kernel(x, y) = result(x, y);
+    }
+
     // ### KERNELS ###########################################################################
 
     template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::identity(long dimensions)
     {
+        assert(dimensions != 0);
         Kernel_t out;
         out.resize(dimensions, dimensions);
         out.setConstant(Value_t(0));
@@ -124,6 +169,7 @@ namespace crisp
     template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::zero(long dimensions)
     {
+        assert(dimensions != 0);
         Kernel_t out;
         out.resize(dimensions, dimensions);
         out.setConstant(Value_t(0));
@@ -133,6 +179,7 @@ namespace crisp
     template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::one(long dimensions)
     {
+        assert(dimensions != 0);
         Kernel_t out;
         out.resize(dimensions, dimensions);
         out.setConstant(Value_t(1));
@@ -142,6 +189,7 @@ namespace crisp
     template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::box(long dimensions, Value_t value)
     {
+        assert(dimensions != 0);
         Kernel_t out;
         out.resize(dimensions, dimensions);
         out.setConstant(Value_t(value));
@@ -151,12 +199,14 @@ namespace crisp
     template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::normalized_box(long dimension)
     {
+        assert(dimension != 0);
         return box(dimension, Value_t(1.f / float(dimension)));
     }
 
     template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::gaussian(long dimension)
     {
+        assert(dimension != 0);
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> matrix;
         matrix.resize(dimension, dimension);
 
@@ -189,7 +239,7 @@ namespace crisp
     }
 
     template<typename Image_t, typename Value_t>
-    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::isotropic_laplacian(bool diagonal_edges)
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::laplacian_first_derivative(bool diagonal_edges)
     {
         Kernel_t out;
         out.resize(3, 3);
@@ -208,9 +258,29 @@ namespace crisp
     }
 
     template<typename Image_t, typename Value_t>
+    typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::laplacian_second_derivative(bool diagonal_edges)
+    {
+        Kernel_t out;
+        out.resize(3, 3);
+
+        out(0, 0) = diagonal_edges ? -9 : 0;
+        out(0, 1) = -1;
+        out(0, 2) = diagonal_edges ? -9 : 0;
+        out(1, 0) = -1;
+        out(1, 1) = diagonal_edges ? 72 : 4;
+        out(1, 2) = -1;
+        out(2, 0) = diagonal_edges ? -9 : 0;
+        out(2, 1) = -1;
+        out(2, 2) = diagonal_edges ? -9 : 0;
+
+        return out;
+    }
+
+    template<typename Image_t, typename Value_t>
     typename SpatialFilter<Image_t, Value_t>::Kernel_t SpatialFilter<Image_t, Value_t>::Kernel::line_detection(LineDirection direction)
     {
         Kernel_t out;
+        out.resize(3, 3);
 
         switch (direction)
         {
@@ -400,9 +470,8 @@ namespace crisp
     {
         return std::move([normalize](const Image_t& image, long x, long y, const Kernel_t& kernel) -> Value_t
         {
-            long a = (kernel.cols() - 1) / 2;
-            long b = (kernel.rows() - 1) / 2;
 
+            
             Value_t sum_of_elements = 1;
             if (normalize)
             {
@@ -415,9 +484,9 @@ namespace crisp
             Value_t current_sum = 0;
             for (long s = -a; s <= a; ++s)
                 for (long t = -b; t <= b; ++t)
-                    current_sum += kernel(s + a, t + b) * image(x + a, y + b);
+                    current_sum += kernel(a + s, b + t) * image(x + s, y + t);
 
-            return current_sum / sum_of_elements;
+            return current_sum / (normalize and sum_of_elements != 0 ? sum_of_elements : 1);
         });
     }
 
