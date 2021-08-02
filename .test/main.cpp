@@ -36,13 +36,13 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
     Sprite sprite;
 
+    Kernel<float> kernel = GrayScaleFilter::simple_gradient(crisp::SpatialFilter<GrayScaleImage, float>::Y_DIRECTION);
+
     GrayScaleFilter filter;
-    filter.set_kernel(GrayScaleFilter::Kernel::line_detection(crisp::SpatialFilter<GrayScaleImage, float>::Kernel::PLUS_45));//crisp::SpatialFilter<GrayScaleImage, float>::Kernel::X_DIRECTION));
+    filter.set_kernel(kernel);//crisp::SpatialFilter<GrayScaleImage, float>::Kernel::X_DIRECTION));
 
     sprite.load_from(image);
     sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
-
-    sprite.load_from(image);
 
     while (window.is_open())
     {
@@ -52,6 +52,22 @@ int main()
         if (InputHandler::was_key_pressed(SPACE))
         {
             filter.apply_to(image);
+            sprite.load_from(image);
+        }
+
+        if (InputHandler::was_key_pressed(UP))
+        {
+            kernel = convolute( GrayScaleFilter::laplacian_first_derivative(), kernel);
+            filter.set_kernel(kernel);
+            image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
+            sprite.load_from(image);
+        }
+
+        if (InputHandler::was_key_pressed(DOWN))
+        {
+            kernel = convolute(kernel, GrayScaleFilter::laplacian_first_derivative());
+            filter.set_kernel(kernel);
+            image.create_from_file("/home/clem/Workspace/image_processing/test_image.png");
             sprite.load_from(image);
         }
 

@@ -9,20 +9,18 @@
 
 namespace crisp
 {
-    // @brief convolute two matrices, useful for combining kernels
-    // @param left: the left operand of convolution
-    // @param right: the right operand
-    // @returns resulting matrix by value
     template<typename Value_t>
-    Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> convolute(Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> left, Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> right);
+    using Kernel = Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic>;
+    
+    template<typename Value_t>
+    Kernel<Value_t> convolute(Kernel<Value_t> image, Kernel<Value_t> right);
 
     // Filters in the spatial (2d image) domain
     template<typename Image_t, typename Value_t = typename Image_t::value_t>
     class SpatialFilter
     {
         public:
-            using Kernel_t = Eigen::Matrix<typename Image_t::value_t, Eigen::Dynamic, Eigen::Dynamic>;
-            using EvaluationFunction_t = std::function<typename Image_t::value_t(const Image_t&, long, long, const Kernel_t&)>;
+            using EvaluationFunction_t = std::function<typename Image_t::value_t(const Image_t&, long, long, const Kernel<Value_t>&)>;
 
             SpatialFilter();
 
@@ -30,17 +28,13 @@ namespace crisp
             // @param : Image of the appropraite type specific as the template parameter
             void apply_to(Image_t&);
 
-            // @brief apply filter to another kernel
-            // @param : kernel of the same type as the kernel used for the operation
-            void apply_to(Kernel_t&);
-
             // @brief set the filters kernel, a kernel is always square, has a odd-numbered dimensions and has it's origin at it's center
             // @param : the kernel
             // @note when not initialized, the kernel is the identity matrix [1] of size 1x1
-            void set_kernel(Kernel_t&&);
+            void set_kernel(Kernel<Value_t>);
 
             // @brief set the filters evaluation function, this governs how the convluted values are added up
-            // @param : the function, must be bindable to std::function<typename Image_t::value_t(const Image_t& image, long pixel_x, long pixel_y, const Kernel_t& kernel)>;
+            // @param : the function, must be bindable to std::function<typename Image_t::value_t(const Image_t& image, long pixel_x, long pixel_y, const Kernel<Value_t>& kernel)>;
             // @note when not initialized, the evaluation function is the standard convolution
             void set_evaluation_function(EvaluationFunction_t&&);
 
@@ -60,56 +54,54 @@ namespace crisp
             // @param n_90_degree_rotatios: the factor n so that the kernel will be rotated by n*90°
             void rotate_kernel(size_t n_90_degree_rotations);
 
-            // pre defined kernels, set with SpatialFilter.set_kernel()
-            struct Kernel
-            {
-                // @brief the identity kernel, a 1 at the center 0 everywhere else
-                // @param dimension: the width and height of the kernel
-                static Kernel_t identity(long dimensions);
+            // ### KERNELS ##############################################################
+            
+            // @brief the identity kernel, a 1 at the center 0 everywhere else
+            // @param dimension: the width and height of the kernel
+            static Kernel<Value_t> identity(long dimensions);
 
-                // @brief a kernel where every element is 0
-                // @param dimension: the width and height of the kernel
-                static Kernel_t one(long dimensions);
+            // @brief a kernel where every element is 0
+            // @param dimension: the width and height of the kernel
+            static Kernel<Value_t> one(long dimensions);
 
-                // @brief a kernel where every element is 1
-                // @param dimension: the width and height of the kernel
-                static Kernel_t zero(long dimensions);
+            // @brief a kernel where every element is 1
+            // @param dimension: the width and height of the kernel
+            static Kernel<Value_t> zero(long dimensions);
 
-                // @brief a kernel where every element is initialized to the specified value
-                // @param dimension: the width and height of the kernel
-                static Kernel_t box(long dimensions, Value_t value);
+            // @brief a kernel where every element is initialized to the specified value
+            // @param dimension: the width and height of the kernel
+            static Kernel<Value_t> box(long dimensions, Value_t value);
 
-                // @brief a kernel where every element is (1 / size), useful for blurring
-                // @param dimension: the width and height of the kernel
-                // @note convoluting with a normalized box kernel is equivalent to calculating the mean with a kernel of only 1s
-                static Kernel_t normalized_box(long dimension);
+            // @brief a kernel where every element is (1 / size), useful for blurring
+            // @param dimension: the width and height of the kernel
+            // @note convoluting with a normalized box kernel is equivalent to calculating the mean with a kernel of only 1s
+            static Kernel<Value_t> normalized_box(long dimension);
 
-                // @brief a rotationally symmetrical gaussian kernel. Normalized so that the sum of all elements is 1
-                // @param dimension: the width and height of the kernel
-                static Kernel_t gaussian(long dimension);
+            // @brief a rotationally symmetrical gaussian kernel. Normalized so that the sum of all elements is 1
+            // @param dimension: the width and height of the kernel
+            static Kernel<Value_t> gaussian(long dimension);
 
-                // @brief kernel implementing the discrete laplacian in all 4 (8) directions, useful for edge detection
-                // @param diagonal_edges: should the kernel also consider top-left, top-right, bottom-left and bottom-right directional derivatives
-                static Kernel_t laplacian_first_derivative(bool diagonal_edges = true);
-                static Kernel_t laplacian_second_derivative(bool diagonal_edges = true);
+            // @brief kernel implementing the discrete laplacian in all 4 (8) directions, useful for edge detection
+            // @param diagonal_edges: should the kernel also consider top-left, top-right, bottom-left and bottom-right directional derivatives
+            static Kernel<Value_t> laplacian_first_derivative(bool diagonal_edges = true);
+            static Kernel<Value_t> laplacian_second_derivative(bool diagonal_edges = true);
 
-                enum LineDirection : int {HORIZONTAL, PLUS_45, VERTICAL, MINUS_45};
+            enum LineDirection : int {HORIZONTAL, PLUS_45, VERTICAL, MINUS_45};
 
-                static Kernel_t line_detection(LineDirection);
+            static Kernel<Value_t> line_detection(LineDirection);
 
-                // x-gradient: f(x, y) - f(x+1, y), y-gradient: f(x, y) - f(x, y+1)
-                enum GradientDirection : int {X_DIRECTION = 0, Y_DIRECTION = 1};
+            // x-gradient: f(x, y) - f(x+1, y), y-gradient: f(x, y) - f(x, y+1)
+            enum GradientDirection : int {X_DIRECTION = 0, Y_DIRECTION = 1};
 
-                // @returns a 2x1 matrix for x-direction, a 1x2 matrix for y-direction
-                static Kernel_t simple_gradient(GradientDirection);
-                static Kernel_t roberts(GradientDirection);
-                static Kernel_t prewitt(GradientDirection);
-                static Kernel_t sobel(GradientDirection);
+            // @returns a 2x1 matrix for x-direction, a 1x2 matrix for y-direction
+            static Kernel<Value_t> simple_gradient(GradientDirection);
+            static Kernel<Value_t> roberts(GradientDirection);
+            static Kernel<Value_t> prewitt(GradientDirection);
+            static Kernel<Value_t> sobel(GradientDirection);
 
-                enum KirschCompassDirection : int {NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST};
+            enum KirschCompassDirection : int {NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST};
 
-                static Kernel_t kirsch_compass(KirschCompassDirection);
-            };
+            static Kernel<Value_t> kirsch_compass(KirschCompassDirection);
 
             // pre defined evaluation functions, set with SpatialFilter.set_evaluation_function()
             struct EvaluationFunction
@@ -138,7 +130,7 @@ namespace crisp
             };
 
         private:
-            Kernel_t _kernel;
+            Kernel<Value_t> _kernel;
             EvaluationFunction_t _eval;
     };
 
