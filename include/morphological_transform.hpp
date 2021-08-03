@@ -26,7 +26,13 @@ namespace crisp
             void erode(Image_t& image);
 
             template<typename Image_t>
+            void erode(Image_t& image, const Image_t& mask);
+
+            template<typename Image_t>
             void dilate(Image_t& image);
+
+            template<typename Image_t>
+            void dilate(Image_t& image, const Image_t& mask);
 
             template<typename Image_t>
             void open(Image_t& image);
@@ -138,7 +144,6 @@ namespace crisp
     }
 
     template<typename Value_t>
-    template<typename Image_t>
     void MorphologicalTransform<Value_t>::dilate(Image_t& image)
     {
         long n = _structuring_element.get_size().x,
@@ -229,6 +234,70 @@ namespace crisp
         for (long i = 0; i < image.get_size().x; ++i)
             for (long j = 0; j < image.get_size().y; ++j)
                 image(i, j) = result(i, j);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::erode(Image_t& image, const Image_t& mask)
+    {
+        long n = _structuring_element.get_size().x,
+             m = _structuring_element.get_size().y;
+
+        auto origin = _structuring_element.get_origin();
+
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, Value_t(1.f));
+
+        for (long x = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y)
+            {
+                for (int a = -origin.x; a < n - origin.x; ++a)
+                {
+                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    {
+                        bool updated = false;
+                        typename Image_t::value_t min = Value_t(1);
+
+                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                            continue;
+                        else if (_structuring_element.is_foreground(a + origin.x, b + origin.y))
+                        {
+                            if (float(image.get_pixel_or_padding(x + a, y + b)) < float(min))
+                            {
+                                min = image.get_pixel_or_padding(x + a, y + b);
+                                updated = true;
+                            }
+                        }
+
+                        if (updated)
+                            result(x, y) = min;
+                    }
+                }
+
+            }
+        }
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                if (mask(i, j) <= result(i, j))
+                    image(i, j) = result(i, j);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::open(Image_t& image)
+    {
+        erode(image);
+        dilate(image);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::close(Image_t& image)
+    {
+        dilate(image);
+        erode(image);
     }
 }
 
