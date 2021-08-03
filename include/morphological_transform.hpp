@@ -120,7 +120,6 @@ namespace crisp
                     bool is_foreground(long x, long y) const;
                     bool is_background(long x, long y) const;
                     bool is_dont_care(long x, long y) const;
-                    StructuringElementValue_t get_offset(long x, long y) const;
 
                 private:
                     sf::Vector2<long> _origin;
@@ -144,8 +143,12 @@ namespace crisp
     }
 
     template<typename Value_t>
+    template<typename Image_t>
     void MorphologicalTransform<Value_t>::dilate(Image_t& image)
     {
+        if (std::is_same_v<typename Image_t::value_t, bool> and (not std::is_same_v<Value_t, bool>))
+            std::cerr << "[WARNING] Dilating a binary image with a non-flat structuring element is discourage as any resulting non-zero pixel value will be interpreted as true (white)" << std::endl;
+
         long n = _structuring_element.get_size().x,
              m = _structuring_element.get_size().y;
 
@@ -169,10 +172,21 @@ namespace crisp
                             continue;
                         else if (_structuring_element.is_foreground(a + origin.x, b + origin.y))
                         {
-                            if (image.get_pixel_or_padding(x + a, y + b) > max)
+                            if (std::is_same_v<Value_t, bool>)  // flat
                             {
-                                max = image.get_pixel_or_padding(x + a, y + b);
-                                updated = true;
+                                if (image.get_pixel_or_padding(x + a, y + b) > max)
+                                {
+                                    max = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
+                            }
+                            else    // non flat
+                            {
+                                if (image.get_pixel_or_padding(x + a, y + b) + _structuring_element.get_value(a + origin.x, b + origin.y) > max)
+                                {
+                                    max = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
                             }
                         }
 
@@ -191,8 +205,75 @@ namespace crisp
 
     template<typename Value_t>
     template<typename Image_t>
+    void MorphologicalTransform<Value_t>::dilate(Image_t& image, const Image_t& mask)
+    {
+        if (std::is_same_v<typename Image_t::value_t, bool> and (not std::is_same_v<Value_t, bool>))
+            std::cerr << "[WARNING] Dilating a binary image with a non-flat structuring element is discourage as any resulting non-zero pixel value will be interpreted as true (white)" << std::endl;
+
+        long n = _structuring_element.get_size().x,
+             m = _structuring_element.get_size().y;
+
+        auto origin = _structuring_element.get_origin();
+
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y);
+
+        for (long x = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y)
+            {
+                for (int a = -origin.x; a < n - origin.x; ++a)
+                {
+                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    {
+                        bool updated = false;
+                        typename Image_t::value_t max = std::numeric_limits<typename Image_t::value_t>::min();
+
+                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                            continue;
+                        else if (_structuring_element.is_foreground(a + origin.x, b + origin.y))
+                        {
+                            if (std::is_same_v<Value_t, bool>)  // flat
+                            {
+                                if (image.get_pixel_or_padding(x + a, y + b) > max)
+                                {
+                                    max = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
+                            }
+                            else    // non flat
+                            {
+                                if (image.get_pixel_or_padding(x + a, y + b) + _structuring_element.get_value(a + origin.x, b + origin.y) > max)
+                                {
+                                    max = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
+                            }
+                        }
+
+                        if (updated)
+                            result(x, y) = max;
+                    }
+                }
+            }
+        }
+
+        for (long i = 0; i < image.get_size().x; ++i)
+        {
+            for (long j = 0; j < image.get_size().y; ++j)
+            {
+                image(i, j) = std::min(result(i, j), mask(i, j));
+            }
+        }
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
     void MorphologicalTransform<Value_t>::erode(Image_t& image)
     {
+        if (std::is_same_v<typename Image_t::value_t, bool> and (not std::is_same_v<Value_t, bool>))
+            std::cerr << "[WARNING] Eroding a binary image with a non-flat structuring element is discourage as any resulting non-zero pixel value will be interpreted as true (white)" << std::endl;
+
         long n = _structuring_element.get_size().x,
              m = _structuring_element.get_size().y;
 
@@ -216,10 +297,21 @@ namespace crisp
                             continue;
                         else if (_structuring_element.is_foreground(a + origin.x, b + origin.y))
                         {
-                            if (float(image.get_pixel_or_padding(x + a, y + b)) < float(min))
+                            if (std::is_same_v<Value_t, bool>)  // flat
                             {
-                                min = image.get_pixel_or_padding(x + a, y + b);
-                                updated = true;
+                                if (image.get_pixel_or_padding(x + a, y + b) < min)
+                                {
+                                    min = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
+                            }
+                            else // non flat
+                            {
+                                if (image.get_pixel_or_padding(x + a, y + b) - _structuring_element.get_value(a + origin.x, b + origin.y) < min)
+                                {
+                                    min = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
                             }
                         }
 
@@ -240,6 +332,9 @@ namespace crisp
     template<typename Image_t>
     void MorphologicalTransform<Value_t>::erode(Image_t& image, const Image_t& mask)
     {
+        if (std::is_same_v<typename Image_t::value_t, bool> and (not std::is_same_v<Value_t, bool>))
+            std::cerr << "[WARNING] Eroding a binary image with a non-flat structuring element is discourage as any resulting non-zero pixel value will be interpreted as true (white)" << std::endl;
+
         long n = _structuring_element.get_size().x,
              m = _structuring_element.get_size().y;
 
@@ -263,10 +358,21 @@ namespace crisp
                             continue;
                         else if (_structuring_element.is_foreground(a + origin.x, b + origin.y))
                         {
-                            if (float(image.get_pixel_or_padding(x + a, y + b)) < float(min))
+                            if (std::is_same_v<Value_t, bool>)  // flat
                             {
-                                min = image.get_pixel_or_padding(x + a, y + b);
-                                updated = true;
+                                if (image.get_pixel_or_padding(x + a, y + b) < min)
+                                {
+                                    min = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
+                            }
+                            else // non flat
+                            {
+                                if (image.get_pixel_or_padding(x + a, y + b) - _structuring_element.get_value(a + origin.x, b + origin.y) < min)
+                                {
+                                    min = image.get_pixel_or_padding(x + a, y + b);
+                                    updated = true;
+                                }
                             }
                         }
 
@@ -279,9 +385,12 @@ namespace crisp
         }
 
         for (long i = 0; i < image.get_size().x; ++i)
+        {
             for (long j = 0; j < image.get_size().y; ++j)
-                if (mask(i, j) <= result(i, j))
-                    image(i, j) = result(i, j);
+            {
+                image(i, j) = std::max(result(i, j), mask(i, j));
+            }
+        }
     }
 
     template<typename Value_t>
@@ -298,6 +407,50 @@ namespace crisp
     {
         dilate(image);
         erode(image);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::hit_or_miss_transform(Image_t& image)
+    {
+        if (not std::is_same_v<Value_t, bool> and std::is_same_v<typename Image_t::value_t, bool>)
+            std::cerr << "[WARNING] HMT template matching a binary image with a non-flat structuring element is discouraged as all non-zero elements of the structuring element will be treated as true (white) during comparison" << std::endl;
+
+        long n = _structuring_element.get_size().x,
+             m = _structuring_element.get_size().y;
+
+        auto origin = _structuring_element.get_origin();
+
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, Value_t(1.f));
+
+        for (long x = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y)
+            {
+                for (int a = -origin.x; a < n - origin.x; ++a)
+                {
+                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    {
+                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                            continue;
+
+                        if (image.get_pixel_or_padding(x + a, y + b) !=
+                            _structuring_element.get_value(a + origin.x, b + origin.y))
+                            goto no_hit;
+                    }
+                }
+
+                // match found
+                result(x, y) = std::is_same_v<Value_t, bool> ? true : image(x, y);
+
+                no_hit:;
+            }
+        }
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = result(i, j);
     }
 }
 
