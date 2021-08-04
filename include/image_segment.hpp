@@ -12,20 +12,43 @@
 
 namespace crisp
 {
+    // a set of pixel belonging to an image
     template<typename Value_t>
     class ImageSegment
     {
-        template<typename>
-        class Iterator;
+        struct PixelCoordCompare
+        {
+            bool operator()(const sf::Vector2<long>& a, const sf::Vector2<long>& b) const
+            {
+                return a.x != b.x ? a.x < b.x : a.y <= b.y;
+            }
+        };
+        using Set_t = std::set<sf::Vector2<long>, PixelCoordCompare>;
 
         public:
             ImageSegment() = default;
 
+            // @brief create the segment from an image and a vector of xy-coordinates
+            // @param original: pointer to an image, must be kept in memory for the segment to stay valid
+            // @param coords: vector of pixel coordinates, doublets will be ignored
             void create(Image<Value_t>* original, std::vector<sf::Vector2<long>> coords);
 
-            Image<Value_t>& to_new_image() const;
+            // @brief paste the transform onto a new image of size equal to the minimum bounding box of segments the pixel set
+            // @returns an image of an arbitrary type
+            // @note All pixels in that rectangle that do not correspond to the original image are substituted with 0
+            template<typename Image_t>
+            Image_t to_new_image() const;
 
+            // @brief return a range with all coordinates of the pixels in the segment. The coordinates are relative to the original images origin
+            // @returns an std::set holding sf::vectors with 2 longs, vectors have member .x and .y
+            const Set_t& get_original_coordinates() const;
+
+            // @brief get an iterator to the first pixel in the segment
+            // @returns bidirectional non-const iterator
             auto begin();
+
+            // @brief get an iterator to the past-the-end element of the segment
+            // @returns bidirectional non-const iterator
             auto end();
 
         private:
@@ -34,14 +57,7 @@ namespace crisp
             sf::Vector2<long> _x_bounds,
                               _y_bounds;
 
-            struct PixelCoordCompare
-            {
-                bool operator()(const sf::Vector2<long>& a, const sf::Vector2<long>& b)
-                {
-                    return a.x != b.x ? a.x < b.x : a.y <= b.y;
-                }
-            };
-            std::set<sf::Vector2<long>, PixelCoordCompare> _pixels;
+            Set_t _pixels;
 
             template<typename SetIterator_t>
             struct Iterator
@@ -72,111 +88,8 @@ namespace crisp
             };
     };
 
-    template<typename Value_t>
-    void ImageSegment<Value_t>::create(Image <Value_t>* original, std::vector<sf::Vector2<long>> coords)
-    {
-        _image = original;
-        _x_bounds.x = std::numeric_limits<long>::max();
-        _x_bounds.y = long(0);
-        _y_bounds = _x_bounds;
-
-        for (auto& coord : coords)
-        {
-            if (_x_bounds.x < coord.x)
-                _x_bounds.x = coord.x;
-
-            if (_x_bounds.y > coord.x)
-                _x_bounds.y = coord.x;
-
-            if (_y_bounds.x < coord.y)
-                _y_bounds.x = coord.y;
-
-            if (_y_bounds.y > coord.y)
-                _y_bounds.y = coord.y;
-
-            _pixels.insert(coord);
-        }
-    }
-
-    template<typename Value_t>
-    Image<Value_t>& ImageSegment<Value_t>::to_new_image() const
-    {
-        Image<Value_t> out;
-        out.create(_x_bounds.y - _x_bounds.x, _y_bounds.y - _y_bounds.x, Value_t(0));
-
-        for (auto& coord : _pixels)
-            out(coord.x - _x_bounds.x, coord.y - _y_bounds.y) = _image->operator()(coord.x, coord.y);
-
-        return out;
-    }
-
-    template<typename Value_t>
-    auto ImageSegment<Value_t>::begin()
-    {
-        return Iterator(_image, _pixels.begin());
-    }
-
-    template<typename Value_t>
-    auto ImageSegment<Value_t>::end()
-    {
-        return Iterator(_image, _pixels.end());
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    ImageSegment<Value_t>::Iterator<SetIterator_t>::Iterator(Image<Value_t>* image, SetIterator_t it)
-        : _image(image), _it(it)
-    {}
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    bool ImageSegment<Value_t>::Iterator<SetIterator_t>::operator==(ImageSegment::Iterator<SetIterator_t>& other) const
-    {
-        return other._it == _it;
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    bool ImageSegment<Value_t>::Iterator<SetIterator_t>::operator!=(ImageSegment::Iterator<SetIterator_t>& other) const
-    {
-        return other._it != _it;
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    typename ImageSegment<Value_t>::template Iterator<SetIterator_t> & ImageSegment<Value_t>::Iterator<SetIterator_t>::operator++()
-    {
-        _it++;
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    typename ImageSegment<Value_t>::template Iterator<SetIterator_t> & ImageSegment<Value_t>::Iterator<SetIterator_t>::operator--()
-    {
-        _it--;
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    Value_t& ImageSegment<Value_t>::Iterator<SetIterator_t>::operator*() const
-    {
-        return _image->operator()((*_it).x, (*_it).y);
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    ImageSegment<Value_t>::Iterator<SetIterator_t>::operator Value_t() const
-    {
-        return _image->operator()((*_it).x, (*_it).y);
-    }
-
-    template<typename Value_t>
-    template<typename SetIterator_t>
-    void ImageSegment<Value_t>::Iterator<SetIterator_t>::operator=(Value_t new_value)
-    {
-        _image->operator()((*_it).x, (*_it).y) = new_value;
-    }
-
     using BinaryImageSegment = ImageSegment<bool>;
     using GrayScaleImageSegment = ImageSegment<float>;
 }
+
+#include <.src/image_segment.inl>
