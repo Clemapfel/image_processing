@@ -422,7 +422,7 @@ namespace crisp
         auto origin = _structuring_element.get_origin();
 
         Image_t result;
-        result.create(image.get_size().x, image.get_size().y, Value_t(1.f));
+        result.create(image.get_size().x, image.get_size().y, Value_t(0.f));
 
         for (long x = 0; x < image.get_size().x; ++x)
         {
@@ -437,7 +437,9 @@ namespace crisp
 
                         if (image.get_pixel_or_padding(x + a, y + b) !=
                             _structuring_element.get_value(a + origin.x, b + origin.y))
+                        {
                             goto no_hit;
+                        }
                     }
                 }
 
