@@ -7,6 +7,249 @@
 
 namespace crisp
 {
+    // ## TRANSFORM ####################################################
+
+    template<typename Value_t>
+    void MorphologicalTransform<Value_t>::set_structuring_element(MorphologicalTransform::StructuringElement element)
+    {
+        _structuring_element = element;
+    }
+
+    namespace detail
+    {
+        template<typename Image_t>
+        void flat_erode_aux(Image_t& image, Image_t& result, StructuringElement<bool> se)
+        {
+            long n = se.get_size().x,
+                 m = se.get_size().y;
+
+            auto origin = se.get_origin();
+
+            for (long x = 0; x < image.get_size().x; ++x)
+            {
+                for (long y = 0; y < image.get_size().y; ++y)
+                {
+                    // BINARY IMAGE
+                    if (std::is_same_v<typename Image_t::value_t, bool>)
+                    {
+                        bool missed = false;
+                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        {
+                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            {
+                                if (se.is_foreground(a + origin.x, b + origin.y) !=
+                                    image.get_pixel_or_padding(x + a, y + b))
+                                {
+                                    missed = true;
+                                    goto skip;
+                                }
+                            }
+                        }
+
+                        skip:
+                        if (missed)
+                            result(x, y) = false;
+                    }
+                    // GRAYSCALE IMAGE
+                    else
+                    {
+                        using ImageValue_t = typename Image_t::value_t;
+                        ImageValue_t min = image(x, y);
+
+                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        {
+                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            {
+                                if (se.is_foreground(a + origin.x, b + origin.y))
+                                {
+                                   min = std::min(image.get_pixel_or_padding(x + a, y + b), min);
+                                }
+                            }
+                        }
+
+                        result(x, y) = min;
+                    }
+                }
+            }
+        }
+
+        template<typename Image_t>
+        void flat_dilate_aux(Image_t& image, Image_t& result, StructuringElement<bool> se)
+        {
+            long n = se.get_size().x,
+                 m = se.get_size().y;
+
+            auto origin = se.get_origin();
+
+            for (long x = 0; x < image.get_size().x; ++x)
+            {
+                for (long y = 0; y < image.get_size().y; ++y)
+                {
+                    if (std::is_same_v<typename Image_t::value_t, bool>)
+                    {
+                        bool found = false;
+                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        {
+                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            {
+                                if (se.is_foreground(a + origin.x, b + origin.y) ==
+                                    image.get_pixel_or_padding(x + a, y + b))
+                                {
+                                    found = true;
+                                    goto skip;
+                                }
+                            }
+                        }
+
+                        skip:
+                        if (found)
+                            result(x, y) = true;
+                    }
+                    else
+                    {
+                        using ImageValue_t = typename Image_t::value_t;
+                        ImageValue_t max = image(x, y);
+
+                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        {
+                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            {
+                                if (se.is_foreground(a + origin.x, b + origin.y))
+                                {
+                                   max = std::max(image.get_pixel_or_padding(x + a, y + b), max);
+                                }
+                            }
+                        }
+
+                        result(x, y) = max;
+                    }
+                }
+            }
+        }
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::erode(Image_t& image)
+    {
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(true));
+
+        if (std::is_same_v<Value_t, bool>)
+            detail::flat_erode_aux<Image_t>(image, result, _structuring_element);
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = result(i, j);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::erode(Image_t& image, const Image_t& mask)
+    {
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(true));
+
+        if (std::is_same_v<Value_t, bool>)
+            detail::flat_erode_aux<Image_t>(image, result, _structuring_element);
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = std::max(result(i, j), mask(i, j));
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::dilate(Image_t& image)
+    {
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(false));
+
+        if (std::is_same_v<Value_t, bool>)
+            detail::flat_dilate_aux<Image_t>(image, result, _structuring_element);
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = result(i, j);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::dilate(Image_t& image, const Image_t& mask)
+    {
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(false));
+
+        if (std::is_same_v<Value_t, bool>)
+            detail::flat_dilate_aux<Image_t>(image, result, _structuring_element);
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = std::min(result(i, j), mask(i, j));
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::open(Image_t& image)
+    {
+        erode(image);
+        dilate(image);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::close(Image_t& image)
+    {
+        dilate(image);
+        erode(image);
+    }
+
+    template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::hit_or_miss_transform(Image_t& image)
+    {
+        if (not std::is_same_v<Value_t, bool> and std::is_same_v<typename Image_t::value_t, bool>)
+            std::cerr << "[WARNING] hit-or-miss template matching a binary image with a non-flat structuring element is discouraged as all non-zero elements of the structuring element will be treated as true (white) during comparison" << std::endl;
+
+        long n = _structuring_element.get_size().x,
+             m = _structuring_element.get_size().y;
+
+        auto origin = _structuring_element.get_origin();
+
+        Image_t result;
+        result.create(image.get_size().x, image.get_size().y, Value_t(0.f));
+
+        for (long x = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y)
+            {
+                for (int a = -origin.x; a < n - origin.x; ++a)
+                {
+                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    {
+                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                            continue;
+
+                        if (image.get_pixel_or_padding(x + a, y + b) !=
+                            _structuring_element.get_value(a + origin.x, b + origin.y))
+                        {
+                            goto no_hit;
+                        }
+                    }
+                }
+
+                // match found
+                result(x, y) = Value_t(true);
+
+                no_hit:;
+            }
+        }
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = result(i, j);
+    }
+
     // ### STRUCTURING ELEMENT #########################################
 
     template<typename Value_t>
