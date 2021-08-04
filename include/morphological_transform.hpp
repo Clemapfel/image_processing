@@ -442,7 +442,7 @@ namespace crisp
                 }
 
                 // match found
-                result(x, y) = std::is_same_v<Value_t, bool> ? true : image(x, y);
+                result(x, y) = Value_t(true);
 
                 no_hit:;
             }
