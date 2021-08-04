@@ -279,7 +279,7 @@ namespace crisp
     }
 
     template<typename Value_t>
-    void MorphologicalTransform<Value_t>::StructuringElement::set_offset(long row_i, long col_i, Value_t value)
+    void MorphologicalTransform<Value_t>::StructuringElement::set_value(long row_i, long col_i, Value_t value)
     {
         _matrix(row_i, col_i) = value;
     }
