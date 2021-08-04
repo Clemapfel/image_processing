@@ -42,12 +42,6 @@ namespace crisp
     }
 
     template<typename Value_t>
-    Value_t MorphologicalTransform<Value_t>::StructuringElement::get_offset(long row_i, long col_i) const
-    {
-        return _matrix(row_i, col_i).value_or(Value_t(0.f));
-    }
-
-    template<typename Value_t>
     void MorphologicalTransform<Value_t>::StructuringElement::set_foreground(long row_i, long col_i)
     {
         _matrix(row_i, col_i) = Value_t(1.f);
