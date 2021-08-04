@@ -182,7 +182,7 @@ namespace crisp
                             }
                             else    // non flat
                             {
-                                if (image.get_pixel_or_padding(x + a, y + b) + _structuring_element.get_value(a + origin.x, b + origin.y) > max)
+                                if (image.get_pixel_or_padding(x + a, y + b) + _structuring_element.get_value(a + origin.x, b + origin.y).value() > max)
                                 {
                                     max = image.get_pixel_or_padding(x + a, y + b);
                                     updated = true;
@@ -243,7 +243,7 @@ namespace crisp
                             }
                             else    // non flat
                             {
-                                if (image.get_pixel_or_padding(x + a, y + b) + _structuring_element.get_value(a + origin.x, b + origin.y) > max)
+                                if (image.get_pixel_or_padding(x + a, y + b) + _structuring_element.get_value(a + origin.x, b + origin.y).value() > max)
                                 {
                                     max = image.get_pixel_or_padding(x + a, y + b);
                                     updated = true;
@@ -307,7 +307,7 @@ namespace crisp
                             }
                             else // non flat
                             {
-                                if (image.get_pixel_or_padding(x + a, y + b) - _structuring_element.get_value(a + origin.x, b + origin.y) < min)
+                                if (image.get_pixel_or_padding(x + a, y + b) - _structuring_element.get_value(a + origin.x, b + origin.y).value() < min)
                                 {
                                     min = image.get_pixel_or_padding(x + a, y + b);
                                     updated = true;
