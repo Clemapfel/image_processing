@@ -62,7 +62,7 @@ add_library(common STATIC
         include/morphological_transform.hpp
         .src/morphological_transform.inl
 
-        include/image_segment.hpp .src/image_segment.inl)
+        include/image_segment.hpp .src/image_segment.inl include/noise_model.hpp .src/noise_generator.inl .src/noise_generator.inl)
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})
