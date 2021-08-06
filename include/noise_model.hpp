@@ -17,7 +17,10 @@ namespace crisp
             NoiseGenerator(size_t seed);
             virtual float operator()();
 
+            void set_interval(float min_value, float max_value);
+
         protected:
+            float _min = -1, _max = 1;
             static size_t initialize_seed();
             
             std::mt19937 _engine;
@@ -39,16 +42,11 @@ namespace crisp
         GammaNoise(size_t seed = initialize_seed());
     };
 
-    struct ExponentialNoise : public NoiseGenerator<std::exponential_distribution<float>>
-    {
-        ExponentialNoise(size_t seed = initialize_seed());
-        float operator()() override;
-    };
-
     class SaltAndPepperDistribution;
     struct SaltAndPepperNoise : public NoiseGenerator<SaltAndPepperDistribution>
     {
         SaltAndPepperNoise(float salt_chance, float pepper_chance, size_t seed = initialize_seed());
+        float operator()() override;
     };
 }
 

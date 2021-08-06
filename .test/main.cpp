@@ -33,7 +33,7 @@ using namespace crisp;
 int main()
 {
 
-    ExponentialNoise noise;
+    SaltAndPepperNoise noise(0.1, 0.1);
 
     RenderWindow window;
     window.create(1280, 740);
@@ -61,19 +61,16 @@ int main()
 
     test.create(&image, pixels);
 
-    auto new_image = test.to_new_image<GrayScaleImage>();
-
+    auto new_image = GrayScaleImage(); //test.to_new_image<GrayScaleImage>();
+    new_image.create(500, 500, 0.5);
     MorphologicalTransform<bool> erode;
     auto se = StructuringElement<bool>::all_foreground(2, 2);
     //se.set_foreground(1, 1);
 
-    erode.set_structuring_element(se);
+    Histogram<uint8_t> histogram;
+    histogram.create_from(new_image);
 
-
-    for (auto& px : image)
-        px += noise();
-
-    sprite.load_from(image);
+    sprite.load_from(histogram, 300); //histogram, 5);
 
     while (window.is_open())
     {
@@ -81,8 +78,13 @@ int main()
 
         if (InputHandler::was_key_pressed(SPACE))
         {
-            erode.erode(new_image);
-            sprite.load_from(new_image);
+            for (auto& px : new_image)
+                px += noise();
+
+            Histogram<uint8_t> histogram;
+            histogram.create_from(new_image);
+
+            sprite.load_from(histogram, 300);
         }
 
         if (InputHandler::was_key_pressed(UP))

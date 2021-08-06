@@ -29,4 +29,36 @@ namespace crisp
         _sprite.setTexture(_texture);
         _sprite.setPosition(0, 0);
     }
+
+    template<typename Value_t>
+    void Sprite::load_from(const Histogram <Value_t>& histogram, long height)
+    {
+        auto& counts = histogram.get_counts();
+        size_t max = 0;
+        for (const auto& pair : counts)
+            max = std::max(max, pair.second);
+
+        size_t step = ceil( float(max) / (0.85 * height));
+
+        size_t n_buckets = std::numeric_limits<Value_t>::max();
+
+        if (n_buckets > 1920)
+            std::cerr << "[Warning] rendering a histogram with " << n_buckets << " different values to a texture will take up a large amount of memory" << std::endl;
+
+        sf::Image temp;
+        temp.create(n_buckets, height, sf::Color::Black);
+
+        for (size_t x = 0; x < n_buckets; ++x)
+        {
+            for (size_t y = 1; y * step < histogram.at(x); ++y)
+            {
+                temp.setPixel(x, temp.getSize().y - y, sf::Color::White);
+            }
+        }
+
+        _texture.loadFromImage(temp);
+        _sprite.setTextureRect(sf::IntRect(0, 0, temp.getSize().x, temp.getSize().y));
+        _sprite.setTexture(_texture);
+        _sprite.setPosition(0, 0);
+    }
 }

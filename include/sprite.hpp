@@ -12,6 +12,7 @@
 
 #include <image.hpp>
 #include <vector.hpp>
+#include <histogram.hpp>
 
 namespace crisp
 {
@@ -24,6 +25,9 @@ namespace crisp
             // @complexity: (m*n)^2 operations, m*n*4 space in ram
             template<typename Value_t>
             void load_from(const Image<Value_t>& image);
+
+            template<typename Value_t>
+            void load_from(const Histogram<Value_t>& histogram, long image_height);
 
             // render
             void align_topleft_with(Vector2f);

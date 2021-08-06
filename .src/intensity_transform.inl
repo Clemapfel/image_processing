@@ -46,7 +46,7 @@ namespace crisp
     template<typename Value_t>
     [[nodiscard]] auto&& IntensityTransform<Value_t>::project(Value_t lower_bound, Value_t upper_bound)
     {
-        return std::move([lower_bound, upper_bound](Value_t value, long x, long y) -> Value_t {return value * abs(lower_bound - upper_bound) + min(lower_bound, upper_bound);});
+        return std::move([lower_bound, upper_bound](Value_t value, long x, long y) -> Value_t {return value * fabs(lower_bound - upper_bound) + std::min(lower_bound, upper_bound);});
     }
 
     template<typename Value_t>
