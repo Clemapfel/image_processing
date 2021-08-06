@@ -6,6 +6,7 @@
 #pragma once
 
 #include <random>
+#include <detail/salt_and_pepper_distribution.hpp>
 
 namespace crisp
 {
@@ -13,53 +14,42 @@ namespace crisp
     class NoiseGenerator
     {
         public:
-            float operator()();
+            NoiseGenerator(size_t seed);
+            virtual float operator()();
 
-        private:
-            std::mt19937_64 _engine;
+        protected:
+            static size_t initialize_seed();
+            
+            std::mt19937 _engine;
             RandomNumberDistribution_t _distribution;
     };
-
-    // gaussian
-    template<>
-    struct NoiseGenerator<std::normal_distribution<float>>
+    
+    struct UniformNoise : public NoiseGenerator<std::uniform_real_distribution<float>>
     {
-        NoiseGenerator(float mean, float sigma);
+        UniformNoise(size_t seed = initialize_seed());
     };
-    using GaussianNoiseGenerator = NoiseGenerator<std::normal_distribution<float>>;
 
-    // erlang gamma
-    template<>
-    struct NoiseGenerator<std::gamma_distribution<float>>
+    struct GaussianNoise : public NoiseGenerator<std::normal_distribution<float>>
     {
-        NoiseGenerator(float alpha, float beta);
+        GaussianNoise(size_t seed = initialize_seed());
     };
-    using GammaNoiseGenerator = NoiseGenerator<std::gamma_distribution<float>>;
 
-    // exponential
-    template<>
-    struct NoiseGenerator<std::exponential_distribution<float>>
+    struct GammaNoise : public NoiseGenerator<std::gamma_distribution<float>>
     {
-        NoiseGenerator(float lambda);
+        GammaNoise(size_t seed = initialize_seed());
     };
-    using ExponentialNoiseGenerator = NoiseGenerator<std::exponential_distribution<float>>;
 
-    // uniform
-    template<>
-    struct NoiseGenerator<std::uniform_real_distribution<float>>
+    struct ExponentialNoise : public NoiseGenerator<std::exponential_distribution<float>>
     {
-        NoiseGenerator();
+        ExponentialNoise(size_t seed = initialize_seed());
+        float operator()() override;
     };
-    using UniformNoiseGenerator = NoiseGenerator<std::uniform_real_distribution<float>>;
 
-    // salt and pepper
     class SaltAndPepperDistribution;
-    template<>
-    struct NoiseGenerator<SaltAndPepperDistribution>
+    struct SaltAndPepperNoise : public NoiseGenerator<SaltAndPepperDistribution>
     {
-        NoiseGenerator(float salt_chance, float pepper_chance);
+        SaltAndPepperNoise(float salt_chance, float pepper_chance, size_t seed = initialize_seed());
     };
-    using SaltAndPepperNoiseGenerator = NoiseGenerator<SaltAndPepperDistribution>;
 }
 
 #include ".src/noise_generator.inl"

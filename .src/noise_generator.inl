@@ -3,47 +3,66 @@
 // Created on 05.08.21 by clem (mail@clemens-cords.com)
 //
 
-#pragma once
-
-#include <random>
-
 namespace crisp
 {
-    class SaltAndPepperDistribution
+    template<typename Dist_t>
+    NoiseGenerator<Dist_t>::NoiseGenerator(size_t seed)
+        : _engine(seed)
+    {}
+
+    template<typename RandomNumberDistribution_t>
+    size_t NoiseGenerator<RandomNumberDistribution_t>::initialize_seed()
     {
-        private:
-            float _salt_p,
-                  _pepper_p;
+        std::random_device device;
+        return device();
+    }
 
-            std::uniform_real_distribution<float> _salt_dist,
-                                                  _pepper_dist,
-                                                  _tie_dist;
+    template<typename RandomNumberDistribution_t>
+    float NoiseGenerator<RandomNumberDistribution_t>::operator()()
+    {
+        float value = -2;
+        while (value < -1 or value > 1)
+            value = _distribution(_engine);
 
-        public:
-            inline SaltAndPepperDistribution(float salt_p, float pepper_p)
-                : _salt_p(salt_p), _pepper_p(pepper_p), _salt_dist(0, 1), _pepper_dist(0, 1), _tie_dist(0, 1)
-            {}
+        return value;
+    }
 
-            inline float operator()(std::mt19937& engine)
-            {
-                bool pepper = _pepper_dist(engine) <= _pepper_p;
-                bool salt = _salt_dist(engine) <= salt_p;
+    inline UniformNoise::UniformNoise(size_t seed)
+        : NoiseGenerator<std::uniform_real_distribution<float>>(seed)
+    {
+        _distribution = std::uniform_real_distribution<float>(-1, 1);
+    }
 
-                if (pepper and not salt)
-                    return -1.f;
-                else if (salt and not pepper)
-                    return 1.f;
-                else if (salt and pepper)
-                    return _tie_dist(engine) > 0.5 ? 1.f : -1.f;
-                else
-                    return 0.f;
-            }
+    inline GaussianNoise::GaussianNoise(size_t seed)
+        : NoiseGenerator<std::normal_distribution<float>>(seed)
+    {
+        _distribution = std::normal_distribution<float>(0, 0.5);
+    }
 
-            inline void reset()
-            {
-                _salt_dist.reset();
-                _pepper_dist.reset();
-                _tie_dist.reset();
-            }
-    };
+    inline GammaNoise::GammaNoise( size_t seed)
+        : NoiseGenerator<std::gamma_distribution<float>>(seed)
+    {
+        _distribution = std::gamma_distribution<float>(1, 0);
+    }
+
+    inline ExponentialNoise::ExponentialNoise(size_t seed)
+        : NoiseGenerator<std::exponential_distribution<float>>(seed)
+    {
+        _distribution = std::exponential_distribution<float>(2);
+    }
+
+    float ExponentialNoise::operator()()
+    {
+        float value = -2;
+        while (value < -1 or value > 1)
+            value = _distribution(_engine) - 0.5;
+
+        return value;
+    }
+
+    inline SaltAndPepperNoise::SaltAndPepperNoise(float salt_chance, float pepper_chance, size_t seed)
+        : NoiseGenerator<SaltAndPepperDistribution>(seed)
+    {
+        _distribution = SaltAndPepperDistribution(salt_chance, pepper_chance);
+    }
 }
