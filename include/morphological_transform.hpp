@@ -13,7 +13,7 @@
 
 namespace crisp
 {
-    // morpholigcal transforms using a structuring element
+    // morphological transforms using a flat or non-flat structuring element
     template<typename StructuringElementValue_t = bool>
     class MorphologicalTransform
     {
@@ -28,7 +28,9 @@ namespace crisp
 
             // @brief erode an image using the current structuring element
             // @param image: the image to be eroded, the image is modified directly
+            //
             // @note eroding a binary image with a non-flat (grayscale) structuring element is discouraged
+            // @complexity: o(n*m*p*q) where n, m are the images dimensions, p, q the structuring elements dimensions
             template<typename Image_t>
             void erode(Image_t& image);
 
@@ -36,13 +38,17 @@ namespace crisp
             //        representing the "core" of an image such that any amount of erosion passes will not reduce the image
             //        to less than the "core
             // @param image: the image to be eroded, the image is modified directly
-            // @param mask: the mask used
+            // @param mask: the mask use
+            //
+            // @complexity: o(n*m*p*q) where n, m are the images dimensions, p, q the structuring elements dimensions
             // @note geodiscally eroding a binary image with a non-flat (grayscale) structuring element is discouraged
             template<typename Image_t>
             void erode(Image_t& image, const Image_t& mask);
 
             // @brief dilate an image using the current structuring element
             // @param image: the image to be dilated, modified directly
+            //
+            // @complexity: o(n*m*p*q) where n, m are the images dimensions, p, q the structuring elements dimensions
             // @note dilating a binary image with a non-flat (grayscale) structuring element is discouraged
             template<typename Image_t>
             void dilate(Image_t& image);
@@ -52,17 +58,23 @@ namespace crisp
             //        to more than the mask
             // @param image: the image to be dilated, modified directly
             // @param mask: the mask used
+            //
+            // @complexity: o(n*m*p*q) where n, m are the images dimensions, p, q the structuring elements dimensions
             // @note geodesically dilating a binary image with a non-flat (grayscale) structuring element is discouraged
             template<typename Image_t>
             void dilate(Image_t& image, const Image_t& mask);
 
             // @brief open an image, equivalent to dilate(erode(image))
             // @param image: the image to be opened
+            //
+            // @complexity: o(2*n*m*p*q) where n, m are the images dimensions, p, q the structuring elements dimensions
             template<typename Image_t>
             void open(Image_t& image);
 
             // @brief open an image, equivalent to erode(dilate(image))
             // @param image: the image to be closed
+            //
+            // @complexity: o(2*n*m*p*q) where n, m are the images dimensions, p, q the structuring elements dimensions
             template<typename Image_t>
             void close(Image_t& image);
 
@@ -70,6 +82,8 @@ namespace crisp
             //        elements template in the image
             // @param image: the image to be transformed, will result in a image where all values are either 1 if the template
             //               matched, 0 otherwise
+            //
+            // @complexity: o(n*m*(p*q/2)) where n, m are the images dimensions, p, q the structuring elements dimensions
             template<typename Image_t>
             void hit_or_miss_transform(Image_t& image);
 
@@ -229,6 +243,7 @@ namespace crisp
             StructuringElement _structuring_element;
     };
 
+    // typedefs for convenience
     template<typename T>
     using StructuringElement = typename MorphologicalTransform<T>::StructuringElement;
 
