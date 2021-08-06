@@ -33,7 +33,8 @@ using namespace crisp;
 int main()
 {
 
-    SaltAndPepperNoise noise(0.1, 0.1);
+    GammaNoise noise;
+    noise.set_interval(-0.5, 0.5);
 
     RenderWindow window;
     window.create(1280, 740);

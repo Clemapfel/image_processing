@@ -33,7 +33,16 @@ namespace crisp
         while (value < 0 or value > 1)
             value = _distribution(_engine);
 
-        return std::min(_min, _max) + value * std::fabs(_max - _min);
+        return std::min(_min, _max) + value * std::fabs(_max - _min) ;
+    }
+
+    float GammaNoise::operator()()
+    {
+        float value = -1;
+        while (value < 0 or value > 1)
+            value = _distribution(_engine) + 0.2;
+
+        return std::min(_min, _max) + value * std::fabs(_max - _min) ;
     }
 
     float SaltAndPepperNoise::operator()()
@@ -63,7 +72,7 @@ namespace crisp
     inline GammaNoise::GammaNoise( size_t seed)
         : NoiseGenerator<std::gamma_distribution<float>>(seed)
     {
-        _distribution = std::gamma_distribution<float>(1, 1.5);
+        _distribution = std::gamma_distribution<float>(2, 0.2);
     }
 
     /*

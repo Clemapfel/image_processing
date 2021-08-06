@@ -10,14 +10,28 @@
 
 namespace crisp
 {
+    // invariate noise generator
+    // takes a probablitity density functions and returns a pseudo-random number following that PDF
     template<typename RandomNumberDistribution_t>
     class NoiseGenerator
     {
         public:
+            // @brief Constructor the noise generator and initialize it with a seed
+            // @param seed: (optional) the seed, if none is specified, std::random_device::operator() is called instead
             NoiseGenerator(size_t seed);
-            virtual float operator()();
 
-            void set_interval(float min_value, float max_value);
+            // @brief specificy the minimal and maximal response of the noise generator
+            // @param min: the lower bound
+            // @param max: the upper bound
+            // @notes by default the bounds are [-1, 1]
+            void set_interval(float min, float max);
+
+            // @brief get a random value
+            // @returns a float in range [min_value, max_value]
+            // @notes the PDFs are configured such that their mean is abs(max - min) / 2
+            //        their stddev (sigma) such that: mean - 3*sigma = min and mean + 3*sigma = max.
+            //        though unlikely this means that values outisde of [min, max] can accur
+            virtual float operator()();
 
         protected:
             float _min = -1, _max = 1;
@@ -26,26 +40,42 @@ namespace crisp
             std::mt19937 _engine;
             RandomNumberDistribution_t _distribution;
     };
-    
+
+    // generates uniformly distributed noise
     struct UniformNoise : public NoiseGenerator<std::uniform_real_distribution<float>>
     {
-        UniformNoise(size_t seed = initialize_seed());
+        // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
+        UniformNoise(size_t = initialize_seed());
     };
 
     struct GaussianNoise : public NoiseGenerator<std::normal_distribution<float>>
     {
-        GaussianNoise(size_t seed = initialize_seed());
+        // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
+        GaussianNoise(size_t = initialize_seed());
     };
 
     struct GammaNoise : public NoiseGenerator<std::gamma_distribution<float>>
     {
-        GammaNoise(size_t seed = initialize_seed());
+        // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
+        GammaNoise(size_t = initialize_seed());
+
+        // @overload, c.f. NoiseGenerator<...>::operator()()
+        float operator()() override;
     };
 
+    // salt-and-pepper noise, randomly distributed -n or n impulses
+    // -n is called "pepper" because it will usually set and affected pixel to 0, +n will set it to white "salt"
     class SaltAndPepperDistribution;
     struct SaltAndPepperNoise : public NoiseGenerator<SaltAndPepperDistribution>
     {
-        SaltAndPepperNoise(float salt_chance, float pepper_chance, size_t seed = initialize_seed());
+        // @brief initialize the salt-and-pepper-noise generator
+        // @param salt_chance: the likelyhood of a positive impulse being returned, may be 0
+        // @param pepper_chance: the likelyhood of a negative impulse being returned, may be 0
+        // @param : the seed
+        SaltAndPepperNoise(float salt_chance, float pepper_chance, size_t = initialize_seed());
+
+        // @overload, c.f. NoiseGenerator<...>::operator()()
+        // @returns -min if pepper, +max if salt
         float operator()() override;
     };
 }
