@@ -25,7 +25,7 @@ int main()
 {
     GrayScaleImage image_in;
     image_in.create_from_file("/home/clem/Workspace/image_processing/docs/test.png");
-    image_in.set_padding_type(GrayScaleImage::PaddingType::ZERO);
+    image_in.set_padding_type(GrayScaleImage::PaddingType::ONE);
 
     RenderWindow window;
     window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
@@ -33,18 +33,21 @@ int main()
     size_t n = image_in.get_size().x * 2;
     size_t m = image_in.get_size().y * 2;
 
-    auto* in = fftwl_alloc_real(n*m);
+    auto* in = fftwl_alloc_complex(n*m);
     auto* out = fftwl_alloc_complex(n*m);
 
     {
     size_t i = 0;
     for (long x = 0; x < n; ++x)
         for (long y = 0; y < m; ++y, ++i)
-            in[i] = image_in.get_pixel_or_padding(x, y) * pow(-1, x+y);
+        {
+            in[i][0] = image_in.get_pixel_or_padding(x, y) * pow(-1, x + y);
+            in[i][1] = 0;
+        }
     }
 
-    auto plan_to = fftwl_plan_dft_r2c_2d(n, m, in, out, FFTW_ESTIMATE);
-    auto plan_from = fftwl_plan_dft_c2r_2d(n, m, out, in, FFTW_ESTIMATE);
+    auto plan_to = fftwl_plan_dft_2d(n, m, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    auto plan_from = fftwl_plan_dft_2d(n, m, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     fftwl_execute(plan_to);
 
@@ -53,30 +56,33 @@ int main()
     image_out.create(n, m, 1);
 
     const auto hn = n / 2, hm = m / 2;
-    size_t i = 0;
+    size_t i = hn*hm;
 
-    for (long x = 0; x < n / 2; ++x)
+    for (long x = 0; x < n; ++x)
     {
-        for (long y = 0; y < m / 2; ++y)
+        for (long y = 0; y < m; ++y)
         {
             auto f = std::complex<double>(out[i][0], out[i][1]);
 
-            /*
-            if (sqrt(x*x + y*y) < hm * 0.3)
-            {
-                f *= std::complex<double>(0, 0);
-                out[i][0] = f.real();
-                out[i][1] = f.imag();
-            }
-             */
-
             float spectrum = abs(f);
             float angle = arg(f);
-            float value = project<double>(0, 1, log(1 + spectrum));
-            image_out(hn + x, hm + y) = value;
-            image_out(hn - x, hm + y) = value;
-            image_out(hn - x, hm - y) = value;
-            image_out(hn + x, hm - y) = value;
+
+            //angle *= 2;
+
+            float dist = sqrt(x*x + y*y);
+            //if (dist > 50)
+              //  spectrum = 0;
+
+            f = std::polar(spectrum, angle);
+            out[i][0] = f.real();
+            out[i][1] = f.imag();
+
+            float value = project<double>(0, 1, log(spectrum));
+            image_out(x, y) = value;
+            //image_out(hn + x, hm + y) = value;
+            //image_out(hn - x, hm + y) = value;
+            //image_out(hn - x, hm - y) = value;
+            //image_out(hn + x, hm - y) = value;
 
             i += 1;
         }
@@ -93,7 +99,10 @@ int main()
     for (long x = 0; x < n; ++x)
         for (long y = 0; y < m; ++y, ++i)
             if (x < n/2 and y < m/2)
-                image_in(x, y) = in[i] / (m*n) * pow(-1, x+y);
+            {
+                auto value = std::complex(in[i][0], in[i][1]);
+                image_in(x, y) = in[i][0] / (m*n) * pow(-1, x+y);
+            }
 
     bool which = false;
     while (window.is_open())
