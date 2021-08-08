@@ -56,11 +56,11 @@ int main()
     image_out.create(n, m, 1);
 
     const auto hn = n / 2, hm = m / 2;
-    size_t i = hn*hm;
+    size_t i = 0;
 
     for (long x = 0; x < n; ++x)
     {
-        for (long y = 0; y < m; ++y)
+        for (long y = 0; y < m; ++y, ++i)
         {
             auto f = std::complex<double>(out[i][0], out[i][1]);
 
@@ -83,8 +83,6 @@ int main()
             //image_out(hn - x, hm + y) = value;
             //image_out(hn - x, hm - y) = value;
             //image_out(hn + x, hm - y) = value;
-
-            i += 1;
         }
     }
 
@@ -100,7 +98,6 @@ int main()
         for (long y = 0; y < m; ++y, ++i)
             if (x < n/2 and y < m/2)
             {
-                auto value = std::complex(in[i][0], in[i][1]);
                 image_in(x, y) = in[i][0] / (m*n) * pow(-1, x+y);
             }
 
