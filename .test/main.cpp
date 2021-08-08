@@ -15,48 +15,35 @@ using namespace crisp;
 
 int main()
 {
-
-    double *in;
-    fftw_complex *out;
-    double *back;
-
     size_t n = 10;
     size_t m = 5;
 
     auto rng = UniformNoise();
 
-    in = (double*) fftw_malloc(sizeof(double) * n * m);
-    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * n * m);
-    back = (double*) fftw_malloc(sizeof(double) * n * m);
+    auto* in = fftwf_alloc_real(n*m);
+    auto* out = fftwf_alloc_complex(n*m);
 
     for (size_t i = 0; i < n*m; ++i)
-    {
-        in[i] = double(clamp(0.f, 1.f, rng()));
-    }
+        in[i] = clamp(0.f, 1.f, rng());
 
-    auto plan_to = fftw_plan_dft_r2c_2d(n, m, in, out, FFTW_ESTIMATE);
-    auto plan_from = fftw_plan_dft_c2r_2d(n, m, out, back, FFTW_ESTIMATE);
+    auto plan_to = fftwf_plan_dft_r2c_2d(n, m, in, out, FFTW_ESTIMATE);
+    auto plan_from = fftwf_plan_dft_c2r_2d(n, m, out, in, FFTW_ESTIMATE);
 
-    fftw_execute(plan_to);
-    fftw_execute(plan_from);
+    fftwf_execute(plan_to);
+    fftwf_execute(plan_from);
 
     std::cout << "signal:\n";
     for (size_t i = 0; i < n * m; ++i)
-        std::cout << in[i] << " ";
+        std::cout << in[i] / (n*m) << " ";
 
     std::cout << "\n" << "fft:\n";
     for (size_t i = 0; i < n * m; ++i)
         std::cout << "(" << out[i][0] << "," << out[i][1] << ") ";
 
-    std::cout << "\n" << "back:\n";
-    for (size_t i = 0; i < n * m; ++i)
-        std::cout << back[i] / (n*m) << " ";
-
-    fftw_destroy_plan(plan_to);
-    fftw_destroy_plan(plan_from);
-    fftw_free(in);
-    fftw_free(out);
-    fftw_free(back);
+    fftwf_destroy_plan(plan_to);
+    fftwf_destroy_plan(plan_from);
+    fftwf_free(in);
+    fftwf_free(out);
 }
 
 
