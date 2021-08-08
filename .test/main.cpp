@@ -9,36 +9,90 @@
 #include <sprite.hpp>
 #include <noise_model.hpp>
 #include <image_segment.hpp>
+#include <complex>
 
 #include <fftw3.h>
 using namespace crisp;
 
+template<typename T>
+T project(T lower_bound, T upper_bound, T value)
+{
+    return value * fabs(lower_bound - upper_bound) + std::min(lower_bound, upper_bound);
+}
+
 int main()
 {
-    size_t n = 10;
-    size_t m = 5;
+    GrayScaleImage image_in;
+    image_in.create_from_file("/home/clem/Workspace/image_processing/docs/test.png");
+    image_in.set_padding_type(GrayScaleImage::PaddingType::ZERO);
 
-    auto rng = UniformNoise();
+    RenderWindow window;
+    window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
+
+    size_t n = image_in.get_size().x * 2;
+    size_t m = image_in.get_size().y * 2;
 
     auto* in = fftwf_alloc_real(n*m);
     auto* out = fftwf_alloc_complex(n*m);
 
-    for (size_t i = 0; i < n*m; ++i)
-        in[i] = clamp(0.f, 1.f, rng());
+    {
+    size_t i = 0;
+    for (long x = 0; x < n; ++x)
+        for (long y = 0; y < m; ++y, ++i)
+            in[i] = image_in.get_pixel_or_padding(x, y) * pow(-1, x + y);
+    }
 
     auto plan_to = fftwf_plan_dft_r2c_2d(n, m, in, out, FFTW_ESTIMATE);
     auto plan_from = fftwf_plan_dft_c2r_2d(n, m, out, in, FFTW_ESTIMATE);
 
     fftwf_execute(plan_to);
-    fftwf_execute(plan_from);
 
-    std::cout << "signal:\n";
-    for (size_t i = 0; i < n * m; ++i)
-        std::cout << in[i] / (n*m) << " ";
+    // output
+    GrayScaleImage image_out;
+    image_out.create(n, m, 1);
 
-    std::cout << "\n" << "fft:\n";
-    for (size_t i = 0; i < n * m; ++i)
-        std::cout << "(" << out[i][0] << "," << out[i][1] << ") ";
+    size_t i = 0;
+    const auto hn = n / 2, hm = m / 2;
+    for (long x = 0; x < n / 2; ++x)
+    {
+        for (long y = 0; y < m / 2; ++y, i++)
+        {
+            auto f = std::complex<float>(out[i][0], out[i][1]);
+
+            float spectrum = abs(f);
+            float angle = arg(f);
+            float value = project<double>(0, 1, log(1 + spectrum));
+            image_out(hn + x, hm + y) = value;
+            image_out(hn - x, hm + y) = value;
+            image_out(hn - x, hm - y) = value;
+            image_out(hn + x, hm - y) = value;
+        }
+    }
+
+
+    Sprite sprite;
+    sprite.load_from(image_out);
+
+    image_in.create(n, m, 1);
+
+    while (window.is_open())
+    {
+        window.update();
+
+        if (InputHandler::was_key_pressed(SPACE))
+        {
+            fftwf_execute(plan_from);
+            i = 0;
+            for (long x = 0; x < n; ++x)
+                for (long y = 0; y < m; ++y, ++i)
+                    image_in(x, y) = in[i];
+
+            sprite.load_from(image_in);
+        }
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
 
     fftwf_destroy_plan(plan_to);
     fftwf_destroy_plan(plan_from);
@@ -51,7 +105,7 @@ int main()
 int main()
 {
     float border = 5;
-
+log(spectrum)
     RenderWindow window;
     window.create(1000, 600);
     window.set_background_color(Color(0.8, 0, 0.8, 1));
