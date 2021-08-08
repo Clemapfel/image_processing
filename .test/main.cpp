@@ -57,26 +57,28 @@ int main()
 
     for (long x = 0; x < n / 2; ++x)
     {
-        for (long y = 0; y < m / 2; ++y, i++)
+        for (long y = 0; y < m / 2; ++y)
         {
-            if (sqrt(x*x + y*y) < 60)
-            {
-                out[i][0] = 0;
-                out[i][1] = 0;
-            }
-
             auto f = std::complex<double>(out[i][0], out[i][1]);
+
+            /*
+            if (sqrt(x*x + y*y) < hm * 0.3)
+            {
+                f *= std::complex<double>(0, 0);
+                out[i][0] = f.real();
+                out[i][1] = f.imag();
+            }
+             */
 
             float spectrum = abs(f);
             float angle = arg(f);
             float value = project<double>(0, 1, log(1 + spectrum));
-            image_out(x, y) = value;
-            /*
             image_out(hn + x, hm + y) = value;
             image_out(hn - x, hm + y) = value;
             image_out(hn - x, hm - y) = value;
             image_out(hn + x, hm - y) = value;
-             */
+
+            i += 1;
         }
     }
 
