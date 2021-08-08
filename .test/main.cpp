@@ -10,6 +10,7 @@
 #include <noise_model.hpp>
 #include <image_segment.hpp>
 #include <complex>
+#include <vector>
 
 #include <fftw3.h>
 using namespace crisp;
@@ -32,40 +33,50 @@ int main()
     size_t n = image_in.get_size().x * 2;
     size_t m = image_in.get_size().y * 2;
 
-    auto* in = fftwf_alloc_real(n*m);
-    auto* out = fftwf_alloc_complex(n*m);
+    auto* in = fftwl_alloc_real(n*m);
+    auto* out = fftwl_alloc_complex(n*m);
 
     {
     size_t i = 0;
     for (long x = 0; x < n; ++x)
         for (long y = 0; y < m; ++y, ++i)
-            in[i] = image_in.get_pixel_or_padding(x, y) * pow(-1, x + y);
+            in[i] = image_in.get_pixel_or_padding(x, y) * pow(-1, x+y);
     }
 
-    auto plan_to = fftwf_plan_dft_r2c_2d(n, m, in, out, FFTW_ESTIMATE);
-    auto plan_from = fftwf_plan_dft_c2r_2d(n, m, out, in, FFTW_ESTIMATE);
+    auto plan_to = fftwl_plan_dft_r2c_2d(n, m, in, out, FFTW_ESTIMATE);
+    auto plan_from = fftwl_plan_dft_c2r_2d(n, m, out, in, FFTW_ESTIMATE);
 
-    fftwf_execute(plan_to);
+    fftwl_execute(plan_to);
 
     // output
     GrayScaleImage image_out;
     image_out.create(n, m, 1);
 
-    size_t i = 0;
     const auto hn = n / 2, hm = m / 2;
+    size_t i = 0;
+
     for (long x = 0; x < n / 2; ++x)
     {
         for (long y = 0; y < m / 2; ++y, i++)
         {
-            auto f = std::complex<float>(out[i][0], out[i][1]);
+            if (sqrt(x*x + y*y) < 60)
+            {
+                out[i][0] = 0;
+                out[i][1] = 0;
+            }
+
+            auto f = std::complex<double>(out[i][0], out[i][1]);
 
             float spectrum = abs(f);
             float angle = arg(f);
             float value = project<double>(0, 1, log(1 + spectrum));
+            image_out(x, y) = value;
+            /*
             image_out(hn + x, hm + y) = value;
             image_out(hn - x, hm + y) = value;
             image_out(hn - x, hm - y) = value;
             image_out(hn + x, hm - y) = value;
+             */
         }
     }
 
@@ -73,31 +84,35 @@ int main()
     Sprite sprite;
     sprite.load_from(image_out);
 
-    image_in.create(n, m, 1);
+    image_in.create(n/2, m/2, 1);
 
+    fftwl_execute(plan_from);
+    i = 0;
+    for (long x = 0; x < n; ++x)
+        for (long y = 0; y < m; ++y, ++i)
+            if (x < n/2 and y < m/2)
+                image_in(x, y) = in[i] / (m*n) * pow(-1, x+y);
+
+    bool which = false;
     while (window.is_open())
     {
         window.update();
 
         if (InputHandler::was_key_pressed(SPACE))
         {
-            fftwf_execute(plan_from);
-            i = 0;
-            for (long x = 0; x < n; ++x)
-                for (long y = 0; y < m; ++y, ++i)
-                    image_in(x, y) = in[i];
-
-            sprite.load_from(image_in);
+            which = not which;
+            sprite.load_from(which ? image_in : image_out);
         }
+
         window.clear();
         window.draw(sprite);
         window.display();
     }
 
-    fftwf_destroy_plan(plan_to);
-    fftwf_destroy_plan(plan_from);
-    fftwf_free(in);
-    fftwf_free(out);
+    fftwl_destroy_plan(plan_to);
+    fftwl_destroy_plan(plan_from);
+    fftwl_free(in);
+    fftwl_free(out);
 }
 
 
