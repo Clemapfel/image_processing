@@ -27,12 +27,19 @@ namespace crisp
             void load_from(const Image<Value_t>& image);
 
             template<typename Value_t>
-            void load_from(const Histogram<Value_t>& histogram, long image_height);
+            void load_from(const Histogram<Value_t>& histogram, long image_height, bool show_mean = true);
+
+            sf::Vector2f get_size() const;
+            sf::Vector2f get_topleft() const;
+            sf::Vector2f get_center() const;
 
             // render
             void align_topleft_with(Vector2f);
             void align_center_with(Vector2f);
             void zoom(float factor, bool smooth = false);
+
+            // to file
+            bool save_to_file(std::string path) const;
 
         protected:
             sf::Sprite _sprite;

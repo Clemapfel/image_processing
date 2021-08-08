@@ -40,7 +40,7 @@ namespace crisp
     {
         float value = -1;
         while (value < 0 or value > 1)
-            value = _distribution(_engine) + 0.2;
+            value = _distribution(_engine);
 
         return std::min(_min, _max) + value * std::fabs(_max - _min) ;
     }
@@ -66,30 +66,26 @@ namespace crisp
     inline GaussianNoise::GaussianNoise(size_t seed)
         : NoiseGenerator<std::normal_distribution<float>>(seed)
     {
-        _distribution = std::normal_distribution<float>(0.5, 0.25);
+        _distribution = std::normal_distribution<float>(0.5, 0.5 / 3);
     }
 
-    inline GammaNoise::GammaNoise( size_t seed)
+    inline GaussianNoise::GaussianNoise(float mean, float sigma, size_t seed)
+        : NoiseGenerator<std::normal_distribution<float>>(seed)
+    {
+        _distribution = std::normal_distribution<float>(mean, sigma);
+    }
+
+    inline GammaNoise::GammaNoise(size_t seed)
         : NoiseGenerator<std::gamma_distribution<float>>(seed)
     {
-        _distribution = std::gamma_distribution<float>(2, 0.2);
+        _distribution = std::gamma_distribution<float>(3, 0.2);
     }
 
-    /*
-    inline ExponentialNoise::ExponentialNoise(size_t seed)
-        : NoiseGenerator<std::exponential_distribution<float>>(seed)
+    inline GammaNoise::GammaNoise(float alpha, float beta, size_t seed)
+        : NoiseGenerator<std::gamma_distribution<float>>(seed)
     {
-        _distribution = std::exponential_distribution<float>(2);
+        _distribution = std::gamma_distribution<float>(alpha, beta);
     }
-
-    float ExponentialNoise::operator()()
-    {
-        float value = -2;
-        while (value < -1 or value > 1)
-            value = _distribution(_engine) - 0.5;
-
-        return value;
-    }*/
 
     inline SaltAndPepperNoise::SaltAndPepperNoise(float salt_chance, float pepper_chance, size_t seed)
         : NoiseGenerator<SaltAndPepperDistribution>(seed)

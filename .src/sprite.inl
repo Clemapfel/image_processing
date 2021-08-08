@@ -31,16 +31,41 @@ namespace crisp
     }
 
     template<typename Value_t>
-    void Sprite::load_from(const Histogram <Value_t>& histogram, long height)
+    void Sprite::load_from(const Histogram <Value_t>& histogram, long height, bool show_mean)
     {
         auto& counts = histogram.get_counts();
+        size_t n_buckets = std::numeric_limits<Value_t>::max();
+
+        if (counts.empty())
+        {
+            sf::Image img;
+            img.create(n_buckets, height, sf::Color::Black);
+
+            _texture.loadFromImage(img);
+            _sprite.setTextureRect(sf::IntRect(0, 0, img.getSize().x, img.getSize().y));
+            _sprite.setTexture(_texture);
+            _sprite.setPosition(0, 0);
+            return;
+        }
+
+        float mean = 0;
+        float n = 0;
         size_t max = 0;
         for (const auto& pair : counts)
+        {
             max = std::max(max, pair.second);
 
-        size_t step = ceil( float(max) / (0.85 * height));
+            if (show_mean)
+            {
+                mean += pair.first * pair.second;
+                n += pair.second;
+            }
+        }
 
-        size_t n_buckets = std::numeric_limits<Value_t>::max();
+        if (show_mean)
+            mean /= n;
+
+        size_t step = ceil( float(max) / (0.85 * height));
 
         if (n_buckets > 1920)
             std::cerr << "[Warning] rendering a histogram with " << n_buckets << " different values to a texture will take up a large amount of memory" << std::endl;
@@ -48,8 +73,13 @@ namespace crisp
         sf::Image temp;
         temp.create(n_buckets, height, sf::Color::Black);
 
+        auto mean_x = size_t(round(mean));
         for (size_t x = 0; x < n_buckets; ++x)
         {
+            if (show_mean and x == mean_x)
+                for (size_t y = 0; y < temp.getSize().y; ++y)
+                    temp.setPixel(x, y, sf::Color::Red);
+
             for (size_t y = 1; y * step < histogram.at(x); ++y)
             {
                 temp.setPixel(x, temp.getSize().y - y, sf::Color::White);
@@ -60,5 +90,21 @@ namespace crisp
         _sprite.setTextureRect(sf::IntRect(0, 0, temp.getSize().x, temp.getSize().y));
         _sprite.setTexture(_texture);
         _sprite.setPosition(0, 0);
+    }
+
+    inline sf::Vector2f Sprite::get_size() const
+    {
+        return {_texture.getSize().x * _sprite.getScale().x, _texture.getSize().y * _sprite.getScale().y};
+    }
+
+    inline sf::Vector2f Sprite::get_topleft() const
+    {
+        return _top_left_pos;
+    }
+
+    inline sf::Vector2f Sprite::get_center() const
+    {
+        auto size = get_size();
+        return {_top_left_pos.x + size.x * 0.5f, _top_left_pos.y + size.y * 0.5f};
     }
 }

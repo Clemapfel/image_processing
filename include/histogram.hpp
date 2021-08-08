@@ -32,12 +32,13 @@ namespace crisp
     template<typename Image_t>
     void Histogram<DiscreteValue_t>::create_from(Image_t& image)
     {
+        _counts.clear();
         DiscreteValue_t min = std::numeric_limits<DiscreteValue_t>::max(),
                         max = DiscreteValue_t(0);
 
         for (auto& px : image)
         {
-            auto key = static_cast<DiscreteValue_t>(float(px) * float(std::numeric_limits<DiscreteValue_t>::max()));
+            auto key = static_cast<DiscreteValue_t>(round(float(px) * float(std::numeric_limits<DiscreteValue_t>::max())));
             if (_counts.find(key) == _counts.end())
                 _counts.emplace(key, 1);
             else

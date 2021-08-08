@@ -10,7 +10,7 @@
 
 namespace crisp
 {
-    // invariate noise generator
+    // uncorrelated noise generator
     // takes a probablitity density functions and returns a pseudo-random number following that PDF
     template<typename RandomNumberDistribution_t>
     class NoiseGenerator
@@ -52,12 +52,14 @@ namespace crisp
     {
         // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
         GaussianNoise(size_t = initialize_seed());
+        GaussianNoise(float mean, float sigma, size_t seed = initialize_seed());
     };
 
     struct GammaNoise : public NoiseGenerator<std::gamma_distribution<float>>
     {
         // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
         GammaNoise(size_t = initialize_seed());
+        GammaNoise(float alpha, float beta, size_t seed = initialize_seed());
 
         // @overload, c.f. NoiseGenerator<...>::operator()()
         float operator()() override;
@@ -78,6 +80,30 @@ namespace crisp
         // @returns -min if pepper, +max if salt
         float operator()() override;
     };
+
+    // ##############################################################################################
+
+    // noise that is a function of the pixels position
+    template<typename Function_t>
+    class SpatiallyCorrelatedNoiseGenerator
+    {
+        public:
+            SpatiallyCorrelatedNoiseGenerator(size_t offset);
+
+            float operator()(long x, long y);
+
+            template<typename Lambda_t>
+            void set_function(Lambda_t&&);
+
+            static auto&& sine(float amplitude_min, float amplitude_max, float frequency, float phase, float angle_dg);
+            static auto&& triangle(float amplitude_min, float amplitude_max, float frequency, float phase, float angle_dg);
+            static auto&& square(float amplitude_min, float amplitude_max, float frequency, float phase, float angle_dg);
+
+        private:
+            Function_t _function;
+    };
+
+
 }
 
 #include ".src/noise_generator.inl"

@@ -12,14 +12,14 @@ namespace crisp
 {
     void Sprite::align_topleft_with(Vector2f top_left)
     {
-        _top_left_pos.x = top_left.at(0);
-        _top_left_pos.y = top_left.at(1);
+        _top_left_pos.x = round(top_left.at(0));
+        _top_left_pos.y = round(top_left.at(1));
     }
 
     void Sprite::align_center_with(Vector2f center)
     {
-        _top_left_pos.x = center.at(0) - _texture.getSize().x * 0.5;
-        _top_left_pos.y = center.at(1) - _texture.getSize().y * 0.5;
+        _top_left_pos.x = round(center.at(0) - _texture.getSize().x * 0.5);
+        _top_left_pos.y = round(center.at(1) - _texture.getSize().y * 0.5);
     }
 
     void Sprite::zoom(float factor, bool smooth)
@@ -35,6 +35,18 @@ namespace crisp
         states.transform.scale(_zoom_factor, _zoom_factor);
         states.texture = &_texture;
         target.draw(_sprite, states);
+    }
+
+    bool Sprite::save_to_file(std::string path) const
+    {
+        sf::Image temp = _texture.copyToImage();
+        auto res = temp.saveToFile(path);
+        if (res)
+            std::cerr << "[LOG] succesfully saved " << path << std::endl;
+        else
+            std::cerr << "[LOG] could not save " << path << std::endl;
+
+        return res;
     }
 
 }
