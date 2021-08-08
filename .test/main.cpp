@@ -41,7 +41,7 @@ int main()
     for (long x = 0; x < n; ++x)
         for (long y = 0; y < m; ++y, ++i)
         {
-            in[i][0] = image_in.get_pixel_or_padding(x, y);// * pow(-1, x + y);
+            in[i][0] = image_in.get_pixel_or_padding(x, y) * pow(-1, x + y);
             in[i][1] = 0;
         }
     }
@@ -58,32 +58,55 @@ int main()
     const auto hn = n / 2, hm = m / 2;
     size_t i = 0;
 
+    double mean = 0;
+    double min = std::numeric_limits<double>::max();
+    double max = std::numeric_limits<double>::min();
+
     for (long x = 0; x < n; ++x)
     {
         for (long y = 0; y < m; ++y, ++i)
         {
             auto f = std::complex<double>(out[i][0], out[i][1]);
 
-            float spectrum = abs(f);
-            float angle = arg(f);
+            double spectrum = abs(f);
+            double angle = arg(f);
 
-            if (i < 10)
-                spectrum = 0;
+            double value = log(spectrum);
 
             f = std::polar(spectrum, angle);
             out[i][0] = f.real();
             out[i][1] = f.imag();
 
-            float value = project<double>(0, 1, log(1 + spectrum));
-
-            image_out(x, y) = value;
-            //image_out(hn + x, hm + y) = value;
-            //image_out(hn - x, hm + y) = value;
-            //image_out(hn - x, hm - y) = value;
-            //image_out(hn + x, hm - y) = value;
+            min = std::min(value, min);
+            max = std::max(value, max);
+            mean += value;
         }
     }
 
+    mean = mean / (n*m);
+
+    i = 0;
+    for (long x = 0; x < n; ++x)
+    {
+        for (long y = 0; y < m; ++y, ++i)
+        {
+            auto f = std::complex<double>(out[i][0], out[i][1]);
+            double value = log(abs(f));
+
+            if (min < 0)
+            {
+                value += min;
+                value /= max;
+            }
+            else
+            {
+                value -= min;
+                value /= (max + min);
+            }
+
+            image_out(x, y) = clamp<double>(0, 1, value + clamp<double>(0, 0.25, abs(mean - 0.5))) * mean;
+        }
+    }
 
     Sprite sprite;
     sprite.load_from(image_out);
@@ -96,7 +119,7 @@ int main()
         for (long y = 0; y < m; ++y, ++i)
             if (x < n/2 and y < m/2)
             {
-                image_in(x, y) = in[i][0] / (m*n);// * pow(-1, x+y);
+                image_in(x, y) = in[i][0] / (m*n) * pow(-1, x+y);
             }
 
     bool which = false;
