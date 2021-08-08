@@ -41,7 +41,7 @@ int main()
     for (long x = 0; x < n; ++x)
         for (long y = 0; y < m; ++y, ++i)
         {
-            in[i][0] = image_in.get_pixel_or_padding(x, y) * pow(-1, x + y);
+            in[i][0] = image_in.get_pixel_or_padding(x, y);// * pow(-1, x + y);
             in[i][1] = 0;
         }
     }
@@ -67,17 +67,15 @@ int main()
             float spectrum = abs(f);
             float angle = arg(f);
 
-            //angle *= 2;
-
-            float dist = sqrt(x*x + y*y);
-            //if (dist > 50)
-              //  spectrum = 0;
+            if (i < 10)
+                spectrum = 0;
 
             f = std::polar(spectrum, angle);
             out[i][0] = f.real();
             out[i][1] = f.imag();
 
-            float value = project<double>(0, 1, log(spectrum));
+            float value = project<double>(0, 1, log(1 + spectrum));
+
             image_out(x, y) = value;
             //image_out(hn + x, hm + y) = value;
             //image_out(hn - x, hm + y) = value;
@@ -98,7 +96,7 @@ int main()
         for (long y = 0; y < m; ++y, ++i)
             if (x < n/2 and y < m/2)
             {
-                image_in(x, y) = in[i][0] / (m*n) * pow(-1, x+y);
+                image_in(x, y) = in[i][0] / (m*n);// * pow(-1, x+y);
             }
 
     bool which = false;
