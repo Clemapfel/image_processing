@@ -74,4 +74,4 @@ include_directories(".src") # for .inl files
 
 # executables
 add_executable(TEST .test/main.cpp)
-target_link_libraries(TEST common sfml-graphics sfml-window sfml-system sfml-audio sfml-network ${LUA_LIBRARIES})
+target_link_libraries(TEST common sfml-graphics sfml-window sfml-system sfml-audio sfml-network fftw3 ${LUA_LIBRARIES})

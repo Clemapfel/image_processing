@@ -10,8 +10,57 @@
 #include <noise_model.hpp>
 #include <image_segment.hpp>
 
+#include <fftw3.h>
 using namespace crisp;
 
+int main()
+{
+
+    fftw_complex *in, *out, *back;
+
+    size_t n = 20;
+
+    auto rng = UniformNoise();
+    std::vector<double> signal;
+
+    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * n);
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * n);
+    back = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * n);
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        signal.push_back(rng());
+        in[i][0] = signal.back();
+        in[i][1] = 0;
+    }
+
+    auto plan_to = fftw_plan_dft_1d(n, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    auto plan_from = fftw_plan_dft_1d(n, out, back, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+    fftw_execute(plan_to);
+    fftw_execute(plan_from);
+
+    std::cout << "signal:\n";
+    for (size_t i = 0; i < n; ++i)
+        std::cout << in[i][0] << " ";
+
+    std::cout << "\n" << "fft:\n";
+    for (size_t i = 0; i < n; ++i)
+        std::cout << out[i][0] << " ";
+
+    std::cout << "\n" << "back:\n";
+    for (size_t i = 0; i < n; ++i)
+        std::cout << back[i][0] / n << " ";
+
+    fftw_destroy_plan(plan_to);
+    fftw_destroy_plan(plan_from);
+    fftw_free(in);
+    fftw_free(out);
+    fftw_free(back);
+}
+
+
+/*
 int main()
 {
     float border = 5;
