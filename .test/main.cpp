@@ -34,7 +34,10 @@ int main()
     size_t n = image_in.get_size().y * 2;
 
     auto filter = FrequencyDomainFilter(m, n);
-    filter.set_function(filter.gaussian_lowpass(100));
+    size_t order = 1;
+
+    redraw:
+    filter.set_function(filter.butterworth_highpass(100, 2));
 
     auto filter_sprite= Sprite();
     filter_sprite.load_from(filter);
@@ -46,6 +49,12 @@ int main()
     while (window.is_open())
     {
         window.update();
+
+        if (InputHandler::was_key_pressed(UP))
+        {
+            order += 1;
+            goto redraw;
+        }
     }
 }
 
