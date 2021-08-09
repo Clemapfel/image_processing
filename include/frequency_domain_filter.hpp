@@ -21,19 +21,26 @@ namespace crisp
 
             auto&& identity();
             
-            auto&& ideal_lowpass(float cutoff_frequency);
-            auto&& gaussian_lowpass(float cutoff_frequency);
-            auto&& butterworth_lowpass(float cutoff_frequency, size_t order);
+            auto&& ideal_lowpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
+            auto&& gaussian_lowpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
+            auto&& butterworth_lowpass(float cutoff_frequency, size_t order, float pass_factor = 1, float reject_factor = 0);
 
-            auto&& ideal_highpass(float cutoff_frequency);
-            auto&& gaussian_highpass(float cutoff_frequency);
-            auto&& butterworth_highpass(float cutoff_frequency, size_t order);
+            auto&& ideal_highpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
+            auto&& gaussian_highpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
+            auto&& butterworth_highpass(float cutoff_frequency, size_t order, float pass_factor = 1, float reject_factor = 0);
+            
+            auto&& laplacian_first_derivative();
             
         private:
             sf::Vector2<long> _size;
             std::function<double(long, long)> _function = [](long x, long y) -> double {return 1;};
             
             float distance(long x, long y);
+            template<typename T>
+            static T project(T lower_bound, T upper_bound, T value)
+            {
+                return value * fabs(lower_bound - upper_bound) + std::min(lower_bound, upper_bound);
+            }
             
             void initialize() const;
             mutable bool _values_initialized = false;
@@ -90,46 +97,57 @@ namespace crisp
         return std::move([](long x, long y) -> double {return 1;});
     }
     
-    inline auto && FrequencyDomainFilter::ideal_lowpass(float cutoff_frequency)
+    inline auto && FrequencyDomainFilter::ideal_lowpass(float cutoff_frequency, float pass_factor, float reject_factor)
     {
-        return std::move([this, cutoff_frequency](long x, long y) -> double {return distance(x, y) < cutoff_frequency ? 1 : 0;});
+        return std::move([this, cutoff_frequency, pass_factor, reject_factor](long x, long y) -> double {
+            return distance(x, y) < cutoff_frequency ? pass_factor : reject_factor;
+        });
     }
     
-    inline auto && FrequencyDomainFilter::gaussian_lowpass(float cutoff_frequency)
+    inline auto && FrequencyDomainFilter::gaussian_lowpass(float cutoff_frequency, float pass_factor, float reject_factor)
     {
-        return std::move([this, cutoff_frequency](long x, long y) -> double {
+        return std::move([this, cutoff_frequency, pass_factor, reject_factor](long x, long y) -> double {
             
             auto dist = distance(x, y);
-            return exp(-0.5 * pow(distance(x, y) / cutoff_frequency, 2));
+            auto res = exp(-0.5 * pow(distance(x, y) / cutoff_frequency, 2));
+            return project<double>(reject_factor, pass_factor, res);
         });
     }
     
-    inline auto && FrequencyDomainFilter::butterworth_lowpass(float cutoff_frequency, size_t order)
+    inline auto && FrequencyDomainFilter::butterworth_lowpass(float cutoff_frequency, size_t order, float pass_factor, float reject_factor)
     {
-        return std::move([this, cutoff_frequency, order](long x, long y) -> double {
-            return 1 / (1 + pow(distance(x, y) / cutoff_frequency, 2 * order));
+        return std::move([this, cutoff_frequency, order, pass_factor, reject_factor](long x, long y) -> double {
+            auto res = 1 / (1 + pow(distance(x, y) / cutoff_frequency, 2 * order));
+            return project<double>(reject_factor, pass_factor, res);
         });
     }
 
-    inline auto && FrequencyDomainFilter::ideal_highpass(float cutoff_frequency)
+    inline auto && FrequencyDomainFilter::ideal_highpass(float cutoff_frequency, float pass_factor, float reject_factor)
     {
-        return std::move([this, cutoff_frequency](long x, long y) -> double {return distance(x, y) < cutoff_frequency ? 0 : 1;});
+        return std::move([this, cutoff_frequency, pass_factor, reject_factor](long x, long y) -> double {return distance(x, y) < cutoff_frequency ? reject_factor : pass_factor;});
     }
 
-    inline auto && FrequencyDomainFilter::gaussian_highpass(float cutoff_frequency)
+    inline auto && FrequencyDomainFilter::gaussian_highpass(float cutoff_frequency, float pass_factor, float reject_factor)
     {
-        return std::move([this, cutoff_frequency](long x, long y) -> double {
+        return std::move([this, cutoff_frequency, pass_factor, reject_factor](long x, long y) -> double {
 
             auto dist = distance(x, y);
-            return 1 - exp(-0.5 * pow(distance(x, y) / cutoff_frequency, 2));
+            auto res = exp(-0.5 * pow(distance(x, y) / cutoff_frequency, 2));
+            return 1 - project<double>(pass_factor, reject_factor, res);
         });
     }
 
-    inline auto && FrequencyDomainFilter::butterworth_highpass(float cutoff_frequency, size_t order)
+    inline auto && FrequencyDomainFilter::butterworth_highpass(float cutoff_frequency, size_t order, float pass_factor, float reject_factor)
     {
-        return std::move([this, cutoff_frequency, order](long x, long y) -> double {
-            return 1 - (1 / (1 + pow(distance(x, y) / cutoff_frequency, 2 * order)));
+        return std::move([this, cutoff_frequency, order, pass_factor, reject_factor](long x, long y) -> double {
+            auto res = (1 / (1 + pow(distance(x, y) / cutoff_frequency, 2 * order)));
+            return 1 - project<double>(pass_factor, reject_factor, res);
         });
+    }
+    
+    inline auto && FrequencyDomainFilter::laplacian_first_derivative()
+    {
+        return std::move([](long x, long y) -> double {return -4 * M_PI * M_PI + (x*x + y*y);});
     }
 
 

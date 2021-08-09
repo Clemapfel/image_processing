@@ -37,7 +37,7 @@ int main()
     size_t order = 1;
 
     redraw:
-    filter.set_function(filter.butterworth_highpass(100, 2));
+    filter.set_function(filter.butterworth_highpass(100, 2, 0.8, 0.2));
 
     auto filter_sprite= Sprite();
     filter_sprite.load_from(filter);
