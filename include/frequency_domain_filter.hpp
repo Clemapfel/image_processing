@@ -28,7 +28,15 @@ namespace crisp
             auto&& ideal_highpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
             auto&& gaussian_highpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
             auto&& butterworth_highpass(float cutoff_frequency, size_t order, float pass_factor = 1, float reject_factor = 0);
-            
+
+            auto&& ideal_bandpass(float lower_cutoff, float higher_cutoff, float pass_factor = 1, float reject_factor = 0);
+            auto&& gaussian_bandpass(float lower_cutoff, float higher_cutoff, float pass_factor = 1, float reject_factor = 0);
+            auto&& butterworth_bandpass(float lower_cutoff, float higher_cutoff, size_t order, float pass_factor = 1, float reject_factor = 0);
+
+            auto&& ideal_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor = 1, float reject_factor = 0);
+            auto&& gaussian_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor = 1, float reject_factor = 0);
+            auto&& butterworth_bandreject(float lower_cutoff, float higher_cutoff, size_t order, float pass_factor = 1, float reject_factor = 0);
+
             auto&& laplacian_first_derivative();
             
         private:
@@ -150,6 +158,25 @@ namespace crisp
         return std::move([](long x, long y) -> double {return -4 * M_PI * M_PI + (x*x + y*y);});
     }
 
+    inline auto&& FrequencyDomainFilter::ideal_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor, float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff, pass_factor, reject_factor](long x, long y) -> double {
+            auto dist = distance(x, y);
+            return dist > lower_cutoff and dist < higher_cutoff ? reject_factor : pass_factor;
+        });
+    }
+
+    inline auto&& FrequencyDomainFilter::gaussian_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor,
+                                                    float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff](long x, long y) -> double {
+            auto mean = higher_cutoff - lower_cutoff / 2;
+            auto dist = distance(x, y);
+            auto res_l = 2 * exp(-0.5 * pow(dist / (lower_cutoff), 2));
+            auto res_r = 2 * exp(-0.5 * pow(dist / (higher_cutoff), 2));
+            return res_l + (1 - res_r);
+        });
+    }
 
 }
 

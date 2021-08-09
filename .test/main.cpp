@@ -36,10 +36,16 @@ int main()
     auto filter = FrequencyDomainFilter(m, n);
     size_t order = 1;
 
-    redraw:
-    filter.set_function(filter.butterworth_highpass(100, 2, 0.8, 0.2));
-
+    bool which = true;
     auto filter_sprite= Sprite();
+
+    redraw:
+
+    if (which)
+        filter.set_function(filter.gaussian_bandreject(40, 75));
+    else
+        filter.set_function(filter.ideal_bandreject(40, 75));
+
     filter_sprite.load_from(filter);
 
     window.clear();
@@ -50,9 +56,9 @@ int main()
     {
         window.update();
 
-        if (InputHandler::was_key_pressed(UP))
+        if (InputHandler::was_key_pressed(SPACE))
         {
-            order += 1;
+            which = not which;
             goto redraw;
         }
     }
