@@ -92,6 +92,29 @@ namespace crisp
         _sprite.setPosition(0, 0);
     }
 
+    inline void Sprite::load_from(const FrequencyDomainFilter& filter)
+    {
+        sf::Image temp;
+        temp.create(filter.get_size().x, filter.get_size().y);
+
+        const auto& values = filter.get_values();
+
+        size_t i = 0;
+        for (long x = 0; x < temp.getSize().x; ++x)
+        {
+            for (long y = 0; y < temp.getSize().y; ++y, ++i)
+            {
+                auto value = filter.get_values().at(i);
+                temp.setPixel(x, y, sf::Color(value * 255, value * 255, value * 255, 1));
+            }
+        }
+
+        _texture.loadFromImage(temp);
+        _sprite.setTextureRect(sf::IntRect(0, 0, temp.getSize().x, temp.getSize().y));
+        _sprite.setTexture(_texture);
+        _sprite.setPosition(0, 0);
+    }
+
     inline sf::Vector2f Sprite::get_size() const
     {
         return {_texture.getSize().x * _sprite.getScale().x, _texture.getSize().y * _sprite.getScale().y};

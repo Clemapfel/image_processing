@@ -13,6 +13,7 @@
 #include <image.hpp>
 #include <vector.hpp>
 #include <histogram.hpp>
+#include <frequency_domain_filter.hpp>
 
 namespace crisp
 {
@@ -28,6 +29,8 @@ namespace crisp
 
             template<typename Value_t>
             void load_from(const Histogram<Value_t>& histogram, long image_height, bool show_mean = true);
+
+            void load_from(const FrequencyDomainFilter& filter);
 
             sf::Vector2f get_size() const;
             sf::Vector2f get_topleft() const;
