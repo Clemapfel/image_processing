@@ -24,7 +24,7 @@ T project(T lower_bound, T upper_bound, T value)
 int main()
 {
     GrayScaleImage image_in;
-    image_in.create_from_file("/home/clem/Workspace/image_processing/docs/test.png");
+    image_in.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
     image_in.set_padding_type(GrayScaleImage::PaddingType::ONE);
 
     RenderWindow window;
@@ -71,27 +71,26 @@ int main()
             double spectrum = abs(f);
             double angle = arg(f);
 
-            double value = log(spectrum);
+            // filter here
 
             f = std::polar(spectrum, angle);
             out[i][0] = f.real();
             out[i][1] = f.imag();
 
+            double value = log(1 + spectrum);
             min = std::min(value, min);
             max = std::max(value, max);
-            mean += value;
         }
     }
 
-    mean = mean / (n*m);
-
+    // normalize intensities
     i = 0;
     for (long x = 0; x < n; ++x)
     {
         for (long y = 0; y < m; ++y, ++i)
         {
             auto f = std::complex<double>(out[i][0], out[i][1]);
-            double value = log(abs(f));
+            double value = log(1 + abs(f));
 
             if (min < 0)
             {
@@ -104,7 +103,7 @@ int main()
                 value /= (max + min);
             }
 
-            image_out(x, y) = clamp<double>(0, 1, value + clamp<double>(0, 0.25, abs(mean - 0.5))) * mean;
+            image_out(x, y) = value;
         }
     }
 
