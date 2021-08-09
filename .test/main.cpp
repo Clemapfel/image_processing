@@ -34,6 +34,7 @@ int main()
     size_t n = image_in.get_size().y * 2;
 
     auto filter = FrequencyDomainFilter(m, n);
+    filter.set_function(filter.gaussian_lowpass(100));
 
     auto filter_sprite= Sprite();
     filter_sprite.load_from(filter);

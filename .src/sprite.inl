@@ -104,8 +104,8 @@ namespace crisp
         {
             for (long y = 0; y < temp.getSize().y; ++y, ++i)
             {
-                auto value = filter.get_values().at(i);
-                temp.setPixel(x, y, sf::Color(value * 255, value * 255, value * 255, 1));
+                float value = filter.get_values().at(i);
+                temp.setPixel(x, y, sf::Color(value * 255.f, value * 255.f, value * 255.f, 255));
             }
         }
 
