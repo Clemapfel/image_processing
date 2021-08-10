@@ -38,7 +38,6 @@ namespace crisp
             sf::Vector2<long> _size;
             std::vector<double> _magnitude,
                                 _phase_angle;
-
     };
 
     template<>

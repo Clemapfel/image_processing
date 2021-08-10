@@ -57,7 +57,6 @@ int main()
     GrayScaleImage image_out;
     image_out.create(n, m, 1);
 
-    const auto hn = floor(n / 2.f), hm = floor(m / 2.f);
     size_t i = 0;
 
     double mean = 0;
