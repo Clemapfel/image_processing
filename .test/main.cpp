@@ -13,6 +13,7 @@
 #include <vector>
 #include <fftw3.h>
 #include <frequency_domain_filter.hpp>
+#include <fourier_transform.hpp>
 using namespace crisp;
 
 template<typename T>
@@ -25,7 +26,52 @@ int main()
 {
     GrayScaleImage image_in;
     image_in.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
-    image_in.set_padding_type(GrayScaleImage::PaddingType::ONE);
+    image_in.set_padding_type(GrayScaleImage::PaddingType::STRETCH);
+
+    FourierTransform<ACCURACY> fourier;
+    fourier.transform_from(image_in);
+
+    long m = fourier.get_size().x,
+         n = fourier.get_size().y;
+
+    for (size_t i = 0; i < m; ++i)
+    {
+        fourier.get_component(m / 2, n / 2) = 0;
+    }
+
+    auto spectrum = fourier.spectrum_to_image<GrayScaleImage>();
+    auto spectrum_sprite = Sprite();
+
+    spectrum_sprite.load_from(spectrum);
+
+    auto image_out = fourier.transform_to<GrayScaleImage>();
+    auto image_sprite = Sprite();
+
+    image_sprite.load_from(image_out);
+
+    RenderWindow window;
+    window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
+
+    bool which = false;
+    while (window.is_open())
+    {
+        window.update();
+
+        if (InputHandler::was_key_pressed(SPACE))
+            which = not which;
+
+        window.clear();
+        window.draw(which ? spectrum_sprite : image_sprite);
+        window.display();
+    }
+}
+
+/*
+int main()
+{
+    GrayScaleImage image_in;
+    image_in.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
+    image_in.set_padding_type(GrayScaleImage::PaddingType::MIRROR);
 
     RenderWindow window;
     window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
@@ -124,12 +170,13 @@ int main()
 
     fftwl_execute(plan_from);
     i = 0;
-    for (long x = 0; x < n; ++x)
-        for (long y = 0; y < m; ++y, ++i)
-            if (x < n/2 and y < m/2)
-            {
-                image_in(x, y) = in[i][0] / (m*n) * pow(-1, x+y);
-            }
+    for (long x = 0; x < n/2; ++x, i += m/2)
+    {
+        for (long y = 0; y < m/2; ++y, ++i)
+        {
+            image_in(x, y) = in[i][0] / (m * n) * pow(-1, x + y);
+        }
+    }
 
     bool which = false;
     while (window.is_open())
