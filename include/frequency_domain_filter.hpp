@@ -19,6 +19,9 @@ namespace crisp
             const std::vector<double>& get_values() const;
             sf::Vector2<long> get_size() const;
 
+            template<FourierTransformMode Mode>
+            void apply_to(FourierTransform<Mode>&) const;
+
             auto&& identity();
             
             auto&& ideal_lowpass(float cutoff_frequency, float pass_factor = 1, float reject_factor = 0);
