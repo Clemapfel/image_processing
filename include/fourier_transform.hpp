@@ -12,11 +12,19 @@
 
 namespace crisp
 {
+    // fourier transform of an image
+
+    // optimization mode of the transform
     enum FourierTransformMode : int
     {
-        SPEED = 0, BALANCED = 1, ACCURACY = 2
+        SPEED = 0,      // prioritizes speed, high likelihood of rounding errors. Suitable for real-time applications
+        BALANCED = 1,   // recommended, heuristic DFT fit suboptimal but low likelihood of rounding errors
+        ACCURACY = 2    // unsuitable for real-time use, heuristic DFT optimal, minimal rounding errors
+
+        // slowdown: speed: 1x, balanced: ~2.5x, accuracy: ~10x
     };
 
+    // class storing the *centered* fourier transform in polar form, that is each components magnitude and phase angle
     template<FourierTransformMode Mode = BALANCED>
     class FourierTransform
     {
@@ -26,28 +34,64 @@ namespace crisp
         public:
             FourierTransform() = default;
 
+            // @brief creates fourier transform from an image
+            // @param : image to be transformed
+            //
+            // @note with an image of size m*n the fourier transform will have m*n*2 components
             template<typename Image_t>
             void transform_from(const Image_t&);
 
+            // @brief transform back into an image
+            // @returns image after transform
+            //
+            // @note this does not deallocate the transform
             template<typename Image_t>
             Image_t transform_to() const;
 
+            // @brief visualizes the transforms spectrum as an image
+            // @returns log(1+x)-scaled grayscale image of size m*n*2 where m, n size of the original transformed image
             template<typename Image_t>
             Image_t spectrum_to_image() const;
 
+            // @brief visualize the transforms phase angles as an image
+            // @returns scaled grayscale image of size m*n*2 where m, n size of the original transformed image
             template<typename Image_t>
             Image_t phase_angle_to_image() const;
 
+            // @brief get the complex coefficient at the specified position, (0,0) being the top-left origin
+            // @param x: the row index, range [0, 2*m]
+            // @param y: the column index, range [0, 2*n]
+            // @returns std::complex
+            //
+            // @note equivalent to calling std::polar(get_component(x, y), get_phase_angle(x, y))
             std::complex<Value_t> get_coefficient(long x, long y) const;
 
+            // @brief const-access the component of the spectrum at the specified position, (0,0) being the top-left origin
+            // @param x: the row index, range [0, 2*m]
+            // @param y: the column index, range [0, 2*n]
+            // @returns float if in SPEED mode, double otherwise
             Value_t get_component(long x, long y) const;
+
+            // @brief const-acces the phase angle at the specified position, (0,0) being the top-left origin
+            // @param x: the row index, range [0, 2*m]
+            // @param y: the column index, range [0, 2*n]
+            // @returns float if in SPEED mode, double otherwise
             Value_t get_phase_angle(long x, long y) const;
 
+            // @overload non-const version of get_component(long, long)
             Value_t& get_component(long x, long y);
+
+            // @overload non-const version of get_phase_angle(long, long)
             Value_t& get_phase_angle(long x, long y);
 
+            // @brief access the dc-component (the value at the spectrums center)
+            // @returns float if in SPEED mode, double otherwise
+            //
+            // @note equivalent to calling get_component(p/2, q/2) where p,q size of the transform
             Value_t get_dc_component() const;
 
+            // @brief get the size of the transforms
+            // @returns sf::Vector where .x is the width, .y the size of the transform
             sf::Vector2<long> get_size() const;
 
         protected:
