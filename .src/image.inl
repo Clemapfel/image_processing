@@ -71,7 +71,7 @@ namespace crisp
             case REPEAT:
                 return get_pixel(x % get_size().x, y % get_size().y);
             case MIRROR:
-                return get_pixel(get_size().x - (x % get_size().x), get_size().y - (y % get_size().y));
+                return get_pixel(get_size().x - 1 - (x % get_size().x), get_size().y - 1 - (y % get_size().y));
             case STRETCH:
                 return get_pixel(x < 0 ? 0 : get_size().x - 1, y < 0 ? 0 : get_size().y - 1);
         }
