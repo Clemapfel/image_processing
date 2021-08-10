@@ -12,8 +12,6 @@
 
 namespace crisp
 {
-    class FourierTransformFilter;
-
     enum FourierTransformMode : int
     {
         SPEED = 0, BALANCED = 1, ACCURACY = 2
@@ -35,20 +33,24 @@ namespace crisp
             Image_t transform_to() const;
 
             template<typename Image_t>
-            Image_t to_image() const;
+            Image_t spectrum_to_image() const;
 
-            sf::Vector2<long> get_dc_position() const;
+            template<typename Image_t>
+            Image_t phase_angle_to_image() const;
 
             std::complex<Value_t> get_coefficient(long x, long y) const;
 
-            Value_t get_magnitude(long x, long y) const;
+            Value_t get_component(long x, long y) const;
             Value_t get_phase_angle(long x, long y) const;
 
-            Value_t& get_magnitude(long x, long y);
+            Value_t& get_component(long x, long y);
             Value_t& get_phase_angle(long x, long y);
+
+            Value_t get_dc_component() const;
 
             sf::Vector2<long> get_size() const;
 
+        protected:
             std::vector<Value_t>& get_spectrum();
             std::vector<Value_t>& get_phase_angle();
 
@@ -56,11 +58,11 @@ namespace crisp
             size_t to_index(long x, long y) const;
 
             sf::Vector2<long> _size;
-            std::vector<Value_t> _magnitude,
+            std::vector<Value_t> _spectrum,
                                  _phase_angle;
 
-            Value_t _min = 0, _max = 1; // log(1+x) scaled
+            Value_t _min_spectrum = 0, _max_spectrum = 1; // log(1+x) scaled
     };
 }
 
-#include ".src/frequency_domain.inl"
+#include ".src/fourier_transform.inl"

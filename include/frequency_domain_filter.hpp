@@ -6,7 +6,7 @@
 #pragma once
 
 #include <grayscale_image.hpp>
-#include <frequency_domain.hpp>
+#include <fourier_transform.hpp>
 
 namespace crisp
 {

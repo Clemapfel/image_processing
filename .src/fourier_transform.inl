@@ -7,7 +7,7 @@ namespace crisp
 {
     template<FourierTransformMode Mode>
     template<typename Image_t>
-    Image_t FourierTransform<Mode>::to_image() const
+    Image_t FourierTransform<Mode>::spectrum_to_image() const
     {
         Image_t out;
         out.create(get_size().x, get_size().y);
@@ -19,18 +19,42 @@ namespace crisp
         {
             for (long y = 0; y < n; ++y, ++i)
             {
-                Value_t value = log(1 + _magnitude.at(i));
+                Value_t value = log(1 + _spectrum.at(i));
 
-                if (_min < 0)
+                if (_min_spectrum < 0)
                 {
-                    value += _min;
-                    value /= _max;
+                    value += _min_spectrum;
+                    value /= _max_spectrum;
                 }
                 else
                 {
-                    value -= _min;
-                    value /= (_max + _min);
+                    value -= _min_spectrum;
+                    value /= (_max_spectrum + _min_spectrum);
                 }
+
+                out(x, y) = value;
+            }
+        }
+        return out;
+    }
+
+    template<FourierTransformMode Mode>
+    template<typename Image_t>
+    Image_t FourierTransform<Mode>::phase_angle_to_image() const
+    {
+        Image_t out;
+        out.create(get_size().x, get_size().y);
+
+        long m = get_size().x,
+             n = get_size().y;
+
+        for (long x = 0, i = 0; x < m; ++x)
+        {
+            for (long y = 0; y < n; ++y, ++i)
+            {
+                Value_t value = _phase_angle.at(i);
+                value += M_PI;
+                value /= 2 * M_PI;
 
                 out(x, y) = value;
             }
@@ -41,7 +65,7 @@ namespace crisp
     template<FourierTransformMode Mode>
     std::complex<typename FourierTransform<Mode>::Value_t> FourierTransform<Mode>::get_coefficient(long x, long y) const
     {
-        return std::polar(_magnitude.at(x*y), _phase_angle.at(x*y));
+        return std::polar(_spectrum.at(x * y), _phase_angle.at(x * y));
     }
 
     template<FourierTransformMode Mode>
@@ -51,9 +75,9 @@ namespace crisp
     }
 
     template<FourierTransformMode Mode>
-    typename FourierTransform<Mode>::Value_t FourierTransform<Mode>::get_magnitude(long x, long y) const
+    typename FourierTransform<Mode>::Value_t FourierTransform<Mode>::get_component(long x, long y) const
     {
-        return _magnitude.at(to_index(x, y));
+        return _spectrum.at(to_index(x, y));
     }
 
     template<FourierTransformMode Mode>
@@ -63,15 +87,21 @@ namespace crisp
     }
 
     template<FourierTransformMode Mode>
-    typename FourierTransform<Mode>::Value_t& FourierTransform<Mode>::get_magnitude(long x, long y)
+    typename FourierTransform<Mode>::Value_t& FourierTransform<Mode>::get_component(long x, long y)
     {
-        return _magnitude.at(to_index(x, y));
+        return _spectrum.at(to_index(x, y));
     }
 
     template<FourierTransformMode Mode>
     typename FourierTransform<Mode>::Value_t& FourierTransform<Mode>::get_phase_angle(long x, long y)
     {
         return _phase_angle.at(to_index(x, y));
+    }
+
+    template<FourierTransformMode Mode>
+    typename FourierTransform<Mode>::Value_t FourierTransform<Mode>::get_dc_component() const
+    {
+        return get_component(0, 0);
     }
 
     template<FourierTransformMode Mode>
@@ -83,7 +113,7 @@ namespace crisp
     template<FourierTransformMode Mode>
     std::vector<typename FourierTransform<Mode>::Value_t>& FourierTransform<Mode>::get_spectrum()
     {
-        return _magnitude;
+        return _spectrum;
     }
 
     template<FourierTransformMode Mode>
@@ -119,11 +149,11 @@ namespace crisp
 
         fftwf_execute(plan);
 
-        _min = std::numeric_limits<Value_t>::max();
-        _max = std::numeric_limits<Value_t>::min();
+        _min_spectrum = std::numeric_limits<Value_t>::max();
+        _max_spectrum = std::numeric_limits<Value_t>::min();
 
-        _magnitude.clear();
-        _magnitude.reserve(m*n);
+        _spectrum.clear();
+        _spectrum.reserve(m * n);
         _phase_angle.clear();
         _phase_angle.reserve(m*n);
 
@@ -134,12 +164,12 @@ namespace crisp
                 auto f = std::complex<double>(values[i][0], values[i][1]);
                 auto magnitude = abs(f);
 
-                _magnitude.emplace_back(magnitude);
+                _spectrum.emplace_back(magnitude);
                 _phase_angle.emplace_back(arg(f));
 
                 auto scaled = log(1 + magnitude);
-                _min = std::min<Value_t>(_min, scaled);
-                _max = std::max<Value_t>(_max, scaled);
+                _min_spectrum = std::min<Value_t>(_min_spectrum, scaled);
+                _max_spectrum = std::max<Value_t>(_max_spectrum, scaled);
             }
         }
 
@@ -164,7 +194,7 @@ namespace crisp
         {
             for (long y = 0; y < n; ++y, ++i)
             {
-                auto f = std::polar<float>(_magnitude.at(i), _phase_angle.at(i));
+                auto f = std::polar<float>(_spectrum.at(i), _phase_angle.at(i));
                 values[i][0] = f.real();
                 values[i][1] = f.imag();
             }
@@ -216,11 +246,11 @@ namespace crisp
 
         fftwl_execute(plan);
 
-        _min = std::numeric_limits<Value_t>::max();
-        _max = std::numeric_limits<Value_t>::min();
+        _min_spectrum = std::numeric_limits<Value_t>::max();
+        _max_spectrum = std::numeric_limits<Value_t>::min();
 
-        _magnitude.clear();
-        _magnitude.reserve(m*n);
+        _spectrum.clear();
+        _spectrum.reserve(m * n);
         _phase_angle.clear();
         _phase_angle.reserve(m*n);
 
@@ -231,12 +261,12 @@ namespace crisp
                 auto f = std::complex<double>(values[i][0], values[i][1]);
                 auto magnitude = abs(f);
 
-                _magnitude.emplace_back(magnitude);
+                _spectrum.emplace_back(magnitude);
                 _phase_angle.emplace_back(arg(f));
 
                 auto scaled = log(1 + magnitude);
-                _min = std::min<Value_t>(_min, scaled);
-                _max = std::max<Value_t>(_max, scaled);
+                _min_spectrum = std::min<Value_t>(_min_spectrum, scaled);
+                _max_spectrum = std::max<Value_t>(_max_spectrum, scaled);
             }
         }
 
@@ -261,7 +291,7 @@ namespace crisp
         {
             for (long y = 0; y < n; ++y, ++i)
             {
-                auto f = std::polar<double>(_magnitude.at(i), _phase_angle.at(i));
+                auto f = std::polar<double>(_spectrum.at(i), _phase_angle.at(i));
                 values[i][0] = f.real();
                 values[i][1] = f.imag();
             }
