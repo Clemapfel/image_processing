@@ -28,7 +28,7 @@ int main()
     image_in.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
     image_in.set_padding_type(GrayScaleImage::PaddingType::STRETCH);
 
-    FourierTransform<ACCURACY> fourier;
+    FourierTransform<SPEED> fourier;
     fourier.transform_from(image_in);
 
     long m = fourier.get_size().x,
@@ -52,6 +52,12 @@ int main()
     RenderWindow window;
     window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
 
+    auto filter = FrequencyDomainFilter(spectrum.get_size().x, spectrum.get_size().y);
+    filter.set_function(filter.gaussian_bandreject(50, 100));
+
+    auto filter_sprite = Sprite();
+    filter_sprite.load_from(filter);
+
     bool which = false;
     while (window.is_open())
     {
@@ -61,7 +67,8 @@ int main()
             which = not which;
 
         window.clear();
-        window.draw(which ? spectrum_sprite : image_sprite);
+        //window.draw(which ? spectrum_sprite : image_sprite);
+        window.draw(filter_sprite);
         window.display();
     }
 }

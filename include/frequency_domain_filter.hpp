@@ -173,11 +173,10 @@ namespace crisp
                                                     float reject_factor)
     {
         return std::move([this, lower_cutoff, higher_cutoff](long x, long y) -> double {
-            auto mean = higher_cutoff - lower_cutoff / 2;
             auto dist = distance(x, y);
-            auto res_l = 2 * exp(-0.5 * pow(dist / (lower_cutoff), 2));
-            auto res_r = 2 * exp(-0.5 * pow(dist / (higher_cutoff), 2));
-            return res_l + (1 - res_r);
+            auto width = higher_cutoff - lower_cutoff;
+            auto center = lower_cutoff + width/2;
+            return 1 - exp(-1*pow((dist*dist - center*center) / (dist*width), 2));
         });
     }
 
