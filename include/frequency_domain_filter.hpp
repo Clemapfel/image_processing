@@ -101,12 +101,18 @@ namespace crisp
         return sqrt(x*x + y*y);
     }
 
-    // ##
-    
     inline auto && FrequencyDomainFilter::identity()
     {
         return std::move([](long x, long y) -> double {return 1;});
     }
+
+
+    inline auto && FrequencyDomainFilter::laplacian_first_derivative()
+    {
+        return std::move([](long x, long y) -> double {return -4 * M_PI * M_PI + (x*x + y*y);});
+    }
+
+    // IDEAL
     
     inline auto && FrequencyDomainFilter::ideal_lowpass(float cutoff_frequency, float pass_factor, float reject_factor)
     {
@@ -114,6 +120,29 @@ namespace crisp
             return distance(x, y) < cutoff_frequency ? pass_factor : reject_factor;
         });
     }
+
+    inline auto && FrequencyDomainFilter::ideal_highpass(float cutoff_frequency, float pass_factor, float reject_factor)
+    {
+        return std::move([this, cutoff_frequency, pass_factor, reject_factor](long x, long y) -> double {return distance(x, y) < cutoff_frequency ? reject_factor : pass_factor;});
+    }
+
+    inline auto&& FrequencyDomainFilter::ideal_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor, float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff, pass_factor, reject_factor](long x, long y) -> double {
+            auto dist = distance(x, y);
+            return dist > lower_cutoff and dist < higher_cutoff ? reject_factor : pass_factor;
+        });
+    }
+
+    inline auto&& FrequencyDomainFilter::ideal_bandpass(float lower_cutoff, float higher_cutoff, float pass_factor, float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff, pass_factor, reject_factor](long x, long y) -> double {
+            auto dist = distance(x, y);
+            return dist > lower_cutoff and dist < higher_cutoff ? pass_factor : reject_factor;
+        });
+    }
+
+    // GAUSSIAN
     
     inline auto && FrequencyDomainFilter::gaussian_lowpass(float cutoff_frequency, float pass_factor, float reject_factor)
     {
@@ -123,19 +152,6 @@ namespace crisp
             auto res = exp(-0.5 * pow(distance(x, y) / cutoff_frequency, 2));
             return project<double>(reject_factor, pass_factor, res);
         });
-    }
-    
-    inline auto && FrequencyDomainFilter::butterworth_lowpass(float cutoff_frequency, size_t order, float pass_factor, float reject_factor)
-    {
-        return std::move([this, cutoff_frequency, order, pass_factor, reject_factor](long x, long y) -> double {
-            auto res = 1 / (1 + pow(distance(x, y) / cutoff_frequency, 2 * order));
-            return project<double>(reject_factor, pass_factor, res);
-        });
-    }
-
-    inline auto && FrequencyDomainFilter::ideal_highpass(float cutoff_frequency, float pass_factor, float reject_factor)
-    {
-        return std::move([this, cutoff_frequency, pass_factor, reject_factor](long x, long y) -> double {return distance(x, y) < cutoff_frequency ? reject_factor : pass_factor;});
     }
 
     inline auto && FrequencyDomainFilter::gaussian_highpass(float cutoff_frequency, float pass_factor, float reject_factor)
@@ -148,6 +164,41 @@ namespace crisp
         });
     }
 
+    inline auto&& FrequencyDomainFilter::gaussian_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor,
+                                                    float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff, pass_factor, reject_factor](long x, long y) -> double {
+            auto dist = distance(x, y);
+            auto width = higher_cutoff - lower_cutoff;
+            auto center = lower_cutoff + width/2;
+            auto res = 1 - exp(-1*pow((dist*dist - center*center) / (dist*width), 2));
+            return project<double>(reject_factor, pass_factor, res);
+        });
+    }
+
+    inline auto&& FrequencyDomainFilter::gaussian_bandpass(float lower_cutoff, float higher_cutoff, float pass_factor,
+                                                    float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff, pass_factor, reject_factor](long x, long y) -> double {
+            auto dist = distance(x, y);
+            auto width = higher_cutoff - lower_cutoff;
+            auto center = lower_cutoff + width/2;
+            auto res = exp(-1*pow((dist*dist - center*center) / (dist*width), 2));
+            return project<double>(reject_factor, pass_factor, res);
+        });
+    }
+
+    // BUTTERWORTH
+    
+    inline auto && FrequencyDomainFilter::butterworth_lowpass(float cutoff_frequency, size_t order, float pass_factor, float reject_factor)
+    {
+        return std::move([this, cutoff_frequency, order, pass_factor, reject_factor](long x, long y) -> double {
+            auto res = 1 / (1 + pow(distance(x, y) / cutoff_frequency, 2 * order));
+            return project<double>(reject_factor, pass_factor, res);
+        });
+    }
+
+
     inline auto && FrequencyDomainFilter::butterworth_highpass(float cutoff_frequency, size_t order, float pass_factor, float reject_factor)
     {
         return std::move([this, cutoff_frequency, order, pass_factor, reject_factor](long x, long y) -> double {
@@ -155,30 +206,33 @@ namespace crisp
             return 1 - project<double>(pass_factor, reject_factor, res);
         });
     }
-    
-    inline auto && FrequencyDomainFilter::laplacian_first_derivative()
-    {
-        return std::move([](long x, long y) -> double {return -4 * M_PI * M_PI + (x*x + y*y);});
-    }
 
-    inline auto&& FrequencyDomainFilter::ideal_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor, float reject_factor)
+    inline auto && FrequencyDomainFilter::butterworth_bandreject(float lower_cutoff, float higher_cutoff, size_t order, float pass_factor, float reject_factor)
     {
-        return std::move([this, lower_cutoff, higher_cutoff, pass_factor, reject_factor](long x, long y) -> double {
-            auto dist = distance(x, y);
-            return dist > lower_cutoff and dist < higher_cutoff ? reject_factor : pass_factor;
-        });
-    }
-
-    inline auto&& FrequencyDomainFilter::gaussian_bandreject(float lower_cutoff, float higher_cutoff, float pass_factor,
-                                                    float reject_factor)
-    {
-        return std::move([this, lower_cutoff, higher_cutoff](long x, long y) -> double {
+        return std::move([this, lower_cutoff, higher_cutoff, order, pass_factor, reject_factor](long x, long y) -> double {
             auto dist = distance(x, y);
             auto width = higher_cutoff - lower_cutoff;
             auto center = lower_cutoff + width/2;
-            return 1 - exp(-1*pow((dist*dist - center*center) / (dist*width), 2));
+
+            auto res = 1 / (1 + pow((dist*width)/(dist*dist-center*center), 2*order));
+            return project<double>(reject_factor, pass_factor, res);
         });
     }
+
+    inline auto && FrequencyDomainFilter::butterworth_bandpass(float lower_cutoff, float higher_cutoff, size_t order, float pass_factor, float reject_factor)
+    {
+        return std::move([this, lower_cutoff, higher_cutoff, order, pass_factor, reject_factor](long x, long y) -> double {
+            auto dist = distance(x, y);
+            auto width = higher_cutoff - lower_cutoff;
+            auto center = lower_cutoff + width/2;
+
+            auto res = 1 / (1 + pow((dist*width)/(dist*dist-center*center), 2*order));
+            return project<double>(reject_factor, pass_factor, 1 - res);
+        });
+    }
+
+
+
 
 }
 

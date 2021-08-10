@@ -53,7 +53,7 @@ int main()
     window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
 
     auto filter = FrequencyDomainFilter(spectrum.get_size().x, spectrum.get_size().y);
-    filter.set_function(filter.gaussian_bandreject(50, 100));
+    filter.set_function(filter.butterworth_bandreject(50, 100, 3));
 
     auto filter_sprite = Sprite();
     filter_sprite.load_from(filter);
