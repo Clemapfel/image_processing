@@ -31,31 +31,29 @@ int main()
     FourierTransform<SPEED> fourier;
     fourier.transform_from(image_in);
 
-    long m = fourier.get_size().x,
-         n = fourier.get_size().y;
+    auto filter = FrequencyDomainFilter(fourier.get_size().x, fourier.get_size().y);
+    filter.set_function(filter.gaussian_bandreject(10, 100));
+    filter.set_offset(50, 50);
 
-    for (size_t i = 0; i < m; ++i)
-    {
-        fourier.get_component(m / 2, n / 2) = 0;
-    }
+    auto filter_2 = FrequencyDomainFilter(fourier.get_size().x, fourier.get_size().y);
+    filter_2.set_function(filter.gaussian_bandreject(10, 100));
+    filter_2.set_offset(-25, 50);
+    filter *= filter_2;
+    filter.apply_to(fourier);
 
     auto spectrum = fourier.spectrum_to_image<GrayScaleImage>();
     auto spectrum_sprite = Sprite();
 
-    spectrum_sprite.load_from(spectrum);
-
     auto image_out = fourier.transform_to<GrayScaleImage>();
     auto image_sprite = Sprite();
-
-    image_sprite.load_from(image_out);
 
     RenderWindow window;
     window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
 
-    auto filter = FrequencyDomainFilter(spectrum.get_size().x, spectrum.get_size().y);
-    filter.set_function(filter.butterworth_bandreject(50, 100, 3));
-
     auto filter_sprite = Sprite();
+
+    spectrum_sprite.load_from(spectrum);
+    image_sprite.load_from(image_out);
     filter_sprite.load_from(filter);
 
     bool which = false;
@@ -67,8 +65,8 @@ int main()
             which = not which;
 
         window.clear();
-        //window.draw(which ? spectrum_sprite : image_sprite);
-        window.draw(filter_sprite);
+        window.draw(which ? spectrum_sprite : image_sprite);
+        //window.draw(filter_sprite);
         window.display();
     }
 }
