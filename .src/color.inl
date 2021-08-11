@@ -407,4 +407,137 @@ namespace crisp
     {
         return HSL{0, 0, from.v, from.a};
     }
+
+    inline Color::Color()
+    {
+        r = 0;
+        g = 0;
+        b = 0;
+        a = 1;
+    }
+
+    inline Color::Color(float red, float green, float blue, float alpha)
+    {
+        r = red;
+        g = green;
+        b = blue;
+        a = alpha;
+    }
+
+    inline Color::Color(RGB rgb)
+    {
+        r = rgb.r;
+        g = rgb.g;
+        b = rgb.b;
+        a = rgb.a;
+    }
+
+    inline Color::Color(HSV hsv)
+    {
+        auto asrgb = convert_to<RGB>(hsv);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
+        a = hsv.a;
+    }
+
+    inline Color::Color(HSL hsl)
+    {
+        auto asrgb = convert_to<RGB>(hsl);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
+        a = hsl.a;
+    }
+
+    inline Color::Color(GrayScale grayscale)
+    {
+        r = grayscale.v;
+        g = grayscale.v;
+        b = grayscale.v;
+        a = grayscale.a;
+    }
+
+    inline RGB Color::as_rgb()
+    {
+        return convert_to<RGB>(*this);
+    }
+
+    inline HSV Color::as_hsv()
+    {
+        return convert_to<HSV>(*this);
+    }
+
+    inline HSL Color::as_hsl()
+    {
+        return convert_to<HSL>(*this);
+    }
+
+    inline Vector4f Color::as_float_vec()
+    {
+        return Vector4f(r, g, b, a);
+    }
+
+    inline GrayScale Color::as_grayscale()
+    {
+        return convert_to<GrayScale>(*this);
+    }
+
+    inline Color & Color::operator=(RGB rgb)
+    {
+        r = rgb.r;
+        g = rgb.g;
+        b = rgb.b;
+        a = rgb.a;
+        return *this;
+    }
+
+    inline Color & Color::operator=(HSV hsv)
+    {
+        auto asrgb = convert_to<RGB>(hsv);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
+        a = hsv.a;
+        return *this;
+    }
+
+    inline Color & Color::operator=(HSL hsl)
+    {
+        auto asrgb = convert_to<RGB>(hsl);
+        r = asrgb.r;
+        g = asrgb.g;
+        b = asrgb.b;
+        a = hsl.a;
+        return *this;
+    }
+
+    inline Color & Color::operator=(GrayScale grayscale)
+    {
+        r = grayscale.v;
+        g = grayscale.v;
+        b = grayscale.v;
+        a = grayscale.a;
+        return *this;
+    }
+
+    inline bool Color::operator==(const Color& other) const
+    {
+        return this->r == other.r and this->g == other.g and this->b == other.b and this->a == other.a;
+    }
+
+    inline bool Color::operator!=(const Color& other) const
+    {
+        return not (*this == other);
+    }
+
+    inline Color Color::invert() const
+    {
+        Color out;
+        out.r = 1 - r;
+        out.g = 1 - g;
+        out.b = 1 - b;
+        out.a = a;
+        return out;
+    }
 }

@@ -38,3 +38,5 @@ namespace crisp
             Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> _value;
     };
 }
+
+#include ".src/grayscale_image.inl"

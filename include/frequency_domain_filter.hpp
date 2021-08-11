@@ -401,12 +401,12 @@ namespace crisp
         return *this;
     }
 
-    double& FrequencyDomainFilter::operator()(long x, long y)
+    inline double& FrequencyDomainFilter::operator()(long x, long y)
     {
         return _values.at(y + _size.y * x);
     }
 
-    double FrequencyDomainFilter::operator()(long x, long y) const
+    inline double FrequencyDomainFilter::operator()(long x, long y) const
     {
         return _values.at(y + _size.y * x);
     }

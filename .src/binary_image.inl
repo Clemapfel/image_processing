@@ -3,12 +3,9 @@
 // Created on 28.07.21 by clem (mail@clemens-cords.com)
 //
 
-#include <binary_image.hpp>
-#include <SFML/Graphics/Image.hpp>
-
 namespace crisp
 {
-    void BinaryImage::create(long width, long height, bool init)
+    inline void BinaryImage::create(long width, long height, bool init)
     {
         _size.x = width;
         _size.y = height;
@@ -16,7 +13,7 @@ namespace crisp
         _value.setConstant(init);
     }
 
-    void BinaryImage::create_from_file(std::string path, float cutoff)
+    inline void BinaryImage::create_from_file(std::string path, float cutoff)
     {
         assert(cutoff > 0 and cutoff < 1 && "specifying a cutoff outside of (0, 1) will create a picture that is all a single color, if you want that behavior please use create(long, long)");
 
@@ -38,22 +35,22 @@ namespace crisp
         }
     }
 
-    bool & BinaryImage::get_pixel(long x, long y)
+    inline bool & BinaryImage::get_pixel(long x, long y)
     {
         return _value(x, y);
     }
 
-    bool BinaryImage::get_pixel(long x, long y) const
+    inline bool BinaryImage::get_pixel(long x, long y) const
     {
         return _value(x, y);
     }
 
-    sf::Vector2<long> BinaryImage::get_size() const
+    inline sf::Vector2<long> BinaryImage::get_size() const
     {
         return _size;
     }
 
-    BinaryImage BinaryImage::operator!() const
+    inline BinaryImage BinaryImage::operator!() const
     {
         BinaryImage out;
         out.create(get_size().x, get_size().y);
@@ -65,7 +62,7 @@ namespace crisp
         return out;
     }
 
-    BinaryImage BinaryImage::operator&(const BinaryImage& other) const
+    inline BinaryImage BinaryImage::operator&(const BinaryImage& other) const
     {
         BinaryImage out;
         out.create(get_size().x, get_size().y);
@@ -77,7 +74,7 @@ namespace crisp
         return out;
     }
 
-    BinaryImage BinaryImage::operator|(const BinaryImage& other) const
+    inline BinaryImage BinaryImage::operator|(const BinaryImage& other) const
     {
         BinaryImage out;
         out.create(get_size().x, get_size().y);
@@ -89,7 +86,7 @@ namespace crisp
         return out;
     }
 
-    BinaryImage BinaryImage::operator^(const BinaryImage& other) const
+    inline BinaryImage BinaryImage::operator^(const BinaryImage& other) const
     {
         BinaryImage out;
         out.create(get_size().x, get_size().y);
@@ -101,7 +98,7 @@ namespace crisp
         return out;
     }
 
-    BinaryImage& BinaryImage::invert()
+    inline BinaryImage& BinaryImage::invert()
     {
         for (bool& b : (*this))
             b = not b;
@@ -109,7 +106,7 @@ namespace crisp
         return *this;
     }
 
-    BinaryImage& BinaryImage::operator&=(const BinaryImage& other)
+    inline BinaryImage& BinaryImage::operator&=(const BinaryImage& other)
     {
         for (long x = 0; x < get_size().x; ++x)
             for (long y = 0; y < get_size().y; ++y)
@@ -118,7 +115,7 @@ namespace crisp
         return *this;
     }
 
-    BinaryImage& BinaryImage::operator|=(const BinaryImage& other)
+    inline BinaryImage& BinaryImage::operator|=(const BinaryImage& other)
     {
         for (long x = 0; x < get_size().x; ++x)
             for (long y = 0; y < get_size().y; ++y)
@@ -127,7 +124,7 @@ namespace crisp
         return *this;
     }
 
-    BinaryImage& BinaryImage::operator^=(const BinaryImage& other)
+    inline BinaryImage& BinaryImage::operator^=(const BinaryImage& other)
     {
         for (long x = 0; x < get_size().x; ++x)
             for (long y = 0; y < get_size().y; ++y)

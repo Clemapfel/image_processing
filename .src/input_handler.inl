@@ -3,13 +3,11 @@
 // Created on 26.07.21 by clem (mail@clemens-cords.com)
 //
 
-#include <render_window.hpp>
-#include <input_handler.hpp>
 #include <iostream>
 
 namespace crisp
 {
-    bool InputHandler::states_at(size_t i, KeyID id)
+    inline bool InputHandler::states_at(size_t i, KeyID id)
     {
         assert(i == 0 or i == 1);
 
@@ -19,7 +17,7 @@ namespace crisp
             return _detail_states.at(i).at(id);
     }
 
-    bool InputHandler::has_state_changed(KeyID key)
+    inline bool InputHandler::has_state_changed(KeyID key)
     {
         auto res = states_at(_current_state_index, key) != states_at(not _current_state_index, key);
 
@@ -31,22 +29,22 @@ namespace crisp
         return res;
     }
 
-    bool InputHandler::is_key_down(KeyID key)
+    inline bool InputHandler::is_key_down(KeyID key)
     {
         return states_at(_current_state_index, key);
     }
 
-    bool InputHandler::was_key_pressed(KeyID key)
+    inline bool InputHandler::was_key_pressed(KeyID key)
     {
         return is_key_down(key) and has_state_changed(key);
     }
 
-    bool InputHandler::was_key_released(KeyID key)
+    inline bool InputHandler::was_key_released(KeyID key)
     {
         return not is_key_down(key) and has_state_changed(key);
     }
 
-    sf::Time InputHandler::get_hold_duration(KeyID key_id)
+    inline sf::Time InputHandler::get_hold_duration(KeyID key_id)
     {
         if(key_id == ALT or key_id == SHIFT or key_id == CTRL)
         {
@@ -60,17 +58,17 @@ namespace crisp
             return _hold_duration.at(key_id);
     }
 
-    Vector2f InputHandler::cursor_position()
+    inline Vector2f InputHandler::cursor_position()
     {
         return _cursor_position;
     }
 
-    void InputHandler::set_window(RenderWindow* window)
+    inline void InputHandler::set_window(RenderWindow* window)
     {
         _window = window;
     }
 
-    void InputHandler::update(sf::Time time)
+    inline void InputHandler::update(sf::Time time)
     {
         if (_window == nullptr)
             return;
@@ -89,7 +87,7 @@ namespace crisp
             pair.second += time;
     }
 
-    void InputHandler::process_event(sf::Event &event)
+    inline void InputHandler::process_event(sf::Event &event)
     {
         auto code = event.key.code;
         auto& state = _detail_states.at(_current_state_index);
@@ -162,7 +160,7 @@ namespace crisp
         }
     }
 
-    KeyID InputHandler::sf_key_to_id(sf::Keyboard::Key sf)
+    inline KeyID InputHandler::sf_key_to_id(sf::Keyboard::Key sf)
     {
         int cast = static_cast<int>(sf);
 

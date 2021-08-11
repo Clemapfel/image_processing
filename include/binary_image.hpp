@@ -77,3 +77,5 @@ namespace crisp
 
     };
 }
+
+#include ".src/binary_image.inl"

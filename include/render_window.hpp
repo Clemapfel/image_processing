@@ -74,3 +74,5 @@ namespace crisp
             sf::RectangleShape _background_shape;
     };
 }
+
+#include ".src/render_window.inl"

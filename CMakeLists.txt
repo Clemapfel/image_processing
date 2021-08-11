@@ -29,28 +29,26 @@ add_library(common STATIC
 
         include/color.hpp
         .src/color.inl
-        .src/color.cpp
 
         include/vector.hpp
         .src/vector.inl
 
         include/render_window.hpp
-        .src/render_window.cpp
+        .src/render_window.inl
 
         include/key_id.hpp
-        .src/input_handler.cpp
+        .src/input_handler.inl
 
         include/image_handler.hpp
         .src/image_handler.inl
 
-        .src/grayscale_image.cpp
+        .src/grayscale_image.inl
         include/grayscale_image.hpp
 
         include/binary_image.hpp
-        .src/binary_image.cpp
+        .src/binary_image.inl
 
         include/sprite.hpp
-        .src/sprite.cpp
         .src/sprite.inl
 
         include/spatial_filter.hpp

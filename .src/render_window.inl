@@ -3,44 +3,41 @@
 // Created on 26.07.21 by clem (mail@clemens-cords.com)
 //
 
-#include <render_window.hpp>
-#include <SFML/Window/Window.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
 #include <input_handler.hpp>
 #include <iostream>
 
 namespace crisp
 {
-    RenderWindow::RenderWindow()
+    inline RenderWindow::RenderWindow()
         : sf::RenderWindow()
     {
         InputHandler::set_window(this);
     }
 
-    void RenderWindow::draw(Drawable* drawable, Shader* shader, sf::Transform)
+    inline void RenderWindow::draw(Drawable* drawable, Shader* shader, sf::Transform)
     {
     }
 
-    void RenderWindow::clear(Color color)
+    inline void RenderWindow::clear(Color color)
     {
         sf::RenderWindow::clear(sf::Color(color.r * 255, color.g * 255, color.b * 255, color.a * 255));
         draw(_background_shape);
     }
 
-    Vector2f RenderWindow::get_mouse_position()
+    inline Vector2f RenderWindow::get_mouse_position()
     {
         auto pos = sf::Mouse::getPosition(*this);
         return Vector2f(pos.x, pos.y);
     }
 
-    sf::Time RenderWindow::update()
+    inline sf::Time RenderWindow::update()
     {
         auto time = _elapsed.restart();
         InputHandler::update(time);
         return time;
     }
 
-    void RenderWindow::create(size_t width, size_t height, bool fullscreen, size_t fps_limit)
+    inline void RenderWindow::create(size_t width, size_t height, bool fullscreen, size_t fps_limit)
     {
         _resolution[0] = width;
         _resolution[1] = height;
@@ -60,12 +57,12 @@ namespace crisp
         _background_shape.setSize(sf::Vector2f(width, height));
     }
 
-    bool RenderWindow::is_open() const
+    inline bool RenderWindow::is_open() const
     {
         return sf::RenderWindow::isOpen();
     }
 
-    Vector2f RenderWindow::get_resolution()
+    inline Vector2f RenderWindow::get_resolution()
     {
         auto x = float(_resolution.at(0));
         auto y = float(_resolution.at(1));
@@ -73,7 +70,7 @@ namespace crisp
         return out;
     }
 
-    void RenderWindow::set_background_color(Color color)
+    inline void RenderWindow::set_background_color(Color color)
     {
         _background_shape.setPosition(0, 0);
 

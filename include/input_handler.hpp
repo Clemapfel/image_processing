@@ -75,3 +75,5 @@ namespace crisp
             static bool states_at(size_t i, KeyID id);
     };
 }
+
+#include ".src/input_handler.inl"

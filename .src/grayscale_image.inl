@@ -5,30 +5,22 @@
 
 #include <stdexcept>
 
-#include <SFML/Graphics/Image.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-
-#include <image.hpp>
-#include <grayscale_image.hpp>
-
 namespace crisp
 {
-    // ### Image ##################################################
-
-    GrayScaleImage::GrayScaleImage()
+    inline GrayScaleImage::GrayScaleImage()
     {}
 
-    float & GrayScaleImage::get_pixel(long x, long y)
+    inline float & GrayScaleImage::get_pixel(long x, long y)
     {
         return _value(x, y);
     }
 
-    float GrayScaleImage::get_pixel(long x, long y) const
+    inline float GrayScaleImage::get_pixel(long x, long y) const
     {
         return _value(x, y);
     }
 
-    void GrayScaleImage::create(long width, long height, float init)
+    inline void GrayScaleImage::create(long width, long height, float init)
     {
         _size.x = width;
         _size.y = height;
@@ -37,7 +29,7 @@ namespace crisp
         _value.setConstant(init);
     }
 
-    void GrayScaleImage::create_from_file(std::string path)
+    inline void GrayScaleImage::create_from_file(std::string path)
     {
         sf::Image image;
         image.loadFromFile(path);
@@ -57,7 +49,7 @@ namespace crisp
         }
     }
 
-    sf::Vector2<long> GrayScaleImage::get_size() const
+    inline sf::Vector2<long> GrayScaleImage::get_size() const
     {
         return _size;
     }
