@@ -20,7 +20,7 @@ namespace crisp
 
     inline void RenderWindow::clear(Color color)
     {
-        sf::RenderWindow::clear(sf::Color(color.r * 255, color.g * 255, color.b * 255, color.a * 255));
+        sf::RenderWindow::clear(sf::Color(color.red() * 255, color.green() * 255, color.blue() * 255, color.alpha() * 255));
         draw(_background_shape);
     }
 
@@ -76,6 +76,6 @@ namespace crisp
 
         auto to_uint = [](float in) -> uint8_t {return static_cast<uint8_t>(in * uint8_t(255));};
 
-        _background_shape.setFillColor(sf::Color(to_uint(color.r), to_uint(color.g), to_uint(color.b), to_uint(color.a)));
+        _background_shape.setFillColor(sf::Color(to_uint(color.red()), to_uint(color.green()), to_uint(color.blue()), to_uint(color.alpha())));
     }
 }

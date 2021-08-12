@@ -51,12 +51,9 @@ namespace crisp
     };
 
     // class representing 32-bit floating point colors
-    class Color
+    class Color : public Eigen::Array<float, 1, 4>
     {
         public:
-
-            float r, g, b, a = 1;
-
             // CTORS
             Color();
             Color(float red, float green, float blue, float alpha = 1);
@@ -64,6 +61,18 @@ namespace crisp
             explicit Color(HSV hsv);
             explicit Color(HSL hsl);
             explicit Color(GrayScale grayscale);
+
+            float& red();
+            [[nodiscard]] float red() const;
+
+            float& green();
+            [[nodiscard]] float green() const;
+
+            float& blue();
+            [[nodiscard]] float blue() const;
+
+            float& alpha();
+            [[nodiscard]] float alpha() const;
 
             // @brief: transform color into different representation
             [[nodiscard]] RGB as_rgb();

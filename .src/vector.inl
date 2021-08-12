@@ -87,6 +87,15 @@ namespace crisp
     }
 
     template<typename T, size_t n>
+    T Vector<T, n>::at(size_t i) const
+    {
+        if (i >= n)
+            throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(n));
+
+        return Eigen::Matrix<T, 1, n>::operator()(0, i);;
+    }
+
+    template<typename T, size_t n>
     auto Vector<T, n>::begin()
     {
         return Vector<T, n>::Iterator(this, 0);

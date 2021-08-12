@@ -66,6 +66,11 @@ namespace crisp
             // @returns: writable reference to the element
             T& at(size_t i);
 
+            // @brief: const access element of the vector with bounds checking
+            // @param i: index of the element
+            // @returns: value of the element
+            T at(size_t i) const;
+
             // @returns: bi-directional iterator to the first element
             auto begin();
 

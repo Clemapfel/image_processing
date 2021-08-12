@@ -23,10 +23,10 @@ namespace crisp
          float bf = weight;
 
          Color out;
-         out.r = a.r * af + b.r * bf;
-         out.g = a.g * af + b.g * bf;
-         out.b = a.b * af + b.g * bf;
-         out.a = a.a * af + b.a * bf;
+         out.red() = a.red() * af + b.red() * bf;
+         out.green() = a.green() * af + b.green() * bf;
+         out.blue() = a.blue() * af + b.green() * bf;
+         out.alpha() = a.alpha() * af + b.alpha() * bf;
 
          return out;
     }
@@ -149,28 +149,28 @@ namespace crisp
     template<>
     inline HSV convert_to(Color from)
     {
-        auto as_rgb = RGB{from.r, from.g, from.b, from.a};
+        auto as_rgb = RGB{from.red(), from.green(), from.blue(), from.alpha()};
         return convert_to<HSV>(as_rgb);
     }
 
     template<>
     inline HSL convert_to(Color from)
     {
-        auto as_rgb = RGB{from.r, from.g, from.b, from.a};
+        auto as_rgb = RGB{from.red(), from.green(), from.blue(), from.alpha()};
         return convert_to<HSL>(as_rgb);
     }
 
     template<>
     inline RGB convert_to(Color from)
     {
-        return RGB{from.r, from.g, from.b, from.a};
+        return RGB{from.red(), from.green(), from.blue(), from.alpha()};
     }
 
     template<>
     inline GrayScale convert_to(Color from)
     {
-        float average = (from.r + from.g + from.b) / 3;
-        return GrayScale{average, from.a};
+        float average = (from.red() + from.green() + from.blue()) / 3;
+        return GrayScale{average, from.alpha()};
     }
 
     // from RGB
@@ -409,53 +409,84 @@ namespace crisp
     }
 
     inline Color::Color()
-    {
-        r = 0;
-        g = 0;
-        b = 0;
-        a = 1;
-    }
+        : Eigen::Array<float, 1, 4>(0, 0, 0, 1)
+    {}
 
     inline Color::Color(float red, float green, float blue, float alpha)
-    {
-        r = red;
-        g = green;
-        b = blue;
-        a = alpha;
-    }
+        : Eigen::Array<float, 1, 4>(red, green, blue, alpha)
+    {}
 
     inline Color::Color(RGB rgb)
-    {
-        r = rgb.r;
-        g = rgb.g;
-        b = rgb.b;
-        a = rgb.a;
-    }
+        : Eigen::Array<float, 1, 4>(rgb.r, rgb.g, rgb.b, rgb.a)
+    {}
 
     inline Color::Color(HSV hsv)
+        : Color()
     {
         auto asrgb = convert_to<RGB>(hsv);
-        r = asrgb.r;
-        g = asrgb.g;
-        b = asrgb.b;
-        a = hsv.a;
+        red() = asrgb.r;
+        green() = asrgb.g;
+        blue() = asrgb.b;
+        alpha() = hsv.a;
     }
 
     inline Color::Color(HSL hsl)
+        : Color()
     {
         auto asrgb = convert_to<RGB>(hsl);
-        r = asrgb.r;
-        g = asrgb.g;
-        b = asrgb.b;
-        a = hsl.a;
+        red() = asrgb.r;
+        green() = asrgb.g;
+        blue() = asrgb.b;
+        alpha() = hsl.a;
     }
 
     inline Color::Color(GrayScale grayscale)
+        : Color()
     {
-        r = grayscale.v;
-        g = grayscale.v;
-        b = grayscale.v;
-        a = grayscale.a;
+        red() = grayscale.v;
+        green() = grayscale.v;
+        blue() = grayscale.v;
+        alpha() = grayscale.a;
+    }
+
+    float & Color::red()
+    {
+        return operator()(0, 0);
+    }
+
+    float Color::red() const
+    {
+        return operator()(0, 0);
+    }
+
+    float & Color::green()
+    {
+        return operator()(0, 1);
+    }
+
+    float Color::green() const
+    {
+        return operator()(0, 1);
+    }
+
+    float & Color::blue()
+    {
+        return operator()(0, 2);
+    }
+
+    float Color::blue() const
+    {
+        return operator()(0, 2);
+    }
+
+    float & Color::alpha()
+    {
+        return operator()(0, 3);
+    }
+
+    float Color::alpha() const
+    {
+        return operator()(0, 3);
     }
 
     inline RGB Color::as_rgb()
@@ -475,7 +506,7 @@ namespace crisp
 
     inline Vector4f Color::as_float_vec()
     {
-        return Vector4f(r, g, b, a);
+        return Vector4f(red(), green(), blue(), alpha());
     }
 
     inline GrayScale Color::as_grayscale()
@@ -485,45 +516,45 @@ namespace crisp
 
     inline Color & Color::operator=(RGB rgb)
     {
-        r = rgb.r;
-        g = rgb.g;
-        b = rgb.b;
-        a = rgb.a;
+        red() = rgb.r;
+        green() = rgb.g;
+        blue() = rgb.b;
+        alpha() = rgb.a;
         return *this;
     }
 
     inline Color & Color::operator=(HSV hsv)
     {
         auto asrgb = convert_to<RGB>(hsv);
-        r = asrgb.r;
-        g = asrgb.g;
-        b = asrgb.b;
-        a = hsv.a;
+        red() = asrgb.r;
+        green() = asrgb.g;
+        blue() = asrgb.b;
+        alpha() = hsv.a;
         return *this;
     }
 
     inline Color & Color::operator=(HSL hsl)
     {
         auto asrgb = convert_to<RGB>(hsl);
-        r = asrgb.r;
-        g = asrgb.g;
-        b = asrgb.b;
-        a = hsl.a;
+        red() = asrgb.r;
+        green() = asrgb.g;
+        blue() = asrgb.b;
+        alpha() = hsl.a;
         return *this;
     }
 
     inline Color & Color::operator=(GrayScale grayscale)
     {
-        r = grayscale.v;
-        g = grayscale.v;
-        b = grayscale.v;
-        a = grayscale.a;
+        red() = grayscale.v;
+        green() = grayscale.v;
+        blue() = grayscale.v;
+        alpha() = grayscale.a;
         return *this;
     }
 
     inline bool Color::operator==(const Color& other) const
     {
-        return this->r == other.r and this->g == other.g and this->b == other.b and this->a == other.a;
+        return this->red() == other.red() and this->green() == other.green() and this->blue() == other.blue() and this->alpha() == other.alpha();
     }
 
     inline bool Color::operator!=(const Color& other) const
@@ -534,10 +565,10 @@ namespace crisp
     inline Color Color::invert() const
     {
         Color out;
-        out.r = 1 - r;
-        out.g = 1 - g;
-        out.b = 1 - b;
-        out.a = a;
+        out.red() = 1 - red();
+        out.green() = 1 - green();
+        out.blue() = 1 - blue();
+        out.alpha() = alpha();
         return out;
     }
 }

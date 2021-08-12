@@ -24,6 +24,11 @@ T project(T lower_bound, T upper_bound, T value)
 
 int main()
 {
+    auto color = Color(1, 0.5, 1, 1);
+    color *= Color(0.2, 0.75, 0.1, 1);
+
+    return 0;
+
     GrayScaleImage image_in;
     image_in.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
     image_in.set_padding_type(GrayScaleImage::PaddingType::STRETCH);
