@@ -12,8 +12,10 @@
 #include <complex>
 #include <vector>
 #include <fftw3.h>
+#include <spatial_filter.hpp>
 #include <frequency_domain_filter.hpp>
 #include <fourier_transform.hpp>
+#include <color_image.hpp>
 using namespace crisp;
 
 template<typename T>
@@ -27,8 +29,14 @@ int main()
     auto color = Color(1, 0.5, 1, 1);
     color *= Color(0.2, 0.75, 0.1, 1);
 
+    ColorImage image;
+    image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
+    SpatialFilter<ColorImage> filter;
+
+
     return 0;
 
+    /*
     GrayScaleImage image_in;
     image_in.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
     image_in.set_padding_type(GrayScaleImage::PaddingType::STRETCH);
@@ -73,7 +81,7 @@ int main()
         window.draw(which ? spectrum_sprite : image_sprite);
         //window.draw(filter_sprite);
         window.display();
-    }
+    }*/
 }
 
 /*

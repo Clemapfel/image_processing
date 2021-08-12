@@ -486,8 +486,10 @@ namespace crisp
                 }
             }
 
+            if (normalize)
+                current_sum / sum_of_elements;
 
-            return current_sum / (normalize and sum_of_elements != 0 ? sum_of_elements : 1);
+            return current_sum;
         });
     }
 

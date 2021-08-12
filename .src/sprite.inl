@@ -7,6 +7,28 @@
 
 namespace crisp
 {
+
+    template<>
+    void Sprite::load_from<Color>(const Image<Color>& image)
+    {
+        sf::Image temp;
+        temp.create(image.get_size().x, image.get_size().y);
+
+        for (long x = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y)
+            {
+                auto color = image(x, y);
+                temp.setPixel(x, y, sf::Color(color.red() * 255, color.green() * 255, color.blue() * 255, color.alpha() * 255));
+            }
+        }
+
+        _texture.loadFromImage(temp);
+        _sprite.setTextureRect(sf::IntRect(0, 0, temp.getSize().x, temp.getSize().y));
+        _sprite.setTexture(_texture);
+        _sprite.setPosition(0, 0);
+    }
+
     template<typename Value_t>
     void Sprite::load_from(const Image<Value_t>& image)
     {

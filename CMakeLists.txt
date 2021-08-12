@@ -60,7 +60,7 @@ add_library(common STATIC
         include/morphological_transform.hpp
         .src/morphological_transform.inl
 
-        include/image_segment.hpp .src/image_segment.inl include/noise_model.hpp .src/noise_generator.inl .src/noise_generator.inl include/detail/salt_and_pepper_distribution.hpp include/histogram.hpp docs/noise.cpp include/fourier_transform.hpp include/frequency_domain_filter.hpp .src/frequency_domain_filter.inl .src/fourier_transform.inl include/color_image.hpp)
+        include/image_segment.hpp .src/image_segment.inl include/noise_model.hpp .src/noise_generator.inl .src/noise_generator.inl include/detail/salt_and_pepper_distribution.hpp include/histogram.hpp docs/noise.cpp include/fourier_transform.hpp include/frequency_domain_filter.hpp .src/frequency_domain_filter.inl .src/fourier_transform.inl include/color_image.hpp .src/color_image.inl)
 
 #set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(common sfml-graphics ${LUA_LIBRARIES})

@@ -412,6 +412,10 @@ namespace crisp
         : Eigen::Array<float, 1, 4>(0, 0, 0, 1)
     {}
 
+    inline Color::Color(float value)
+        : Eigen::Array<float, 1, 4>(value, value, value, 1)
+    {}
+
     inline Color::Color(float red, float green, float blue, float alpha)
         : Eigen::Array<float, 1, 4>(red, green, blue, alpha)
     {}
@@ -489,27 +493,22 @@ namespace crisp
         return operator()(0, 3);
     }
 
-    inline RGB Color::as_rgb()
+    inline RGB Color::as_rgb() const
     {
         return convert_to<RGB>(*this);
     }
 
-    inline HSV Color::as_hsv()
+    inline HSV Color::as_hsv() const
     {
         return convert_to<HSV>(*this);
     }
 
-    inline HSL Color::as_hsl()
+    inline HSL Color::as_hsl() const
     {
         return convert_to<HSL>(*this);
     }
 
-    inline Vector4f Color::as_float_vec()
-    {
-        return Vector4f(red(), green(), blue(), alpha());
-    }
-
-    inline GrayScale Color::as_grayscale()
+    inline GrayScale Color::as_grayscale() const
     {
         return convert_to<GrayScale>(*this);
     }
@@ -552,6 +551,7 @@ namespace crisp
         return *this;
     }
 
+    /*
     inline bool Color::operator==(const Color& other) const
     {
         return this->red() == other.red() and this->green() == other.green() and this->blue() == other.blue() and this->alpha() == other.alpha();
@@ -560,7 +560,7 @@ namespace crisp
     inline bool Color::operator!=(const Color& other) const
     {
         return not (*this == other);
-    }
+    }*/
 
     inline Color Color::invert() const
     {

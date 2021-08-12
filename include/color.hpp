@@ -53,9 +53,12 @@ namespace crisp
     // class representing 32-bit floating point colors
     class Color : public Eigen::Array<float, 1, 4>
     {
+        using Vector_t = Eigen::Array<float, 1, 4>;
+
         public:
             // CTORS
             Color();
+            Color(float);
             Color(float red, float green, float blue, float alpha = 1);
             explicit Color(RGB rgb);
             explicit Color(HSV hsv);
@@ -75,11 +78,10 @@ namespace crisp
             [[nodiscard]] float alpha() const;
 
             // @brief: transform color into different representation
-            [[nodiscard]] RGB as_rgb();
-            [[nodiscard]] HSV as_hsv();
-            [[nodiscard]] HSL as_hsl();
-            [[nodiscard]] GrayScale as_grayscale();
-            [[nodiscard]] Vector4f as_float_vec();
+            [[nodiscard]] RGB as_rgb() const;
+            [[nodiscard]] HSV as_hsv() const;
+            [[nodiscard]] HSL as_hsl() const;
+            [[nodiscard]] GrayScale as_grayscale() const;
 
             // @brief: assignment from different representations
             Color & operator=(RGB);
@@ -87,9 +89,18 @@ namespace crisp
             Color & operator=(HSL);
             Color & operator=(GrayScale);
 
-            // @brief: comparison operator, compares element-wise as if the color was a RGB vector
-            bool operator==(const Color&) const;
-            bool operator!=(const Color&) const;
+            using Vector_t::operator-;
+            using Vector_t::operator+;
+            using Vector_t::operator*;
+            using Vector_t::operator/;
+
+            using Vector_t::operator-=;
+            using Vector_t::operator+=;
+            using Vector_t::operator*=;
+            using Vector_t::operator/=;
+
+            using Vector_t::operator==;
+            using Vector_t::operator!=;
 
             // @returns: negative of color equals to {1 - r, 1 - g, 1 - b, a}
             [[nodiscard]] Color invert() const;

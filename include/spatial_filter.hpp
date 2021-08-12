@@ -135,7 +135,7 @@ namespace crisp
     };
 
     using GrayScaleFilter = SpatialFilter<GrayScaleImage, GrayScaleImage::value_t>;
-    using BinaryFilter = SpatialFilter<BinaryImage, BinaryImage::value_t>;
+    //using BinaryFilter = SpatialFilter<BinaryImage, BinaryImage::value_t>;
 }
 
 #include ".src/spatial_filter.inl"
