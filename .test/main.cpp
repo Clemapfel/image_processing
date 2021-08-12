@@ -16,7 +16,7 @@
 #include <frequency_domain_filter.hpp>
 #include <fourier_transform.hpp>
 #include <color_image.hpp>
-#include <color_transform.hpp>
+#include <pseudocolor_mapping.hpp>
 using namespace crisp;
 
 int main()
