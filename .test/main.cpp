@@ -16,7 +16,7 @@
 #include <frequency_domain_filter.hpp>
 #include <fourier_transform.hpp>
 #include <color_image.hpp>
-#include <pseudocolor_mapping.hpp>
+#include <color_transform.hpp>
 using namespace crisp;
 
 int main()
@@ -25,7 +25,7 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
 
     auto transform = PseudoColorTransform();
-    transform.set_function(PseudoColorTransform::interval_to_hue(0, 1, 0.1, 0.25));
+    transform.set_function(PseudoColorTransform::value_range_to_inverse_hue_range(0, 0.1, 0, 0.1));
 
     auto color_image = transform.transform(image);
 
