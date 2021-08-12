@@ -16,23 +16,33 @@
 #include <frequency_domain_filter.hpp>
 #include <fourier_transform.hpp>
 #include <color_image.hpp>
+#include <pseudocolor_mapping.hpp>
 using namespace crisp;
-
-template<typename T>
-T project(T lower_bound, T upper_bound, T value)
-{
-    return value * fabs(lower_bound - upper_bound) + std::min(lower_bound, upper_bound);
-}
 
 int main()
 {
-    auto color = Color(1, 0.5, 1, 1);
-    color *= Color(0.2, 0.75, 0.1, 1);
-
-    ColorImage image;
+    GrayScaleImage image;
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
-    SpatialFilter<ColorImage> filter;
 
+    auto transform = PseudoColorTransform();
+    transform.set_function(PseudoColorTransform::interval_to_hue(0, 1, 0.1, 0.25));
+
+    auto color_image = transform.transform(image);
+
+    auto sprite = Sprite();
+    sprite.load_from(color_image);
+
+    RenderWindow window;
+    window.create(color_image.get_size().x, image.get_size().y);
+
+    window.clear();
+    window.draw(sprite);
+    window.display();
+
+    while (window.is_open())
+    {
+        window.update();
+    }
 
     return 0;
 

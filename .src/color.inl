@@ -4,6 +4,7 @@
 //
 
 #include <cassert>
+#include <iostream>
 
 namespace crisp
 {
@@ -182,9 +183,14 @@ namespace crisp
               b = from.b;
 
         float h, s, v;
-        float max = fmax(fmax(r, g), b);
-        float min = fmin(fmin(r, g), b);
-        float delta = max - min;
+
+        auto min = from.r < from.g ? from.r : from.g;
+        min = min  < from.b ? min  : from.b;
+
+        auto max = from.r > from.g ? from.r : from.g;
+        max = max  > from.b ? max  : from.b;
+
+        auto delta = min - max;
 
         if (delta > 0)
         {
@@ -196,7 +202,6 @@ namespace crisp
 
             else if (max == b)
                 h = 60 * (((r - g) / delta) + 4);
-
 
             if (max > 0)
                 s = delta / max;
@@ -213,10 +218,11 @@ namespace crisp
         }
 
         if (h < 0)
-            h = 360 + h;
+            h += 360;
 
         HSV out;
-        out.h = h;
+
+        out.h = h / 360;
         out.s = s;
         out.v = v;
         out.a = from.a;
@@ -248,63 +254,42 @@ namespace crisp
     template<>
     inline RGB convert_to(HSV from)
     {
-        float h = from.h,
-              s = from.s,
-              v = from.v;
-
-        float c = v * s;
-        float h_2 = h / 60;
+        from.h *= 360;
+        float c = from.v * from.s;
+        float h_2 = from.h / 60;
         float x = c * (1 - std::fabs(std::fmod(h_2, 2) - 1));
 
-        float r, g, b;
+        RGB out;
 
         if (0 <= h_2 and h_2 < 1)
         {
-            r = c;
-            g = x;
-            b = 0;
+            out = RGB{c, x, 0, from.a};
         }
         else if (1 <= h_2 and h_2 < 2)
         {
-            r = x;
-            g = c;
-            b = 0;
+            out = RGB{x, c, 0, from.a};
         }
         else if (2 <= h_2 and h_2 < 3)
         {
-            r = 0;
-            g = c;
-            x = b;
+            out = RGB{0, c, x, from.a};
         }
         else if (3 <= h_2 and h_2 < 4)
         {
-            r = 0;
-            g = x;
-            b = c;
+            out = RGB{0, x, c, from.a};
         }
         else if (4 <= h_2 and h_2 < 5)
         {
-            r = x;
-            g = 0;
-            b = c;
+            out = RGB{x, 0, c, from.a};
         }
         else if (5 <= h_2 and h_2 <= 6)
         {
-            r = c;
-            g = 0;
-            b = x;
+            out = RGB{c, 0, x, from.a};
         }
 
-        float m = v - c;
-        r += m;
-        g += m;
-        b += m;
-
-        RGB out;
-        out.r = r;
-        out.g = g;
-        out.b = b;
-        out.a = from.a;
+        auto m = from.v - c;
+        out.r += m;
+        out.g += m;
+        out.b += m;
 
         return out;
     }
@@ -363,16 +348,14 @@ namespace crisp
     template<>
     inline HSV convert_to(HSL from)
     {
-        float hsl_l = from.l,
-              hsl_s = from.s;
+        //s*=l<.5?l:1-l;return[h,2*s/(l+s),l+s]
 
-        float hsv_v = hsl_l + hsl_s * std::min(hsl_l, 1.f - hsl_l);
-        float hsv_s = (hsv_v != 0) ? 2 * (1.f - hsl_l / hsv_v) : 0;
+        from.s *= from.l < 0.5 ? from.l : 1 - from.l;
 
         HSV out;
         out.h = from.h;
-        out.s = hsv_s;
-        out.v = hsv_v;
+        out.s = 2 * from.s / (from.l + from.s);
+        out.v = from.l + from.s;
 
         return out;
     }
