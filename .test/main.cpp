@@ -49,6 +49,7 @@ int main()
     filter.apply_to(original);
     filter.set_kernel(GrayScaleFilter::laplacian_first_derivative(true));
     filter.apply_to(original);
+
     /*
     filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::Y_DIRECTION));
     filter.apply_to(y);
