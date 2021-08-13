@@ -24,7 +24,7 @@ namespace crisp
 
 
     template<typename Value_t>
-    typename Image<Value_t>::PaddingType Image<Value_t>::get_padding_type() const
+    PaddingType Image<Value_t>::get_padding_type() const
     {
         return _padding_type;
     }
@@ -36,28 +36,31 @@ namespace crisp
     }
 
     template<typename Value_t>
-    Value_t Image<Value_t>::operator()(long x, long y) const
+    Value_t Image<Value_t>::get_pixel_or_padding(int x, int y) const
     {
         return get_pixel_out_of_bounds(x, y);
-    }
-
-    template<typename Value_t>
-    Value_t Image<Value_t>::get_pixel_or_padding(long x, long y) const
-    {
-        return operator()(x, y);
     }
 
     template<typename Value_t>
     Value_t& Image<Value_t>::operator()(long x, long y)
     {
         if (x < 0 or x >= get_size().x or y < 0 or y >= get_size().y)
-            throw std::out_of_range("index outside of image bounds, please use Value_t operator()(long, long) const to access padding");
+            throw std::out_of_range("index outside of image bounds, please use get_pixel_or_padding() to access padding");
 
         return get_pixel(x, y);
     }
 
     template<typename Value_t>
-    Value_t Image<Value_t>::get_pixel_out_of_bounds(long x, long y) const
+    Value_t Image<Value_t>::operator()(long x, long y) const
+    {
+        if (x < 0 or x >= get_size().x or y < 0 or y >= get_size().y)
+            throw std::out_of_range("index outside of image bounds, please use get_pixel_or_padding() to access padding");
+
+        return get_pixel(x, y);
+    }
+
+    template<typename Value_t>
+    Value_t Image<Value_t>::get_pixel_out_of_bounds(int x, int y) const
     {
         if (x >= 0 and x < get_size().x and y >= 0 and y < get_size().y)
             return get_pixel(x, y);
@@ -69,11 +72,50 @@ namespace crisp
             case ONE:
                 return Value_t(1);
             case REPEAT:
-                return get_pixel(x % get_size().x, y % get_size().y);
+            {
+                int x_mod = x % int(get_size().x);
+                int y_mod = y % int(get_size().y);
+
+                if (x_mod < 0)
+                    x_mod += get_size().x;
+
+                if (y_mod < 0)
+                    y_mod += get_size().y;
+
+                return get_pixel(x_mod, y_mod);
+            }
             case MIRROR:
-                return get_pixel(get_size().x - 1 - (x % get_size().x), get_size().y - 1 - (y % get_size().y));
+            {
+                int new_x = x % (get_size().x - 1);
+                if (x < 0)
+                    new_x = abs(new_x);
+                else if (x >= get_size().x)
+                    new_x = get_size().x - 1 - new_x;
+
+                int new_y = y % (get_size().y - 1);
+                if (y < 0)
+                    new_y = abs(new_y);
+                else if (y >= get_size().y)
+                    new_y = get_size().y - 1 - new_y;
+
+                return get_pixel(new_x, new_y);
+            }
             case STRETCH:
-                return get_pixel(x < 0 ? 0 : get_size().x - 1, y < 0 ? 0 : get_size().y - 1);
+            {
+                int new_x = x;
+                if (x < 0)
+                    new_x = 0;
+                if (x >= get_size().x)
+                    new_x = get_size().x - 1;
+
+                int new_y = y;
+                if (y < 0)
+                    new_y = 0;
+                if (y >= get_size().y)
+                    new_y = get_size().y - 1;
+
+                return get_pixel(new_x, new_y);
+            }
         }
     }
 

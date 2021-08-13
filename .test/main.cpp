@@ -17,10 +17,117 @@
 #include <fourier_transform.hpp>
 #include <color_image.hpp>
 #include <pseudocolor_mapping.hpp>
+#include <binary_image.hpp>
+
 using namespace crisp;
 
 int main()
 {
+
+    GrayScaleImage original;
+    original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
+    original.set_padding_type(STRETCH);
+/*
+    ColorImage with_padding;
+    with_padding.create(original.get_size().x*3, original.get_size().y*3);
+
+    original.set_padding_type(REPEAT);
+
+    for (long x = 0; x < with_padding.get_size().x; ++x)
+        for (long y = 0; y < with_padding.get_size().y; ++y)
+            with_padding(x, y) = original.get_pixel_or_padding(x - original.get_size().x, y - original.get_size().y);
+*/
+
+    auto sign = [](float x) {return x < 0 ? -1 : 1;};
+
+    auto x = original,
+         y = original;
+
+    SpatialFilter<GrayScaleImage> filter;
+    filter.set_evaluation_function(GrayScaleFilter::EvaluationFunction::convolution(true));
+    filter.set_kernel(GrayScaleFilter::gaussian(7));
+    filter.apply_to(original);
+    filter.set_kernel(GrayScaleFilter::laplacian_first_derivative(true));
+    filter.apply_to(original);
+    /*
+    filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::Y_DIRECTION));
+    filter.apply_to(y);
+    filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::X_DIRECTION));
+    filter.apply_to(x);
+
+    for (long x = 0; x < original.get_size().x; ++x)
+        for (long y = 0; y < original.get_size().y; ++y)
+        {
+
+        }
+        */
+
+    float min = std::numeric_limits<float>::max(),
+          max = std::numeric_limits<float>::min();
+
+    for (auto& px : original)
+    {
+        min = std::min(min, px);
+        max = std::max(max, px);
+    }
+
+    std::cout << min << " " << max << std::endl;
+
+    for (long x = 0; x < original.get_size().x; ++x)
+        for (long y = 0; y < original.get_size().y; ++y)
+        {
+            Eigen::Matrix<float, 3, 3> n;
+            for (int i = -1; i <= 1; i++)
+                for (int j = -1; j <= 1; j++)
+                    n(i + 1, j + 1) = original.get_pixel_or_padding(x + i, y + j);
+
+            float threshold = 0.01 * (abs(min) + max);
+
+            size_t i = 0;
+
+            if ((sign(n(0, 0)) != sign(n(2, 2)) and (abs(n(0, 0) - n(2, 2)) > threshold)))
+                i += 1;
+            if ((sign(n(1, 2)) != sign(n(0, 2)) and (abs(n(1, 2) - n(0, 2)) > threshold)))
+                i += 1;
+            if ((sign(n(0, 1)) != sign(n(2, 1)) and (abs(n(0, 1) - n(2, 1)) > threshold)))
+                i += 1;
+            if ((sign(n(1, 0)) != sign(n(1, 2)) and (abs(n(1, 0) - n(1, 2)) > threshold)))
+                i += 1;
+
+            if (i >= 2)
+                original(x, y) = 1;
+            else
+                original(x, y) = 0;
+        }
+
+    auto sprite = Sprite();
+    sprite.load_from(original);
+    //sprite.zoom(0.5, true);
+
+    sprite.load_from(original);
+    float zoom = 1;
+    sprite.zoom(zoom);
+
+    RenderWindow window;
+    window.create(sprite.get_size().x * zoom, sprite.get_size().y * zoom);
+
+    window.clear();
+    window.draw(sprite);
+    window.display();
+
+    while (window.is_open())
+    {
+        window.update();
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
+
+    return 0;
+
+
+
+    /*
     GrayScaleImage image;
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
 
@@ -44,7 +151,7 @@ int main()
         window.update();
     }
 
-    return 0;
+    return 0;*/
 
     /*
     GrayScaleImage image_in;

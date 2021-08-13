@@ -13,6 +13,18 @@
 
 namespace crisp
 {
+    // enum that governs what values indices out of bounds will return
+    enum PaddingType
+    {
+        // let image be [1, 2, 3, 4] (size 4*1), then padding has the form:
+        ZERO = 0,   // ...0, 0, [1, 2, 3, 4], 0, 0, 0...
+        ONE = 1,    // ...1, 1, [1, 2, 3, 4], 1, 1, 1...
+        REPEAT,     // ...3, 4, [1, 2, 3, 4], 1, 2, 3...
+        MIRROR,     // ...2, 1, [1, 2, 3, 4], 4, 3, 2...
+        STRETCH,     // ...1, 1, [1, 2, 3, 4], 4, 4, 4...    // default
+        // only x-direction padding shown, analogous in y-direction
+    };
+
     // an image that lives in ram and is operated upon by the cpu
     template<typename Value_t>
     class Image
@@ -29,7 +41,7 @@ namespace crisp
             // @returns a reference to the value, can be written to
             virtual Value_t & operator()(long x, long y);
 
-            // @brief access a specific pixel in a const context, if the pixel is out of bound the padding is instead accessed
+            // @brief access a specific pixel in a const context
             // @param x: the row index
             // @param y: the column index
             // @returns a copy of the value
@@ -39,7 +51,7 @@ namespace crisp
             // @param x: the row index
             // @param y: the column index
             // @returns a copy of the value
-            virtual Value_t get_pixel_or_padding(long x, long y) const;
+            virtual Value_t get_pixel_or_padding(int x, int y) const;
 
             // @brief get the images size
             // @return vector v such that v.x = #rows, v.y = #cols
@@ -49,18 +61,6 @@ namespace crisp
             // @param width: number of rows
             // @param height: number of columns
             virtual void create(long width, long height, Value_t init) = 0;
-
-            // enum that governs what values indices out of bounds will return
-            enum PaddingType
-            {
-                // let image be [1, 2, 3, 4] (size 4*1), then padding has the form:
-                ZERO = 0,   // ...0, 0, [1, 2, 3, 4], 0, 0, 0...
-                ONE = 1,    // ...1, 1, [1, 2, 3, 4], 1, 1, 1...
-                REPEAT,     // ...3, 4, [1, 2, 3, 4], 1, 2, 3...
-                MIRROR,     // ...2, 1, [1, 2, 3, 4], 4, 3, 2...
-                STRETCH,     // ...1, 1, [1, 2, 3, 4], 4, 4, 4...    // default
-                // only x-direction padding shown, analogous in y-direction
-            };
 
             // @brief set the type of padding, see above
             // @param : enum constant of the padding type
@@ -86,7 +86,7 @@ namespace crisp
 
         private:
             PaddingType _padding_type = PaddingType::STRETCH;
-            Value_t get_pixel_out_of_bounds(long x, long y) const;
+            Value_t get_pixel_out_of_bounds(int x, int y) const;
 
             struct Iterator
             {
