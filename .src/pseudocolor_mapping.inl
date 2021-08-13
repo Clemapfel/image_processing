@@ -86,7 +86,7 @@ namespace crisp
                 if (x >= min_gray and x <= max_gray)
                 {
                     float hue = x;
-                    hue -= map.f;
+                    hue -= min_gray;
                     hue /= abs(max_gray - min_gray);
 
                     hue = project(min_hue, max_hue, hue);

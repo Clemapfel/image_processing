@@ -5,4 +5,7 @@
 
 #pragma once
 
-//TODO : color edge detection
+namespace crisp
+{
+
+}
