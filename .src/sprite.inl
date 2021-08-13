@@ -137,6 +137,27 @@ namespace crisp
         _sprite.setPosition(0, 0);
     }
 
+    template<typename Image_t>
+    void Sprite::load_from(const SpatialFilter<Image_t>& filter)
+    {
+        sf::Image temp;
+        temp.create(filter.get_size().x, filter.get_size().y);
+
+        for (long x = 0; x < filter.get_size().x; ++x)
+        {
+            for (long y = 0; y < filter.get_size().y; ++y)
+            {
+                float value = filter(x, y);
+                temp.setPixel(x, y, sf::Color(value * 255, value * 255, value * 255, 255));
+            }
+        }
+
+        _texture.loadFromImage(temp);
+        _sprite.setTextureRect(sf::IntRect(0, 0, temp.getSize().x, temp.getSize().y));
+        _sprite.setTexture(_texture);
+        _sprite.setPosition(0, 0);
+    }
+
     inline sf::Vector2f Sprite::get_size() const
     {
         return {_texture.getSize().x * _sprite.getScale().x, _texture.getSize().y * _sprite.getScale().y};

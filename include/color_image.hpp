@@ -18,7 +18,7 @@ namespace crisp
         public:
             ColorImage() = default;
             
-            void create(long width, long height, Color) override;
+            void create(long width, long height, Color = Color(0, 0, 0, 1)) override;
             void create_from_file(std::string path);
             
             GrayScaleImage get_red_plane() const;
@@ -48,8 +48,8 @@ namespace crisp
             [[nodiscard]] sf::Vector2<long> get_size() const override;
 
         protected:
-            virtual Color  get_pixel(long x, long y) const override;
-            virtual Color& get_pixel(long x, long y) override;
+            Color  get_pixel(long x, long y) const override;
+            Color& get_pixel(long x, long y) override;
 
         private:
             sf::Vector2<long> _size;
@@ -76,7 +76,7 @@ namespace crisp
             for (long y = 0; y < image.getSize().y; ++y)
             {
                 auto color = image.getPixel(x, y);
-                _rgba(x, y) = Color(color.r / 255, color.g / 255, color.b / 255, color.a / 255);
+                _rgba(x, y) = Color(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
             }
         }
     }

@@ -20,8 +20,8 @@ namespace crisp
         Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> result;
         result.resize(size.x, size.y);
 
-        long a = floor(size.x / 2.f);
-        long b = floor(size.y / 2.f);
+        long a = floor(right.rows() / 2.f);
+        long b = floor(right.cols() / 2.f);
 
         for (long i = 0; i < size.x; ++i)
         {
@@ -35,7 +35,9 @@ namespace crisp
                         if (i + s < 0 or j + t < 0 or i + s >= image.rows() or j + t >= image.cols())
                             continue;
 
-                        current_sum += right(a + s, b + t) * image(i + s, j + t);
+                        auto test = right(a + s, b + t);
+                        auto test2 = image(i + s, j + t);
+                        current_sum += test * test2;
                     }
                 }
                 result(i, j) = current_sum;
@@ -118,6 +120,12 @@ namespace crisp
     void SpatialFilter<Image_t, Value_t>::set_kernel(Kernel<Value_t> kernel)
     {
         _kernel = kernel;
+    }
+
+    template<typename Image_t, typename Value_t>
+    sf::Vector2<long> SpatialFilter<Image_t, Value_t>::get_size() const
+    {
+        return {_kernel.rows(), _kernel.cols()};
     }
 
     template<typename Image_t, typename Value_t>
@@ -456,6 +464,40 @@ namespace crisp
         return out;
     }
 
+    template<typename Image_t, typename Value_t>
+    Kernel<Value_t> SpatialFilter<Image_t, Value_t>::laplacian_of_gaussian(long dimension)
+    {
+        assert(dimension != 0);
+        Kernel<Value_t> matrix;
+        matrix.resize(dimension, dimension);
+
+        auto square = [](double value) {return value * value;};
+
+        double sum = 0;
+        double sigma_sq = dimension * 2;
+        double center = ceil(double(dimension) / 2.f);
+
+        float min = std::numeric_limits<float>::max(),
+              max = std::numeric_limits<float>::min();
+
+        for (long x = 0; x < dimension; ++x)
+        {
+            for (long y = 0; y < dimension; ++y)
+            {
+                float x_sq = (x - center)*(x - center);
+                float y_sq = (y - center)*(y - center);
+
+                matrix(x, y) = -1*((x_sq + y_sq - 2*sigma_sq) / (sigma_sq * sigma_sq)) * exp(-(x_sq + y_sq) / (2*sigma_sq));
+                sum += matrix(x, y);
+
+                min = std::min(min, matrix(x, y));
+                max = std::max(max, matrix(x, y));
+            }
+        }
+
+        return matrix;
+    }
+
     // ### EVAL FUNCTIONS ####################################################################
 
     template<typename Image_t, typename Value_t>
@@ -481,7 +523,7 @@ namespace crisp
                 for (long t = -b; t <= b; ++t)
                 {
                     auto first = kernel(a + s, b + t);
-                    auto two = image(x + s, y + t);
+                    auto two = image.get_pixel_or_padding(x + s, y + t);
                     current_sum += first * two;
                 }
             }

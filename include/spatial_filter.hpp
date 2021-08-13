@@ -33,6 +33,9 @@ namespace crisp
             // @note when not initialized, the kernel is the identity matrix [1] of size 1x1
             void set_kernel(Kernel<Value_t>);
 
+            // @brief get size of kernel
+            sf::Vector2<long> get_size() const;
+
             // @brief set the filters evaluation function, this governs how the convluted values are added up
             // @param : the function, must be bindable to std::function<typename Image_t::value_t(const Image_t& image, long pixel_x, long pixel_y, const Kernel<Value_t>& kernel)>;
             // @note when not initialized, the evaluation function is the standard convolution
@@ -102,6 +105,8 @@ namespace crisp
             enum KirschCompassDirection : int {NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST};
 
             static Kernel<Value_t> kirsch_compass(KirschCompassDirection);
+
+            static Kernel<Value_t> laplacian_of_gaussian(long dimensions);
 
             // pre defined evaluation functions, set with SpatialFilter.set_evaluation_function()
             struct EvaluationFunction
