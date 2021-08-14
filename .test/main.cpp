@@ -18,6 +18,7 @@
 #include <color_image.hpp>
 #include <pseudocolor_mapping.hpp>
 #include <binary_image.hpp>
+#include <morphological_transform.hpp>
 
 using namespace crisp;
 
@@ -26,7 +27,7 @@ int main()
 
     GrayScaleImage original;
     original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
-    original.set_padding_type(STRETCH);
+    original.set_padding_type(ZERO);
 /*
     ColorImage with_padding;
     with_padding.create(original.get_size().x*3, original.get_size().y*3);
@@ -40,65 +41,120 @@ int main()
 
     auto sign = [](float x) {return x < 0 ? -1 : 1;};
 
-    auto x = original,
-         y = original;
-
     SpatialFilter<GrayScaleImage> filter;
-    filter.set_evaluation_function(GrayScaleFilter::EvaluationFunction::convolution(true));
-    filter.set_kernel(GrayScaleFilter::gaussian(7));
-    filter.apply_to(original);
-    filter.set_kernel(GrayScaleFilter::laplacian_first_derivative(true));
-    filter.apply_to(original);
 
-    /*
+    auto x_img = original,
+         y_img = original;
+
     filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::Y_DIRECTION));
-    filter.apply_to(y);
+    filter.apply_to(y_img);
     filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::X_DIRECTION));
-    filter.apply_to(x);
+    filter.apply_to(x_img);
 
+    float min = std::numeric_limits<float>::max();
+    float max = std::numeric_limits<float>::min();
+
+    float mean = 0;
+
+    // measure
     for (long x = 0; x < original.get_size().x; ++x)
         for (long y = 0; y < original.get_size().y; ++y)
         {
-
+            auto magnitude = sqrt(x_img(x, y) * x_img(x, y) + y_img(x, y) * y_img(x, y));
+            min = std::min<float>(min, magnitude);
+            max = std::max<float>(max, magnitude);
+            mean += magnitude;
         }
-        */
 
-    float min = std::numeric_limits<float>::max(),
-          max = std::numeric_limits<float>::min();
+    mean /= original.get_size().x * original.get_size().y;
 
-    for (auto& px : original)
-    {
-        min = std::min(min, px);
-        max = std::max(max, px);
-    }
+    float lower = mean;
+    float upper = std::min<float>(2*mean, mean + (max - mean) * 0.5);
 
-    std::cout << min << " " << max << std::endl;
+    std::cout << lower << " " << upper << std::endl;
 
     for (long x = 0; x < original.get_size().x; ++x)
+    {
         for (long y = 0; y < original.get_size().y; ++y)
         {
-            Eigen::Matrix<float, 3, 3> n;
+            auto magnitude = sqrt(x_img(x, y) * x_img(x, y) + y_img(x, y) * y_img(x, y));
+            auto angle = atan2(x_img(x, y), y_img(x, y)) * (180 / M_PI);
+
+            Eigen::Matrix<float, 3, 3> neighborhood;
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
-                    n(i + 1, j + 1) = original.get_pixel_or_padding(x + i, y + j);
+                    neighborhood(i + 1, j + 1) = sqrt(pow(x_img.get_pixel_or_padding(x + i, y + j), 2) +
+                                                      pow(y_img.get_pixel_or_padding(x + i, y + j), 2));
 
-            float threshold = 0.01 * (abs(min) + max);
+            original(x, y) = 0;
+            bool has_neighbor = false;
 
-            size_t i = 0;
+            // horizontal
+            if ((angle < -67.5 and angle > -112.5) or (angle > 67.5 and angle < 112.5))
+            {
+                if ((magnitude > neighborhood(0, 1)) and (magnitude > neighborhood(2, 1)))
+                    original(x, y) = 0.1;
 
-            if ((sign(n(0, 0)) != sign(n(2, 2)) and (abs(n(0, 0) - n(2, 2)) > threshold)))
-                i += 1;
-            if ((sign(n(1, 2)) != sign(n(0, 2)) and (abs(n(1, 2) - n(0, 2)) > threshold)))
-                i += 1;
-            if ((sign(n(0, 1)) != sign(n(2, 1)) and (abs(n(0, 1) - n(2, 1)) > threshold)))
-                i += 1;
-            if ((sign(n(1, 0)) != sign(n(1, 2)) and (abs(n(1, 0) - n(1, 2)) > threshold)))
-                i += 1;
+                if ((neighborhood(0, 1) > lower) or (neighborhood(2, 1) > lower))
+                    has_neighbor = true;
+            }
+            // vertical
+            else if ((angle > -22.5 and angle < 22.5) or (angle < -157.5 and angle > -180) or (angle > 157.5 and angle < 180))
+            {
+                if ((magnitude > neighborhood(1, 0)) and (magnitude > neighborhood(1, 2)))
+                    original(x, y) = 0.1;
 
-            if (i >= 2)
-                original(x, y) = 1;
-            else
-                original(x, y) = 0;
+                if ((neighborhood(1, 0) > lower) or (neighborhood(1, 2) > lower))
+                    has_neighbor = true;
+            }
+            // +45°
+            else if ((angle > 112.5 and angle < 157.5) or (angle < -22.5 and angle > -67.5))
+            {
+                if ((magnitude > neighborhood(0, 2)) and (magnitude > neighborhood(2, 0)))
+                    original(x, y) = 0.1;
+
+                if ((neighborhood(0, 2) > lower) or (neighborhood(2, 0) > lower))
+                    has_neighbor = true;
+            }
+            // -45°
+            else if ((angle > 22.5 and angle < 67.5) or (angle < -112.5 and angle > -157.5))
+            {
+                if ((magnitude > neighborhood(0, 0)) and (magnitude > neighborhood(2, 2)))
+                    original(x, y) = 0.1;
+
+                if ((neighborhood(0, 0) > lower) or (neighborhood(2, 2) > lower))
+                    has_neighbor = true;
+            }
+
+            if (original(x, y) > 0)
+            {
+                if (magnitude >= upper and has_neighbor)
+                    original(x, y) = 1;
+                else
+                    original(x, y) = 0;
+            }
+
+        }
+    }
+    auto copy = original;
+    // post process
+    for (long x = 0; x < original.get_size().x; ++x)
+        for (long y = 0; y < original.get_size().y; ++y)
+        {
+            size_t count = 0;
+            for (int i = -1; i <= 1; i++)
+                for (int j = -1; j <= 1; j++)
+                {
+                    if (original.get_pixel_or_padding(x + i, y + j) == 1)
+                    {
+                        count += 1;
+                        if (count >= 2)
+                            goto skip;
+                    }
+                }
+
+            original(x, y) = 0;
+            skip:;
         }
 
     auto sprite = Sprite();
@@ -106,7 +162,7 @@ int main()
     //sprite.zoom(0.5, true);
 
     sprite.load_from(original);
-    float zoom = 1;
+    float zoom = 2;
     sprite.zoom(zoom);
 
     RenderWindow window;
