@@ -25,9 +25,54 @@ using namespace crisp;
 int main()
 {
 
+    /*
+    auto kernel = GrayScaleFilter::gaussian(3);
+    seperate<Kernel<float>>(kernel, nullptr, nullptr);*/
+    using namespace std;
+    using namespace Eigen;
+
+    MatrixXf m = GrayScaleFilter::gaussian(3); //sobel(GrayScaleFilter::GradientDirection::X_DIRECTION);
+    auto svd = JacobiSVD<MatrixXf>(m, ComputeThinU | ComputeThinV);
+    /*
+cout << "Here is the matrix m:" << endl << m << endl;
+JacobiSVD<MatrixXf> svd(m, ComputeThinU | ComputeThinV);
+cout << "Its singular values are:" << endl << svd.singularValues() << endl;
+cout << "Its left singular vectors are the columns of the thin U matrix:" << endl << svd.matrixU() << endl;
+cout << "Its right singular vectors are the columns of the thin V matrix:" << endl << svd.matrixV() << endl;
+Eigen::Vector3f rhs(1, 0, 0);
+cout << "Now consider this rhs vector:" << endl << rhs << endl;
+cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) << endl;*/
+
+    auto s = svd.singularValues()(0);
+    auto U = svd.matrixU();
+    auto u = Eigen::Vector3f();
+    for (size_t i = 0; i < U.rows(); ++i)
+        u(i) = U(i, 0);// * sqrt(svd.singularValues()(0));
+
+    auto V = svd.matrixU();
+    auto v = Eigen::Vector3f();
+    for (size_t i = 0; i < V.cols(); ++i)
+        v(i) = V(0, i);// * sqrt(svd.singularValues()(0));
+
+
+    auto S = Eigen::Matrix<float, 3, 3>();
+    S.setConstant(0);
+    for (size_t i = 0; i < svd.singularValues().size(); ++i)
+        S(i, i) = svd.singularValues()(i);
+
+    auto final = svd.matrixU() * S * svd.matrixV().transpose(); // * v.transpose();
+
+    std::cout << "e: " << svd.singularValues()(0) << std::endl;
+    std::cout << "u: " << "\n" << U << std::endl;
+    std::cout << "v: " << "\n" << V << std::endl;
+    std::cout << "before: \n" << m << std::endl;
+    std::cout << "reassembled: \n" << final << std::endl;
+
     GrayScaleImage original;
     original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
     original.set_padding_type(ZERO);
+
+    return 0;
 /*
     ColorImage with_padding;
     with_padding.create(original.get_size().x*3, original.get_size().y*3);

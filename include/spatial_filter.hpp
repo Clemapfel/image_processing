@@ -15,6 +15,29 @@ namespace crisp
     template<typename Value_t>
     Kernel<Value_t> convolute(Kernel<Value_t> image, Kernel<Value_t> right);
 
+    template<typename Value_t>
+    void seperate(Kernel<Value_t> original, Kernel<Value_t>* out_left, Kernel<Value_t>* out_right)
+    {
+        auto decomposition = Eigen::ColPivHouseholderQR<Kernel<Value_t>>(original);
+        auto rank = decomposition.rank();
+
+        if (rank != 1)
+        {
+            out_left = nullptr;
+            out_right = nullptr;
+            return;
+        }
+
+        auto svd = Eigen::JacobiSVD<Kernel<Value_t>>(original, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        auto u = svd.matrixU();
+        auto v = svd.matrixV();
+        auto e = svd.singularValues();
+
+        std::cout << "singular: " << e << std::endl;
+        std::cout << "u: " << u << std::endl;
+        std::cout << "v: " << v << std::endl;
+    }
+
     // Filters in the spatial (2d image) domain
     template<typename Image_t, typename Value_t = typename Image_t::value_t>
     class SpatialFilter
