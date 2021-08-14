@@ -16,26 +16,36 @@ namespace crisp
     Kernel<Value_t> convolute(Kernel<Value_t> image, Kernel<Value_t> right);
 
     template<typename Value_t>
-    void seperate(Kernel<Value_t> original, Kernel<Value_t>* out_left, Kernel<Value_t>* out_right)
+    bool seperate(Kernel<Value_t> original, Kernel<Value_t>* out_left, Kernel<Value_t>* out_right)
     {
-        auto decomposition = Eigen::ColPivHouseholderQR<Kernel<Value_t>>(original);
-        auto rank = decomposition.rank();
+        auto svd = Eigen::JacobiSVD<Kernel<Value_t>, Eigen::ColPivHouseholderQRPreconditioner>(original, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
-        if (rank != 1)
+        auto s = svd.singularValues()(0);
+
+        auto singular_sum = 0;
+        for(size_t i = 0; i < svd.singularValues().size(); ++i)
+            singular_sum += svd.singularValues()(i);
+
+        if (abs(s - singular_sum) < 0.005)
         {
             out_left = nullptr;
             out_right = nullptr;
-            return;
+            return false;
         }
 
-        auto svd = Eigen::JacobiSVD<Kernel<Value_t>>(original, Eigen::ComputeThinU | Eigen::ComputeThinV);
-        auto u = svd.matrixU();
-        auto v = svd.matrixV();
-        auto e = svd.singularValues();
+        auto U = svd.matrixU();
+        auto u = Eigen::Vector3d();
+        for (size_t i = 0; i < U.rows(); ++i)
+            u(i) = U(i, 0) * s;
 
-        std::cout << "singular: " << e << std::endl;
-        std::cout << "u: " << u << std::endl;
-        std::cout << "v: " << v << std::endl;
+        auto V = svd.matrixV();
+        auto v = Eigen::Vector3d();
+        for (size_t i = 0; i < V.cols(); ++i)
+            v(i) = V(i, 0);
+
+        *out_left = u;
+        *out_right = v.transpose();
+        return true;
     }
 
     // Filters in the spatial (2d image) domain

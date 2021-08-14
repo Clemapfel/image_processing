@@ -31,8 +31,8 @@ int main()
     using namespace std;
     using namespace Eigen;
 
-    MatrixXf m = GrayScaleFilter::gaussian(3); //sobel(GrayScaleFilter::GradientDirection::X_DIRECTION);
-    auto svd = JacobiSVD<MatrixXf>(m, ComputeThinU | ComputeThinV);
+    using Kernel_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+    Kernel_t m = SpatialFilter<GrayScaleImage, double>::gaussian(3); //sobel(GrayScaleFilter::GradientDirection::X_DIRECTION);
     /*
 cout << "Here is the matrix m:" << endl << m << endl;
 JacobiSVD<MatrixXf> svd(m, ComputeThinU | ComputeThinV);
@@ -43,30 +43,19 @@ Eigen::Vector3f rhs(1, 0, 0);
 cout << "Now consider this rhs vector:" << endl << rhs << endl;
 cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) << endl;*/
 
-    auto s = svd.singularValues()(0);
-    auto U = svd.matrixU();
-    auto u = Eigen::Vector3f();
-    for (size_t i = 0; i < U.rows(); ++i)
-        u(i) = U(i, 0);// * sqrt(svd.singularValues()(0));
+    Kernel_t left, right;
+    seperate(m, &left, &right);
+    auto final = left * right;//svd.matrixU() * S * svd.matrixV().transpose(); // * v.transpose();
 
-    auto V = svd.matrixU();
-    auto v = Eigen::Vector3f();
-    for (size_t i = 0; i < V.cols(); ++i)
-        v(i) = V(0, i);// * sqrt(svd.singularValues()(0));
-
-
-    auto S = Eigen::Matrix<float, 3, 3>();
-    S.setConstant(0);
-    for (size_t i = 0; i < svd.singularValues().size(); ++i)
-        S(i, i) = svd.singularValues()(i);
-
-    auto final = svd.matrixU() * S * svd.matrixV().transpose(); // * v.transpose();
-
-    std::cout << "e: " << svd.singularValues()(0) << std::endl;
-    std::cout << "u: " << "\n" << U << std::endl;
-    std::cout << "v: " << "\n" << V << std::endl;
     std::cout << "before: \n" << m << std::endl;
     std::cout << "reassembled: \n" << final << std::endl;
+
+    Kernel_t error = m - final;
+    for (long x = 0; x < error.rows(); ++x)
+        for (long y = 0; y < error.cols(); ++y)
+            error(x, y) = abs<double>(error(x, y));
+
+    std::cout << "error: \n" << error.mean() << std::endl;
 
     GrayScaleImage original;
     original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
