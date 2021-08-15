@@ -137,9 +137,138 @@ While we don't have much to say about grascale images right now, they are the ce
 
 ## [Full Color Images](/include/color_image.hpp)
 
-We already mentioned them in the previous section but lastly we should take a look at what will usually be the final product of your image processing pipeline: full color images (also called "rgba images").
+We already mentioned them in the previous section but lastly we should take a look at what will usually be the final product of our image processing pipeline: full color images (also called "rgba images").
 
-For full color images each pixel is not a number but a 4-element 32-bit float vector where the first element is red, second green, trird blue and the fourth is the alpha component, sometimes called transparency. Operating on full-color pixels is operating on vectors. Note that these are not 1-by-4 matrices and all arithmetic operations on them are *element-wise*. 
+For full color images each pixel is not a number but a 4-element 32-bit float vector where the first element is red, second green, third blue and the fourth is the alpha component, sometimes called transparency. Operating on full-color pixels is operating on vectors. Note that these are not 1-by-4 matrices and all arithmetic operations on them are *element-wise*.
 
+As we saw with [colors](/docs/color/color.md) there a many representations and the color-image class makes accessing these easy. Thinking of our image as a m*n matrix where each element is on 4-element vector we could also think of our image as a m*n*4 cube. Each "layer" of the cube is a matrix of all i-ths components of a pixels vector. Each of these layers is called a *plane* so for an rgba image there would be 4 planes: red, green, blue and alpha. Each of these planes is a m*n matrix of floats (remember that our colors vectors are 4 floats) we can visualize each plane as a grayscale image. Color-images offer functions for extracting these planes directly:
 
+```cpp
+// rgb
+GrayScaleImage get_red_plane() const;
+GrayScaleImage get_green_plane() const;
+GrayScaleImage get_blue_plane() const;
+
+// hsv / hsl
+GrayScaleImage get_hue_plane() const;
+GrayScaleImage get_saturiation_plane() const;
+GrayScaleImage get_value_plane() const;
+GrayScaleImage get_lightness_plane() const;
+
+// alpha
+GrayScaleImage get_alpha_plane() const;
+```
+Often image processing functions are only defined for matrices of scalars so by splitting an rgba image up into 4 planes, you can use all tools available to grayscale images on each plane and then reassemble them via:
+
+```cpp
+void set_red_plane(const GrayScaleImage&);
+void set_green_plane(const GrayScaleImage&);
+void set_blue_plane(const GrayScaleImage&);
+
+void set_hue_plane(const GrayScaleImage&);
+void set_saturation_plane(const GrayScaleImage&);
+void set_value_plane(const GrayScaleImage&);
+void set_lightness_plane(const GrayScaleImage&);
+
+void set_alpha_plane(const GrayScaleImage&);
+```
+
+Note that interally colors are stored in rgba format, accessing a plane that is an element not part of rgba will occur some overhead for the necessary conversion.
+
+# Exporting / Displaying an Image
+
+We mentioned before that to render anything in crisp we need to create a ``Sprite`` of it (for more information on sprites, see [here](/docs/render/sprites.md)) as such:
+
+```cpp
+auto sprite = Sprite();
+auto image = ColorImage( //...
+
+// bind image to a sprite:
+sprite.load_from(image);
+
+// rescale the image to twice the size
+sprite.scale(2);
+
+// save the scaled image to a file
+sprite.save_to_file("./test.png");
+
+// display the sprite in a window
+auto window = RenderWindow();
+window.create(sprite.get_size().x, sprite.get_size().y);
+
+while (window.is_open())) 
+{
+    window.update();
+    window.clear();
+    window.draw(sprite);
+    window.display();
+}
+```
+
+Sprites works with binary, grayscale and full-color images. If you want to also render your custom format images you will have to convert them into one of the above.
+
+# Custom Image Formats
+Let's say not working with rgb images but rather multi-spectral images, so an image has the rgb value from a light sensor, plus another x-ray sensor plus another infrared sensor. And also for some reason 32-bit floating points are not enough for your application so each of these channels should be 64-bit. An image has to have the following properties:
+
++ it has to inherit from ``Image<Value_t>`` and implement all virtual functions
++ it's value type needs to support all artihmetic operations
++ it needs to be convertible to a native format for display and export
+
+Let's implement our custom 5-channel image from scratch. First we need a value type, as rgba-images are a essentially a 4-channel vector, we should take our que from them and make the value type a 5-channel vector:
+
+```cpp
+using CustomVector = Eigen::Array<double, 1, 4>
+class CustomImage : public Image<CustomVector>
+{
+    private:
+        Eigen::Matrix<CustomVector, Eigen::Dynamic, Eigen::Dynamic> _data;
+}
+```
+We use Eigens vector and matrix format here because it has all necessary arithmetics as well as some bonus operations. You can implement your own type for both storage and elements if you want to. 
+
+Now we need to implement the inherited pure virtaul functions. ``crisp::Image`` has 3 of these:
+
+```cpp
+// get the images dimensions
+public: sf::Vector2<long> get_size() const
+
+// access a pixel within the bounds of the image (not the padding)
+protected: Value_t  get_pixel(long x, long y) const = 0;
+protected: Value_t& get_pixel(long x, long y) = 0;
+```
+
+For our 5-vector image class, these are straight forward:
+
+```cpp
+using CustomVector = Eigen::Array<double, 1, 4>
+class CustomImage : public Image<CustomVector>
+{
+    private:
+        Eigen::Matrix<CustomVector, Eigen::Dynamic, Eigen::Dynamic> _data;
+        
+    protected:
+    CustomVector get_pixel(long x, long y) const override
+    {
+        return _data(x, y);
+    }
+    
+    CustomVector& get_pixel(long x, long y) override
+    {
+        return _data(x, y);
+    }
+    
+    public:
+    sf::Vector2<long> get_size() override
+    {
+        return {_data.rows(), _data.cols()};
+    }
+}
+```
+And we're done! Spatial filters and intensity transforms will work with these out of the gate as matrix-vector arithmetics are well defined, signal processing will need some tinkering as all of crisps transforms are 2d to 2d, not 5d to 2d. We can again solve this by splitting our new custom image into 5 grayscale images for each plane, red, green, blue, x-ray and infrared, and operating on each plane seperately. Similarly to render them we could create and rgba image from the first 3 channels and two grayscale images for the x-ray and infrared channel and render each as their native crisp type respectively. 
+
+---
+
+Hopefully this overview of images was helpful. If you need more or more specific information, please consider checking the headers directly as each public function has a detail description of what it does and what each parameter means. 
+
+Interested in how to transform your infrared plane into a color image? Consider checking the [pseudocolor](/docs/color/color.md) tutorial. 
 
