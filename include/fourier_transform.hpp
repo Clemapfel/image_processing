@@ -52,7 +52,7 @@ namespace crisp
             // @brief visualizes the transforms spectrum as an image
             // @returns log(1+x)-scaled grayscale image of size m*n*2 where m, n size of the original transformed image
             template<typename Image_t>
-            Image_t spectrum_to_image() const;
+            Image_t to_image() const;
 
             // @brief visualize the transforms phase angles as an image
             // @returns linearly scaled grayscale image of size m*n*2 where m, n size of the original transformed image

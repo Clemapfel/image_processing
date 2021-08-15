@@ -7,7 +7,7 @@ namespace crisp
 {
     template<FourierTransformMode Mode>
     template<typename Image_t>
-    Image_t FourierTransform<Mode>::spectrum_to_image() const
+    Image_t FourierTransform<Mode>::to_image() const
     {
         Image_t out;
         out.create(get_size().x, get_size().y);
