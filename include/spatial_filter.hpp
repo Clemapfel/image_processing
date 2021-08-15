@@ -11,42 +11,29 @@ namespace crisp
 {
     template<typename Value_t>
     using Kernel = Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic>;
-    
+
+    // @brief convolute one kernel k1 with another kernel k2, useful for combining them
+    // @param image: k2, what would traditionally be an image
+    // @param right: k1, the kernel the convolution applies
+    // @returns resulting kernel
     template<typename Value_t>
     Kernel<Value_t> convolute(Kernel<Value_t> image, Kernel<Value_t> right);
 
+    // @brief attempt to seperate a filter kernel k of size m*n into 2 vectors u, v such that u * v = k
+    // @param original [in]: the kernel of arbitrary size to be seperated
+    // @param out_left  [out]: pointer that u will be written to, m*1 matrix, nullptr if k is not seperable
+    // @param out_right [out]: pointer that v will be written to, 1*n matrix, nullptr if k is not seperable
+    // @returns true if seperation was succesfull, false otherwise
+    //
+    // @note the solution is arrived at numerically, a mean error: mean(abs(k - u*v)) = ~0.005f is expected
     template<typename Value_t>
-    bool seperate(Kernel<Value_t> original, Kernel<Value_t>* out_left, Kernel<Value_t>* out_right)
-    {
-        auto svd = Eigen::JacobiSVD<Kernel<Value_t>, Eigen::ColPivHouseholderQRPreconditioner>(original, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    bool seperate(const Kernel<Value_t>& original, Kernel<Value_t>* out_left, Kernel<Value_t>* out_right);
 
-        auto s = svd.singularValues()(0);
+    template<typename Value_t>
+    void normalize(Kernel<Value_t>&);
 
-        auto singular_sum = 0;
-        for(size_t i = 0; i < svd.singularValues().size(); ++i)
-            singular_sum += svd.singularValues()(i);
-
-        if (abs(s - singular_sum) < 0.005)
-        {
-            out_left = nullptr;
-            out_right = nullptr;
-            return false;
-        }
-
-        auto U = svd.matrixU();
-        auto u = Eigen::Vector3d();
-        for (size_t i = 0; i < U.rows(); ++i)
-            u(i) = U(i, 0) * s;
-
-        auto V = svd.matrixV();
-        auto v = Eigen::Vector3d();
-        for (size_t i = 0; i < V.cols(); ++i)
-            v(i) = V(i, 0);
-
-        *out_left = u;
-        *out_right = v.transpose();
-        return true;
-    }
+    template<typename Value_t>
+    void rotate(Kernel<Value_t>&, size_t n_90_degree);
 
     // Filters in the spatial (2d image) domain
     template<typename Image_t, typename Value_t = typename Image_t::value_t>
@@ -85,10 +72,6 @@ namespace crisp
             // @param y: the col index of the value
             // @returns copy of the value
             Value_t operator()(long x, long y) const;
-
-            // @brief rotates the kernels matrix by a multiple of 90°
-            // @param n_90_degree_rotatios: the factor n so that the kernel will be rotated by n*90°
-            void rotate_kernel(size_t n_90_degree_rotations);
 
             // ### KERNELS ##############################################################
             
@@ -131,41 +114,58 @@ namespace crisp
 
             // @returns a 2x1 matrix for x-direction, a 1x2 matrix for y-direction
             static Kernel<Value_t> simple_gradient(GradientDirection);
+            static Kernel<Value_t> simple_gradient_x();
+            static Kernel<Value_t> simple_gradient_y();
+
             static Kernel<Value_t> roberts(GradientDirection);
+            static Kernel<Value_t> roberts_x();
+            static Kernel<Value_t> roberts_y();
+
             static Kernel<Value_t> prewitt(GradientDirection);
+            static Kernel<Value_t> prewitt_x();
+            static Kernel<Value_t> prewitt_y();
+
             static Kernel<Value_t> sobel(GradientDirection);
+            static Kernel<Value_t> sobel_x();
+            static Kernel<Value_t> sobel_y();
 
             enum KirschCompassDirection : int {NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST};
 
             static Kernel<Value_t> kirsch_compass(KirschCompassDirection);
+            static Kernel<Value_t> kirsch_compass_n();
+            static Kernel<Value_t> kirsch_compass_nw();
+            static Kernel<Value_t> kirsch_compass_w();
+            static Kernel<Value_t> kirsch_compass_sw();
+            static Kernel<Value_t> kirsch_compass_s();
+            static Kernel<Value_t> kirsch_compass_se();
+            static Kernel<Value_t> kirsch_compass_e();
+            static Kernel<Value_t> kirsch_compass_ne();
 
             static Kernel<Value_t> laplacian_of_gaussian(long dimensions);
 
-            // pre defined evaluation functions, set with SpatialFilter.set_evaluation_function()
-            struct EvaluationFunction
-            {
-                // @brief applies the kernel by convolving it with the image such that pixel = kernel(s, t) * image(x + s, y + t)
-                // @param normalize: should the resulting pixel be normalized back into the range [0, 1]
-                // @note it's easier to image convolution has having a n*n square, aligning the center of the square with each pixel and sliding it over the image
-                static auto&& convolution(bool normalize = true);
+            // ### KERNELS ##############################################################
 
-                // @brief applies the kernel by returning the mean of it's weighted sum. This is equivalent to convolution
-                static auto&& mean();
+            // @brief applies the kernel by convolving it with the image such that pixel = kernel(s, t) * image(x + s, y + t)
+            // @param normalize: should the resulting pixel be normalized back into the range [0, 1]
+            // @note it's easier to image convolution has having a n*n square, aligning the center of the square with each pixel and sliding it over the image
+            static auto&& convolution();
 
-                // @brief applies the kernel by returning the median of it's weighted sum
-                // @note useful for filtering salt-and-pepper-noise in combinationg with an all-1s kernel
-                static auto&& median();
+            // @brief applies the kernel by returning the mean of it's weighted sum. This is equivalent to convolution
+            static auto&& mean();
 
-                // @brief applies the kernel by returning the minimum of it's weighted sum
-                static auto&& min();
+            // @brief applies the kernel by returning the median of it's weighted sum
+            // @note useful for filtering salt-and-pepper-noise in combinationg with an all-1s kernel
+            static auto&& median();
 
-                // @brief applies the kernel by returning the maximum of it's weighted sum
-                static auto&& max();
+            // @brief applies the kernel by returning the minimum of it's weighted sum
+            static auto&& min();
 
-                // @brief applies the kernel by returning the nth k-quantile of it's weighted sum. For example n = 1 k = 4 will return the first quartile
-                // @notes specifying n <= 0 is equivalent to min(), n >= k is equivalent to max()
-                static auto&& n_ths_k_quantile(size_t n, size_t k);
-            };
+            // @brief applies the kernel by returning the maximum of it's weighted sum
+            static auto&& max();
+
+            // @brief applies the kernel by returning the nth k-quantile of it's weighted sum. For example n = 1 k = 4 will return the first quartile
+            // @notes specifying n <= 0 is equivalent to min(), n >= k is equivalent to max()
+            static auto&& n_ths_k_quantile(size_t n, size_t k);
 
         private:
             Kernel<Value_t> _kernel;

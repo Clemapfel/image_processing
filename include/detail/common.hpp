@@ -12,4 +12,15 @@ namespace crisp
     {
         return value * fabs(lower_bound - upper_bound) + std::min(lower_bound, upper_bound);
     }
+
+    template<typename T>
+    T  sign(T in)
+    {
+        if (in < T(0))
+            return -1;
+        else if (in > T(0))
+            return 1;
+        else
+            return 0;
+    }
 }

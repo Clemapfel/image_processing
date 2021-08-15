@@ -250,6 +250,51 @@ namespace crisp
                 image(i, j) = result(i, j);
     }
 
+     template<typename Value_t>
+    template<typename Image_t>
+    void MorphologicalTransform<Value_t>::miss_or_hit_transform(Image_t& image)
+    {
+        if (not std::is_same_v<Value_t, bool> and std::is_same_v<typename Image_t::value_t, bool>)
+            std::cerr << "[WARNING] hit-or-miss template matching a binary image with a non-flat structuring element is discouraged as all non-zero elements of the structuring element will be treated as true (white) during comparison" << std::endl;
+
+        long n = _structuring_element.get_size().x,
+             m = _structuring_element.get_size().y;
+
+        auto origin = _structuring_element.get_origin();
+
+        Image_t result = image;
+
+        for (long x = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y)
+            {
+                for (int a = -origin.x; a < n - origin.x; ++a)
+                {
+                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    {
+                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                            continue;
+
+                        if (image.get_pixel_or_padding(x + a, y + b) !=
+                            _structuring_element.get_value(a + origin.x, b + origin.y))
+                        {
+                            goto no_hit;
+                        }
+                    }
+                }
+
+                // match found
+                result(x, y) = Value_t(false);
+
+                no_hit:;
+            }
+        }
+
+        for (long i = 0; i < image.get_size().x; ++i)
+            for (long j = 0; j < image.get_size().y; ++j)
+                image(i, j) = result(i, j);
+    }
+
     // ### STRUCTURING ELEMENT #########################################
 
     template<typename Value_t>

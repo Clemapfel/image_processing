@@ -87,6 +87,9 @@ namespace crisp
             template<typename Image_t>
             void hit_or_miss_transform(Image_t& image);
 
+            template<typename Image_t>
+            void miss_or_hit_transform(Image_t& image);
+
             // structuring element used in transforms, matrix of std::optional<Value_t>
             class StructuringElement
             {

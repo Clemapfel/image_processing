@@ -19,6 +19,7 @@
 #include <pseudocolor_mapping.hpp>
 #include <binary_image.hpp>
 #include <morphological_transform.hpp>
+#include <edge_detection.hpp>
 
 using namespace crisp;
 
@@ -26,22 +27,11 @@ int main()
 {
 
     /*
-    auto kernel = GrayScaleFilter::gaussian(3);
-    seperate<Kernel<float>>(kernel, nullptr, nullptr);*/
     using namespace std;
     using namespace Eigen;
 
     using Kernel_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
     Kernel_t m = SpatialFilter<GrayScaleImage, double>::gaussian(3); //sobel(GrayScaleFilter::GradientDirection::X_DIRECTION);
-    /*
-cout << "Here is the matrix m:" << endl << m << endl;
-JacobiSVD<MatrixXf> svd(m, ComputeThinU | ComputeThinV);
-cout << "Its singular values are:" << endl << svd.singularValues() << endl;
-cout << "Its left singular vectors are the columns of the thin U matrix:" << endl << svd.matrixU() << endl;
-cout << "Its right singular vectors are the columns of the thin V matrix:" << endl << svd.matrixV() << endl;
-Eigen::Vector3f rhs(1, 0, 0);
-cout << "Now consider this rhs vector:" << endl << rhs << endl;
-cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) << endl;*/
 
     Kernel_t left, right;
     seperate(m, &left, &right);
@@ -62,7 +52,7 @@ cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) <<
     original.set_padding_type(ZERO);
 
     return 0;
-/*
+
     ColorImage with_padding;
     with_padding.create(original.get_size().x*3, original.get_size().y*3);
 
@@ -73,17 +63,59 @@ cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) <<
             with_padding(x, y) = original.get_pixel_or_padding(x - original.get_size().x, y - original.get_size().y);
 */
 
-    auto sign = [](float x) {return x < 0 ? -1 : 1;};
+    GrayScaleImage original;
+    original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
+    sf::Clock clock;
+    SpatialFilter<GrayScaleImage> filter;
+    filter.set_kernel(GrayScaleFilter::gaussian(3));
+    //filter.apply_to(original);
+
+    // gardient: 0.02  | sobel: 0.05
+   auto edges = crisp::EdgeDetection::threshold_gradient(original);
+
+   std::cout << clock.restart().asSeconds() << std::endl;
+
+    MorphologicalTransform<bool> morph;
+    auto se = MorphologicalTransform<bool>::StructuringElement::all_background(3, 3);
+    se.set_foreground(1, 1);
+    morph.set_structuring_element(se);
+    morph.miss_or_hit_transform(edges);
+
+    auto sprite = Sprite();
+    sprite.load_from(edges);
+
+    float zoom = 2;
+    sprite.zoom(zoom);
+
+    RenderWindow window;
+    window.create(sprite.get_size().x * zoom, sprite.get_size().y * zoom);
+
+    window.clear();
+    window.draw(sprite);
+    window.display();
+
+    while (window.is_open())
+    {
+        window.update();
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
+
+    return 0;
+
+    /*
+     *
     SpatialFilter<GrayScaleImage> filter;
 
     auto x_img = original,
          y_img = original;
 
-    filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::Y_DIRECTION));
-    filter.apply_to(y_img);
-    filter.set_kernel(GrayScaleFilter::sobel(SpatialFilter<GrayScaleImage>::GradientDirection::X_DIRECTION));
+    filter.set_kernel(GrayScaleFilter::sobel_x());
     filter.apply_to(x_img);
+    filter.set_kernel(GrayScaleFilter::sobel_y());
+    filter.apply_to(y_img);
 
     float min = std::numeric_limits<float>::max();
     float max = std::numeric_limits<float>::min();
@@ -105,7 +137,8 @@ cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) <<
     float lower = mean;
     float upper = std::min<float>(2*mean, mean + (max - mean) * 0.5);
 
-    std::cout << lower << " " << upper << std::endl;
+    std::cout << "min: " << min << " max: " << max << std::endl;
+    std::cout << "lower: " << lower << " upper: " << upper << std::endl;
 
     for (long x = 0; x < original.get_size().x; ++x)
     {
@@ -191,34 +224,7 @@ cout << "A least-squares solution of m*x = rhs is:" << endl << svd.solve(rhs) <<
             skip:;
         }
 
-    auto sprite = Sprite();
-    sprite.load_from(original);
-    //sprite.zoom(0.5, true);
-
-    sprite.load_from(original);
-    float zoom = 2;
-    sprite.zoom(zoom);
-
-    RenderWindow window;
-    window.create(sprite.get_size().x * zoom, sprite.get_size().y * zoom);
-
-    window.clear();
-    window.draw(sprite);
-    window.display();
-
-    while (window.is_open())
-    {
-        window.update();
-        window.clear();
-        window.draw(sprite);
-        window.display();
-    }
-
-    return 0;
-
-
-
-    /*
+     *
     GrayScaleImage image;
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_clean.png");
 
