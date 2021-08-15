@@ -25,6 +25,32 @@ using namespace crisp;
 
 int main()
 {
+    auto infrared = GrayScaleImage();
+    infrared.create_from_file("/home/clem/Workspace/image_processing/docs/color/pseudocolor_example.png");
+
+    auto transform = PseudoColorTransform();
+
+    auto mapping = PseudoColorTransform::RangeMapping();
+    float animal_threshold = 0.6;
+    mapping.add_value_range_to_inverse_hue_range(0, animal_threshold, 0.5, 0.75); // ground
+    mapping.add_value_range_to_hue_range(animal_threshold, 1, 0, 0.1); // animal
+    transform.set_function(PseudoColorTransform::value_ranges_to_hue_ranges(mapping));
+
+    auto color = transform.transform(infrared);
+
+    auto sprite = Sprite();
+    sprite.load_from(color);
+
+    RenderWindow window;
+    window.create(sprite.get_size().x, sprite.get_size().y);
+
+    while (window.is_open())
+    {
+        window.update();
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
 
     /*
     using namespace std;
@@ -61,7 +87,6 @@ int main()
     for (long x = 0; x < with_padding.get_size().x; ++x)
         for (long y = 0; y < with_padding.get_size().y; ++y)
             with_padding(x, y) = original.get_pixel_or_padding(x - original.get_size().x, y - original.get_size().y);
-*/
 
     GrayScaleImage original;
     original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");

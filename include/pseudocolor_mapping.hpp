@@ -72,6 +72,8 @@ namespace crisp
                 friend class PseudoColorTransform;
 
                 public:
+                    RangeMapping() = default;
+
                     // @brief add exact value to single hue mappingm, c.f. PseudoColorTransform::value_to_hue
                     void add_value_to_hue(float gray, float hue);
 
@@ -94,7 +96,7 @@ namespace crisp
             // @returns lambda bindable with set_function
             //
             // @note if one gray value fits into multiple ranges, the range of the mapping added **first** will be prioritized
-            static auto&& value_ranges_to_hue_ranges(RangeMapping mapping);
+            static auto&& value_ranges_to_hue_ranges(RangeMapping& mapping);
 
         private:
             std::function<Color(float)> _function = [](float x) -> Color {return Color(x);};

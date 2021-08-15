@@ -72,9 +72,9 @@ namespace crisp
         });
     }
 
-    auto&& PseudoColorTransform::value_ranges_to_hue_ranges(PseudoColorTransform::RangeMapping mapping)
+    auto&& PseudoColorTransform::value_ranges_to_hue_ranges(PseudoColorTransform::RangeMapping& mapping)
     {
-        return std::move([mapping](float x) -> Color {
+        return std::move([&mapping](float x) -> Color {
 
             for (auto& map : mapping._gray_to_hue)
             {
