@@ -24,9 +24,10 @@ namespace crisp
     {
         _size.x = width;
         _size.y = height;
-
         _value.resize(static_cast<Eigen::Index>(width), static_cast<Eigen::Index>(height));
-        _value.setConstant(init);
+
+        if (init >= 0)
+            _value.setConstant(init);
     }
 
     inline void GrayScaleImage::create_from_file(std::string path)
