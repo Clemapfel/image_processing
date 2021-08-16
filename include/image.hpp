@@ -30,6 +30,7 @@ namespace crisp
     class Image
     {
         class Iterator;
+        class ConstIterator;
 
         public:
             // the value type of the images matrix
@@ -73,12 +74,13 @@ namespace crisp
             // @brief get an iterator to the first pixel
             // @returns iterator pointing to (0, 0)
             // @note the iterator will advance left to right, top to bottom
-            Iterator begin() const;
+            Iterator begin();
+            ConstIterator begin() const;
 
             // @brief get an iterator to the past-the-end element
             // @returns iterator pointing to (#rows, #cols)
-            Iterator end() const;
-
+            Iterator end();
+            ConstIterator end() const;
 
         protected:
             // pure virtual function to access pixels, does not need to account for padding
@@ -111,6 +113,31 @@ namespace crisp
 
                 private:
                     Image<Value_t>* _data;
+                    sf::Vector2<long> _size;
+                    long _x, _y = 0;
+            };
+
+            struct ConstIterator
+            {
+                public:
+                    ConstIterator(const Image<Value_t>*, size_t x, size_t y);
+
+                    using iterator_category = std::bidirectional_iterator_tag;
+                    using value_type = const Value_t;
+                    using difference_type = int;
+                    using pointer = const Value_t*;
+                    using reference = const Value_t&;
+
+                    bool operator==(ConstIterator& other) const;
+                    bool operator!=(ConstIterator& other) const;
+
+                    ConstIterator& operator++();
+                    ConstIterator& operator--();
+
+                    const Value_t& operator*() const;
+
+                private:
+                    const Image<Value_t>* _data;
                     sf::Vector2<long> _size;
                     long _x, _y = 0;
             };
