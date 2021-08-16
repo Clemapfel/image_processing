@@ -140,33 +140,58 @@ namespace crisp::Segmentation
         return out;
     }
 
-    BinaryImage variable_threshold(const GrayScaleImage& image, float constant = 1)
+    BinaryImage variable_threshold(const GrayScaleImage& image, float constant = 0.5)
     {
         BinaryImage out;
         out.create(image.get_size().x, image.get_size().y);
 
-        size_t tail_length = image.get_size().x * image.get_size().y * 0.2;
         std::list<float> tail;
         float current_sum = 0;
+
+        /*
+        // top row left to right
+        for (size_t y = 0, x = 0; x < image.get_size().x-1; ++x)
+        {
+            tail.emplace_back(image(x, y));
+            current_sum += tail.back();
+        }
+
+        // right col top to bottom
+        for (size_t y = 0, x = image.get_size().x-1; y < image.get_size().y - 1; ++y)
+        {
+            tail.emplace_back(image(x, y));
+            current_sum += tail.back();
+        }
+
+        // bottom row right to left
+        for (size_t y = image.get_size().y-1, x = image.get_size().x-2; x > 0; --x)
+        {
+            tail.emplace_back(image(x, y));
+            current_sum += tail.back();
+        }
+
+        // left col bottom to top
+        for (size_t y = image.get_size().y-2, x = 0; y > 1; --y)
+        {
+            tail.emplace_back(image(x, y));
+            current_sum += tail.back();
+        }
+         */
+
+        size_t tail_length = 2*image.get_size().x + 2*image.get_size().y;
 
         auto update = [&](size_t x, size_t y, size_t i)
         {
             out(x, y) = image(x, y) > (current_sum / tail_length);
 
-            std::cout << (current_sum / tail_length) << std::endl;
-
             if (i > tail_length)
             {
                 current_sum -= tail.front();
                 tail.erase(tail.begin());
-                tail.emplace_back(image(x, y));
-                current_sum += tail.back();
             }
-            else
-            {
-                tail.emplace_back(image(x, y));
-                current_sum += tail.back();
-            }
+
+            tail.emplace_back(image(x, y));
+            current_sum += tail.back();
         };
 
         int top = 0, bottom = image.get_size().x - 1, left = 0, right = image.get_size().y - 1;
