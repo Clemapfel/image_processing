@@ -145,32 +145,69 @@ namespace crisp::Segmentation
         BinaryImage out;
         out.create(image.get_size().x, image.get_size().y);
 
-        size_t tail_length = image.get_size().x + image.get_size().y;
+        size_t tail_length = image.get_size().x * image.get_size().y * 0.2;
         std::list<float> tail;
         float current_sum = 0;
 
-        for (size_t k = 0, x = 0; x < image.get_size().x and k < tail_length; ++x)
+        auto update = [&](size_t x, size_t y, size_t i)
         {
-            for (size_t y = 0; y < image.get_size().y and k < tail_length; ++y, ++k)
+            out(x, y) = image(x, y) > (current_sum / tail_length);
+
+            std::cout << (current_sum / tail_length) << std::endl;
+
+            if (i > tail_length)
+            {
+                current_sum -= tail.front();
+                tail.erase(tail.begin());
+                tail.emplace_back(image(x, y));
+                current_sum += tail.back();
+            }
+            else
             {
                 tail.emplace_back(image(x, y));
-                current_sum += image(x, y);
+                current_sum += tail.back();
             }
-        }
+        };
 
-        for (long x = 0, i = 0; x < image.get_size().x; ++x)
+        int top = 0, bottom = image.get_size().x - 1, left = 0, right = image.get_size().y - 1;
+        int direction = 1;
+
+        size_t k = 0;
+        while (top <= bottom and left <= right)
         {
-            for (long y = 0; y < image.get_size().y; ++y, ++i)
+            if (direction == 1)
             {
-                out(x, y) = image(x, y) > (current_sum / tail_length);
+                for (int i = left; i <= right; ++i, k++)
+                    update(top, i, k);
 
-                if (i > tail_length)
-                {
-                    current_sum -= tail.front();
-                    tail.erase(tail.begin());
-                    tail.emplace_back(image(x, y));
-                    current_sum += tail.back();
-                }
+                ++top;
+                direction = 2;
+            }
+
+            else if (direction == 2)
+            {
+                for (int i = top; i <= bottom; ++i, k++)
+                    update(i, right, k);
+
+                --right;
+                direction = 3;
+            }
+
+            else if (direction == 3)
+            {
+                for (int i = right; i >= left; --i, k++)
+                    update(bottom, i, k);
+
+                --bottom;
+                direction = 4;
+            }
+            else if (direction == 4)
+            {
+                for (int i = bottom; i >= top; --i)
+                    update(i, left, k);
+
+                ++ left;
+                direction = 1;
             }
         }
 
