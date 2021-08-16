@@ -74,14 +74,68 @@ namespace crisp::Segmentation
             new_threshold = (left_mean + 0.5 * (abs(right_mean - left_mean))) * 255;
         }
 
-        std::cout << "median: " << histogram.median() << " final: " << (new_threshold / 255.f) << std::endl;
-
         auto out = BinaryImage();
         out.create(image.get_size().x, image.get_size().y);
 
         for (long x = 0; x < image.get_size().x; ++x)
             for (long y = 0; y < image.get_size().y; ++y)
-                out(x, y) = image(x, y) >= (new_threshold / 255.f);
+                out(x, y) = image(x, y) > (new_threshold / 255.f);
+
+        return out;
+    }
+
+    BinaryImage otsus_method(const GrayScaleImage& image)
+    {
+        auto histogram = Histogram<uint8_t>();
+        histogram.create_from(image);
+
+        std::map<uint8_t, std::pair<float, float>> threshold_to_sums;   // k: {cumulative_sum, intensity_sum}
+        float mn = image.get_size().x * image.get_size().y;
+        float global_mean = 0;
+
+        for (uint8_t k = 0; k < 255; ++k)
+        {
+            float cumulative_sum = 0;
+            float intensity_sum = 0;
+            size_t n = 0;
+            for (uint8_t i = 0; i <= k; ++i)
+            {
+                float p_i = histogram.at(i) / mn;
+                cumulative_sum += p_i;
+                intensity_sum += p_i * i;
+                n += histogram.at(i);
+
+                if (k == 254)
+                    global_mean += p_i * i;
+            }
+            threshold_to_sums.emplace(k, std::make_pair(cumulative_sum, intensity_sum));
+        }
+
+        uint8_t max_k = 0;
+        float max_sigma = 0;
+        for (auto& pair : threshold_to_sums)
+        {
+            auto p_i = pair.second.first;
+            auto local_mean = pair.second.second;
+            auto sigma = pow(global_mean * p_i - local_mean, 2) / (p_i * (1 - p_i));
+
+            if (sigma > max_sigma)
+            {
+                max_sigma = sigma;
+                max_k = pair.first;
+            }
+        }
+
+        float result = max_k / 255.f;
+
+        auto out = BinaryImage();
+        out.create(image.get_size().x, image.get_size().y);
+
+        std::cout << "median: " << histogram.mean() << " final: " << result << std::endl;
+
+        for (long x = 0; x < image.get_size().x; ++x)
+            for (long y = 0; y < image.get_size().y; ++y)
+                out(x, y) = image(x, y) > result;
 
         return out;
     }
