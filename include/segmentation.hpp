@@ -48,6 +48,7 @@ namespace crisp::Segmentation
         right_mean = right_sum / right_n;
         new_threshold = (left_mean + 0.5 * (abs(right_mean - left_mean))) * 255;
 
+        // TODO: optimize by only adding/subtracting necessary parts from left/right sum
         while (std::abs<float>((old_threshold / 255.f) - (new_threshold / 255.f)) > convergence_treshold)
         {
             old_threshold = new_threshold;
@@ -73,12 +74,15 @@ namespace crisp::Segmentation
             new_threshold = (left_mean + 0.5 * (abs(right_mean - left_mean))) * 255;
         }
 
+        std::cout << "median: " << histogram.median() << " final: " << (new_threshold / 255.f) << std::endl;
+
         auto out = BinaryImage();
         out.create(image.get_size().x, image.get_size().y);
 
-        for (const auto& px : image)
-        {
+        for (long x = 0; x < image.get_size().x; ++x)
+            for (long y = 0; y < image.get_size().y; ++y)
+                out(x, y) = image(x, y) >= (new_threshold / 255.f);
 
-        }
+        return out;
     }
 }

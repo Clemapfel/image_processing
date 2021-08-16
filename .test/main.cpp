@@ -37,7 +37,7 @@ int main()
     auto pic_sprite = Sprite();
 
     hist_sprite.load_from(histogram, 256);
-    //pic_sprite.load_from(thresholded);
+    pic_sprite.load_from(thresholded);
 
     hist_sprite.align_topleft_with({pic_sprite.get_topleft().x + pic_sprite.get_size().x + 20, 0});
 
