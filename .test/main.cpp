@@ -20,35 +20,36 @@
 #include <binary_image.hpp>
 #include <morphological_transform.hpp>
 #include <edge_detection.hpp>
+#include <segmentation.hpp>
 
 using namespace crisp;
 
 int main()
 {
-    auto infrared = GrayScaleImage();
-    infrared.create_from_file("/home/clem/Workspace/image_processing/docs/color/pseudocolor_example.png");
+    auto image = GrayScaleImage();
+    image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
-    auto transform = PseudoColorTransform();
+    auto histogram = Histogram<uint8_t>();
+    histogram.create_from(image);
 
-    auto mapping = PseudoColorTransform::RangeMapping();
-    float animal_threshold = 0.6;
-    mapping.add_value_range_to_inverse_hue_range(0, animal_threshold, 0.5, 0.75); // ground
-    mapping.add_value_range_to_hue_range(animal_threshold, 1, 0, 0.1); // animal
-    transform.set_function(PseudoColorTransform::value_ranges_to_hue_ranges(mapping));
+    BinaryImage thresholded = Segmentation::basic_global_thresholding(image);
+    auto hist_sprite = Sprite();
+    auto pic_sprite = Sprite();
 
-    auto color = transform.transform(infrared);
+    hist_sprite.load_from(histogram, 256);
+    //pic_sprite.load_from(thresholded);
 
-    auto sprite = Sprite();
-    sprite.load_from(color);
+    hist_sprite.align_topleft_with({pic_sprite.get_topleft().x + pic_sprite.get_size().x + 20, 0});
 
     RenderWindow window;
-    window.create(sprite.get_size().x, sprite.get_size().y);
+    window.create(hist_sprite.get_size().x + 100 + pic_sprite.get_size().x, std::max(hist_sprite.get_size().y, pic_sprite.get_size().y));
 
     while (window.is_open())
     {
         window.update();
         window.clear();
-        window.draw(sprite);
+        window.draw(hist_sprite);
+        window.draw(pic_sprite);
         window.display();
     }
 

@@ -73,11 +73,12 @@ namespace crisp
             // @brief get an iterator to the first pixel
             // @returns iterator pointing to (0, 0)
             // @note the iterator will advance left to right, top to bottom
-            Iterator begin();
+            Iterator begin() const;
 
             // @brief get an iterator to the past-the-end element
             // @returns iterator pointing to (#rows, #cols)
-            Iterator end();
+            Iterator end() const;
+
 
         protected:
             // pure virtual function to access pixels, does not need to account for padding
