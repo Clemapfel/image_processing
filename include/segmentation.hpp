@@ -10,9 +10,11 @@
 #include <grayscale_image.hpp>
 #include <binary_image.hpp>
 
+#include <list>
+
 namespace crisp::Segmentation
 {
-    BinaryImage basic_global_thresholding(const GrayScaleImage& image, float convergence_treshold = 1 / 255.f)
+    BinaryImage basic_threshold(const GrayScaleImage& image, float convergence_treshold = 1 / 255.f)
     {
         auto histogram = Histogram<uint8_t>();
         histogram.create_from(image);
@@ -84,7 +86,7 @@ namespace crisp::Segmentation
         return out;
     }
 
-    BinaryImage otsus_method(const GrayScaleImage& image)
+    BinaryImage otsu_threshold(const GrayScaleImage& image)
     {
         auto histogram = Histogram<uint8_t>();
         histogram.create_from(image);
@@ -131,11 +133,46 @@ namespace crisp::Segmentation
         auto out = BinaryImage();
         out.create(image.get_size().x, image.get_size().y);
 
-        std::cout << "median: " << histogram.mean() << " final: " << result << std::endl;
-
         for (long x = 0; x < image.get_size().x; ++x)
             for (long y = 0; y < image.get_size().y; ++y)
                 out(x, y) = image(x, y) > result;
+
+        return out;
+    }
+
+    BinaryImage variable_threshold(const GrayScaleImage& image, float constant = 1)
+    {
+        BinaryImage out;
+        out.create(image.get_size().x, image.get_size().y);
+
+        size_t tail_length = image.get_size().x + image.get_size().y;
+        std::list<float> tail;
+        float current_sum = 0;
+
+        for (size_t k = 0, x = 0; x < image.get_size().x and k < tail_length; ++x)
+        {
+            for (size_t y = 0; y < image.get_size().y and k < tail_length; ++y, ++k)
+            {
+                tail.emplace_back(image(x, y));
+                current_sum += image(x, y);
+            }
+        }
+
+        for (long x = 0, i = 0; x < image.get_size().x; ++x)
+        {
+            for (long y = 0; y < image.get_size().y; ++y, ++i)
+            {
+                out(x, y) = image(x, y) > (current_sum / tail_length);
+
+                if (i > tail_length)
+                {
+                    current_sum -= tail.front();
+                    tail.erase(tail.begin());
+                    tail.emplace_back(image(x, y));
+                    current_sum += tail.back();
+                }
+            }
+        }
 
         return out;
     }

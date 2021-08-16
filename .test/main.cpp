@@ -32,7 +32,9 @@ int main()
     auto histogram = Histogram<uint8_t>();
     histogram.create_from(image);
 
-    BinaryImage thresholded = Segmentation::basic_global_thresholding(image);
+    sf::Clock clock;
+    BinaryImage thresholded = Segmentation::variable_threshold(image);
+    std::cout << clock.restart().asSeconds() << std::endl;
     auto hist_sprite = Sprite();
     auto pic_sprite = Sprite();
 
