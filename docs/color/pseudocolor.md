@@ -99,5 +99,34 @@ Because the ground is now blue the contrast is enhanced and it's very easy to sp
 
 While not enforced if grayvalue ranges overlap which is chosen is undefined. 
 
+/*
+auto infrared = GrayScaleImage();
+    infrared.create_from_file("/home/clem/Workspace/image_processing/docs/color/pseudocolor_example.png");
+
+    auto transform = PseudoColorTransform();
+
+    auto mapping = PseudoColorTransform::RangeMapping();
+    float animal_threshold = 0.6;
+    mapping.add_value_range_to_inverse_hue_range(0, animal_threshold, 0.5, 0.75); // ground
+    mapping.add_value_range_to_hue_range(animal_threshold, 1, 0, 0.1); // animal
+    transform.set_function(PseudoColorTransform::value_ranges_to_hue_ranges(mapping));
+
+    auto color = transform.transform(infrared);
+
+    auto sprite = Sprite();
+    sprite.load_from(color);
+
+    RenderWindow window;
+    window.create(sprite.get_size().x, sprite.get_size().y);
+
+    while (window.is_open())
+    {
+        window.update();
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
+*/
+
 
 
