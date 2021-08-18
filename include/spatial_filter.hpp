@@ -9,6 +9,7 @@
 
 namespace crisp
 {
+    // kernel class, matrix of arbitrary size
     template<typename Value_t>
     using Kernel = Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic>;
 
@@ -29,9 +30,14 @@ namespace crisp
     template<typename Value_t>
     bool seperate(const Kernel<Value_t>& original, Kernel<Value_t>* out_left, Kernel<Value_t>* out_right);
 
+    // @brief normalize a kernels value such that the sum of it's elements is 1
+    // @param : kernel to be normalized, modified by the function
     template<typename Value_t>
     void normalize(Kernel<Value_t>&);
 
+    // @brief rotate a kernel by a multiple of 90°
+    // @param : kernel to be rotated, modified by the function
+    // @param n_90_degree: the number 90° rotations
     template<typename Value_t>
     void rotate(Kernel<Value_t>&, size_t n_90_degree);
 
@@ -54,6 +60,7 @@ namespace crisp
             void set_kernel(Kernel<Value_t>);
 
             // @brief get size of kernel
+            // @returns vector where .x is the number of rows, .y the number of columns of the kernel matrix
             sf::Vector2<long> get_size() const;
 
             // @brief set the filters evaluation function, this governs how the convluted values are added up
@@ -103,67 +110,105 @@ namespace crisp
             // @brief kernel implementing the discrete laplacian in all 4 (8) directions, useful for edge detection
             // @param diagonal_edges: should the kernel also consider top-left, top-right, bottom-left and bottom-right directional derivatives
             static Kernel<Value_t> laplacian_first_derivative(bool diagonal_edges = true);
+
+            // @brief kernel implementing the discrete laplacian of laplacian in 4 (8) directions
+            // @param diagonal_edges: should the kernel also consider top-left, top-right, bottom-left and bottom-right directional derivatives
             static Kernel<Value_t> laplacian_second_derivative(bool diagonal_edges = true);
 
+            // @brief kernel implementing line detection at specified angles
+            // @param : line direction where HORIZONTAL = +/- 0°, PLUS_45 = 45°, VERTICAL = +/- 90°, MINUS_45° = -45°
             enum LineDirection : int {HORIZONTAL, PLUS_45, VERTICAL, MINUS_45};
-
             static Kernel<Value_t> line_detection(LineDirection);
 
-            // x-gradient: f(x, y) - f(x+1, y), y-gradient: f(x, y) - f(x, y+1)
-            enum GradientDirection : int {X_DIRECTION = 0, Y_DIRECTION = 1};
-
+            // @brief the simplest gradient in two directions
+            // @param : the direction where X_DIRECTION: left to right, Y_DIRECTION: top to bottom
             // @returns a 2x1 matrix for x-direction, a 1x2 matrix for y-direction
+            enum GradientDirection : int {X_DIRECTION = 0, Y_DIRECTION = 1};
             static Kernel<Value_t> simple_gradient(GradientDirection);
+            // @brief: equivalent to simple_gradient(GradientDirection::X_DIRECTION)
             static Kernel<Value_t> simple_gradient_x();
+            // @brief: equivalent to simple_gradient(GradientDirection::Y_DIRECTION)
             static Kernel<Value_t> simple_gradient_y();
 
+            // @brief gradient via roberts kernel
+            // @param : the direction where X_DIRECTION: left to right, Y_DIRECTION: top to bottom
+            // @returns 2x2 kernel
             static Kernel<Value_t> roberts(GradientDirection);
+            // @brief: equivalent to roberts(GradientDirection::X_DIRECTION)
             static Kernel<Value_t> roberts_x();
+            // @brief: equivalent to roberts(GradientDirection::Y_DIRECTION)
             static Kernel<Value_t> roberts_y();
 
+            // @brief gradient via prewitt kernel, 3x3 matrix
+            // @param : the direction where X_DIRECTION: left to right, Y_DIRECTION: top to bottom
+            // @returns 3x3 kernel
             static Kernel<Value_t> prewitt(GradientDirection);
+            // @brief: equivalent to prewitt(GradientDirection::X_DIRECTION)
             static Kernel<Value_t> prewitt_x();
+            // @brief: equivalent to prewitt(GradientDirection::X_DIRECTION)
             static Kernel<Value_t> prewitt_y();
 
+            // @brief gradient via sobel kernel, 3x3 matrix
+            // @param : the direction where X_DIRECTION: left to right, Y_DIRECTION: top to bottom
+            // @returns 3x3 kernel
             static Kernel<Value_t> sobel(GradientDirection);
+            // @brief: equivalent to sobel(GradientDirection::X_DIRECTION)
             static Kernel<Value_t> sobel_x();
+            // @brief: equivalent to sobel(GradientDirection::X_DIRECTION)
             static Kernel<Value_t> sobel_y();
 
+            // @brief kirsch compass kernel for direction edge detection
+            // @param : direction of the edge
+            // @returns 3x3 kernel
             enum KirschCompassDirection : int {NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST};
-
             static Kernel<Value_t> kirsch_compass(KirschCompassDirection);
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::NORTH)
             static Kernel<Value_t> kirsch_compass_n();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::NORTH_WEST)
             static Kernel<Value_t> kirsch_compass_nw();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::WEST)
             static Kernel<Value_t> kirsch_compass_w();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::SOUT_WEST)
             static Kernel<Value_t> kirsch_compass_sw();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::SOUTH)
             static Kernel<Value_t> kirsch_compass_s();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::SOUTH_EAST)
             static Kernel<Value_t> kirsch_compass_se();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::EAST)
             static Kernel<Value_t> kirsch_compass_e();
+            // @brief equivalent to kirsch_compass(KirschCompassDirection::NORTH_EAST)
             static Kernel<Value_t> kirsch_compass_ne();
 
+            // @brief laplacian of gaussian of arbitrary dimension
+            // @param dimension: the size of the square kernel
+            // @returns matrix of size dimension*dimension
             static Kernel<Value_t> laplacian_of_gaussian(long dimensions);
 
-            // ### KERNELS ##############################################################
+            // ### EVALUATION FUNCTIONS ##############################################################
 
             // @brief applies the kernel by convolving it with the image such that pixel = kernel(s, t) * image(x + s, y + t)
             // @param normalize: should the resulting pixel be normalized back into the range [0, 1]
-            // @note it's easier to image convolution has having a n*n square, aligning the center of the square with each pixel and sliding it over the image
+            // @returns lambda bindable via set_function
             static auto&& convolution();
 
             // @brief applies the kernel by returning the mean of it's weighted sum. This is equivalent to convolution
+            // @returns lambda bindable via set_function
             static auto&& mean();
 
             // @brief applies the kernel by returning the median of it's weighted sum
-            // @note useful for filtering salt-and-pepper-noise in combinationg with an all-1s kernel
+            // @returns lambda bindable via set_function
             static auto&& median();
 
             // @brief applies the kernel by returning the minimum of it's weighted sum
+            // @returns lambda bindable via set_function
             static auto&& min();
 
             // @brief applies the kernel by returning the maximum of it's weighted sum
+            // @returns lambda bindable via set_function
             static auto&& max();
 
             // @brief applies the kernel by returning the nth k-quantile of it's weighted sum. For example n = 1 k = 4 will return the first quartile
+            // @returns lambda bindable via set_function
             // @notes specifying n <= 0 is equivalent to min(), n >= k is equivalent to max()
             static auto&& n_ths_k_quantile(size_t n, size_t k);
 

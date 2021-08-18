@@ -127,7 +127,109 @@ namespace crisp
 
                 return get_pixel(new_x, new_y);
             }
+            default:
+                return Value_t(0);
         }
+    }
+
+    template<typename Value_t>
+    auto Image<Value_t>::operator+(const Image<Value_t>& other) const
+    {
+        assert(get_size() == other.get_size());
+        Image<Value_t> out = *this;
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                out(x, y) += other(x, y);
+
+        return out;
+    }
+
+    template<typename Value_t>
+    auto Image<Value_t>::operator-(const Image<Value_t>& other) const
+    {
+        assert(get_size() == other.get_size());
+        Image<Value_t> out = *this;
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                out(x, y) -= other(x, y);
+
+        return out;
+    }
+
+    template<typename Value_t>
+    auto Image<Value_t>::operator*(const Image<Value_t>& other) const
+    {
+        assert(get_size() == other.get_size());
+        Image<Value_t> out = *this;
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                out(x, y) *= other(x, y);
+
+        return out;
+    }
+
+    template<typename Value_t>
+    auto Image<Value_t>::operator/(const Image<Value_t>& other) const
+    {
+        assert(get_size() == other.get_size());
+        Image<Value_t> out = *this;
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                out(x, y) /= other(x, y);
+
+        return out;
+    }
+
+    template<typename Value_t>
+    Image<Value_t>& Image<Value_t>::operator+=(const Image<Value_t>& other)
+    {
+        assert(get_size() == other.get_size());
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                (*this)(x, y) += other(x, y);
+
+        return *this;
+    }
+
+    template<typename Value_t>
+    Image<Value_t>& Image<Value_t>::operator-=(const Image<Value_t>& other)
+    {
+        assert(get_size() == other.get_size());
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                (*this)(x, y) -= other(x, y);
+
+        return *this;
+    }
+
+    template<typename Value_t>
+    Image<Value_t>& Image<Value_t>::operator*=(const Image<Value_t>& other)
+    {
+        assert(get_size() == other.get_size());
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                (*this)(x, y) *= other(x, y);
+
+        return *this;
+    }
+
+    template<typename Value_t>
+    Image<Value_t>& Image<Value_t>::operator/=(const Image<Value_t>& other)
+    {
+        assert(get_size() == other.get_size());
+
+        for (long x = 0; x < other.size().x; ++x)
+            for (long y = 0; y < other.size().y; ++y)
+                (*this)(x, y) /= other(x, y);
+
+        return *this;
     }
 
     // ### Iterator ##################################################

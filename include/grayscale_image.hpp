@@ -19,7 +19,6 @@ namespace crisp
             // @override c.f. Image<...>::create in image.hpp
             void create(long width, long height, float init = -1.f) override;
 
-
             // @brief load an image from the disk
             // @param path: the absolute file path
             // @note: all common file types are supported, a color image will be converted into a gray-scale image

@@ -52,6 +52,11 @@ namespace crisp
     {
         // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
         GaussianNoise(size_t = initialize_seed());
+
+        // @brief construct guassian noise
+        // @param mean: the mean value (center of the distribution)
+        // @param sigma: the standard deviation
+        // @param seed: the seed to initialize the rng with
         GaussianNoise(float mean, float sigma, size_t seed = initialize_seed());
     };
 
@@ -59,6 +64,11 @@ namespace crisp
     {
         // @overload, c.f. NoiseGenerator<...>::NoiseGenerator(size_t)
         GammaNoise(size_t = initialize_seed());
+
+        // @brief construct gamma noise
+        // @param alpha: the shape parameter of the distribution
+        // @param beta: the scale parameter of the distribution
+        // @param seed: the seed to initialize the rng with
         GammaNoise(float alpha, float beta, size_t seed = initialize_seed());
 
         // @overload, c.f. NoiseGenerator<...>::operator()()
@@ -83,7 +93,8 @@ namespace crisp
 
     // ##############################################################################################
 
-    // noise that is a function of the pixels position
+    // TODO: noise that is a function of the pixels position
+    /*
     template<typename Function_t>
     class SpatiallyCorrelatedNoiseGenerator
     {
@@ -102,6 +113,7 @@ namespace crisp
         private:
             Function_t _function;
     };
+     */
 
 
 }

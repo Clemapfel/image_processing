@@ -33,13 +33,13 @@ int main()
     histogram.create_from(image);
 
     sf::Clock clock;
-    BinaryImage thresholded = Segmentation::variable_threshold(image);
+    BinaryImage thresholded = Segmentation::basic_threshold(image);
     std::cout << clock.restart().asSeconds() << std::endl;
     auto hist_sprite = Sprite();
     auto pic_sprite = Sprite();
 
-    hist_sprite.load_from(histogram, 256);
-    pic_sprite.load_from(thresholded);
+    hist_sprite.create_from(histogram, 256);
+    pic_sprite.create_from(thresholded);
 
     hist_sprite.align_topleft_with({pic_sprite.get_topleft().x + pic_sprite.get_size().x + 20, 0});
 

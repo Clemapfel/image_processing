@@ -13,38 +13,87 @@
 
 namespace crisp
 {
+    // image whos pixels are color vectors
     class ColorImage : public Image<Color>
     {
         public:
             ColorImage() = default;
             
+            // @brief create an image of specified size and solid color
+            // @param width: the x-dimension of the image
+            // @param height: the y-dimension of the image
+            // @param : color all pixels will be assigned to, rgba(0, 0, 0, 1) by default
             void create(long width, long height, Color = Color(0, 0, 0, 1)) override;
+            
+            // @brief create an image from a file
+            // @param path: the absolute path to the file
             void create_from_file(std::string path);
             
+            // @brief access all red components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_red_plane() const;
+            
+            // @brief set all red components
+            // @param : the grayscale image
             void set_red_plane(const GrayScaleImage&);
             
+            // @brief access all green components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_green_plane() const;
+
+            // @brief set all green components
+            // @param : the grayscale image
             void set_green_plane(const GrayScaleImage&);
             
+            // @brief access all blue components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_blue_plane() const;
+
+            // @brief set all blue components
+            // @param : the grayscale image
             void set_blue_plane(const GrayScaleImage&);
 
+            // @brief access all hue components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_hue_plane() const;
+
+            // @brief set all hue components
+            // @param : the grayscale image
             void set_hue_plane(const GrayScaleImage&);
 
+            // @brief access all saturiation components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_saturiation_plane() const;
+
+            // @brief set all saturation components
+            // @param : the grayscale image
             void set_saturation_plane(const GrayScaleImage&);
 
+            // @brief access all hsv value components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_value_plane() const;
+
+            // @brief set all hsv value components
+            // @param : the grayscale image
             void set_value_plane(const GrayScaleImage&);
 
+            // @brief access all hsl lightness components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_lightness_plane() const;
+
+            // @brief set all hsl lightness components
+            // @param : the grayscale image
             void set_lightness_plane(const GrayScaleImage&);
 
+            // @brief access all transparency components
+            // @returns grayscale image with intensities equal to the values of the components
             GrayScaleImage get_alpha_plane() const;
+
+            // @brief set all transparency components
+            // @param : the grayscale image
             void set_alpha_plane(const GrayScaleImage&);
 
+            // @override, c.f. Image<...>::get_size in image.hpp
             [[nodiscard]] sf::Vector2<long> get_size() const override;
 
         protected:

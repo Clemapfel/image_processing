@@ -14,228 +14,36 @@
 
 namespace crisp::Segmentation
 {
-    BinaryImage basic_threshold(const GrayScaleImage& image, float convergence_treshold = 1 / 255.f)
-    {
-        auto histogram = Histogram<uint8_t>();
-        histogram.create_from(image);
+    // @brief recursively modify threshold until convergence is achieved, simple but decent
+    // @param image: the image to be thresholded
+    // @returns binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
+    //
+    // @complexity O(k * log(k)) where k is the number of pairwise different intensities in the image
+    BinaryImage basic_threshold(const GrayScaleImage& image);
 
-        uint8_t old_threshold = histogram.median() * 255;
-        uint8_t new_threshold = 0;
-        float total_sum = 0,
-              left_sum = 0,
-              right_sum = 0;
+    // @brief applies otsu method to arrive at a mean that optimizes the between-class variance
+    // @param image: the image to be thresholded
+    // @returns a binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
+    //
+    // @complexity O(255 * k) where k is the number of pairwise different intensities
+    BinaryImage otsu_threshold(const GrayScaleImage& image);
 
-        size_t total_n = 0,
-               left_n = 0,
-               right_n = 0;
+    // @brief iterate through the image in a spiraling pattern, calculating the local mean based on the pixels previously visited
+    //        tends to be more resistant to non-uniform lighting
+    // @param image: the image to be thresholded
+    // @param constant: a constant modifying how many pixels are taken into account when calculating the local mean
+    // @returns binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
+    //
+    // @complexity: amortized o(constant * max(m, n) * m * n) where m, n the size of the image
+    BinaryImage variable_threshold(const GrayScaleImage& image, float constant = 0.25);
 
-        float left_mean, right_mean;
-
-        for (uint8_t i = 0; i < uint8_t(255); ++i)
-        {
-            float value = histogram.at(i) * (i / 255.f);
-            if (i < old_threshold)
-            {
-                left_n += histogram.at(i);
-                left_sum += value;
-            }
-            else
-            {
-                right_n += histogram.at(i);
-                right_sum += value;
-            }
-        }
-
-        left_mean = left_sum / left_n;
-        right_mean = right_sum / right_n;
-        new_threshold = (left_mean + 0.5 * (abs(right_mean - left_mean))) * 255;
-
-        // TODO: optimize by only adding/subtracting necessary parts from left/right sum
-        while (std::abs<float>((old_threshold / 255.f) - (new_threshold / 255.f)) > convergence_treshold)
-        {
-            old_threshold = new_threshold;
-            left_n = 0; left_sum = 0; right_n = 0; right_sum = 0;
-
-            for (uint8_t i = 0; i < uint8_t(255); ++i)
-            {
-                float value = histogram.at(i) * (i / 255.f);
-                if (i < old_threshold)
-                {
-                    left_n += histogram.at(i);
-                    left_sum += value;
-                }
-                else
-                {
-                    right_n += histogram.at(i);
-                    right_sum += value;
-                }
-            }
-
-            left_mean = left_sum / left_n;
-            right_mean = right_sum / right_n;
-            new_threshold = (left_mean + 0.5 * (abs(right_mean - left_mean))) * 255;
-        }
-
-        auto out = BinaryImage();
-        out.create(image.get_size().x, image.get_size().y);
-
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
-                out(x, y) = image(x, y) > (new_threshold / 255.f);
-
-        return out;
-    }
-
-    BinaryImage otsu_threshold(const GrayScaleImage& image)
-    {
-        auto histogram = Histogram<uint8_t>();
-        histogram.create_from(image);
-
-        std::map<uint8_t, std::pair<float, float>> threshold_to_sums;   // k: {cumulative_sum, intensity_sum}
-        float mn = image.get_size().x * image.get_size().y;
-        float global_mean = 0;
-
-        for (uint8_t k = 0; k < 255; ++k)
-        {
-            float cumulative_sum = 0;
-            float intensity_sum = 0;
-            size_t n = 0;
-            for (uint8_t i = 0; i <= k; ++i)
-            {
-                float p_i = histogram.at(i) / mn;
-                cumulative_sum += p_i;
-                intensity_sum += p_i * i;
-                n += histogram.at(i);
-
-                if (k == 254)
-                    global_mean += p_i * i;
-            }
-            threshold_to_sums.emplace(k, std::make_pair(cumulative_sum, intensity_sum));
-        }
-
-        uint8_t max_k = 0;
-        float max_sigma = 0;
-        for (auto& pair : threshold_to_sums)
-        {
-            auto p_i = pair.second.first;
-            auto local_mean = pair.second.second;
-            auto sigma = pow(global_mean * p_i - local_mean, 2) / (p_i * (1 - p_i));
-
-            if (sigma > max_sigma)
-            {
-                max_sigma = sigma;
-                max_k = pair.first;
-            }
-        }
-
-        float result = max_k / 255.f;
-
-        auto out = BinaryImage();
-        out.create(image.get_size().x, image.get_size().y);
-
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
-                out(x, y) = image(x, y) > result;
-
-        return out;
-    }
-
-    BinaryImage variable_threshold(const GrayScaleImage& image, float constant = 0.5)
-    {
-        BinaryImage out;
-        out.create(image.get_size().x, image.get_size().y);
-
-        std::list<float> tail;
-        float current_sum = 0;
-
-        /*
-        // top row left to right
-        for (size_t y = 0, x = 0; x < image.get_size().x-1; ++x)
-        {
-            tail.emplace_back(image(x, y));
-            current_sum += tail.back();
-        }
-
-        // right col top to bottom
-        for (size_t y = 0, x = image.get_size().x-1; y < image.get_size().y - 1; ++y)
-        {
-            tail.emplace_back(image(x, y));
-            current_sum += tail.back();
-        }
-
-        // bottom row right to left
-        for (size_t y = image.get_size().y-1, x = image.get_size().x-2; x > 0; --x)
-        {
-            tail.emplace_back(image(x, y));
-            current_sum += tail.back();
-        }
-
-        // left col bottom to top
-        for (size_t y = image.get_size().y-2, x = 0; y > 1; --y)
-        {
-            tail.emplace_back(image(x, y));
-            current_sum += tail.back();
-        }
-         */
-
-        size_t tail_length = 2*image.get_size().x + 2*image.get_size().y;
-
-        auto update = [&](size_t x, size_t y, size_t i)
-        {
-            out(x, y) = image(x, y) > (current_sum / tail_length);
-
-            if (i > tail_length)
-            {
-                current_sum -= tail.front();
-                tail.erase(tail.begin());
-            }
-
-            tail.emplace_back(image(x, y));
-            current_sum += tail.back();
-        };
-
-        int top = 0, bottom = image.get_size().x - 1, left = 0, right = image.get_size().y - 1;
-        int direction = 1;
-
-        size_t k = 0;
-        while (top <= bottom and left <= right)
-        {
-            if (direction == 1)
-            {
-                for (int i = left; i <= right; ++i, k++)
-                    update(top, i, k);
-
-                ++top;
-                direction = 2;
-            }
-
-            else if (direction == 2)
-            {
-                for (int i = top; i <= bottom; ++i, k++)
-                    update(i, right, k);
-
-                --right;
-                direction = 3;
-            }
-
-            else if (direction == 3)
-            {
-                for (int i = right; i >= left; --i, k++)
-                    update(bottom, i, k);
-
-                --bottom;
-                direction = 4;
-            }
-            else if (direction == 4)
-            {
-                for (int i = bottom; i >= top; --i)
-                    update(i, left, k);
-
-                ++ left;
-                direction = 1;
-            }
-        }
-
-        return out;
-    }
+    // @brief compute the local threshold based on the local neighborhood of each pixel. Slow but most resistant to non-uniform lighting
+    // @param image: the image to be thresholded
+    // @param neighborhood_size: the number of pixels sampled in the neighborhood of each pixel
+    // @returns binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
+    //
+    // @complexity: amortized o(8 * neighborhood_size * m * n), where m,n size of the image
+    BinaryImage neighborhood_threshold(const GrayScaleImage& image, size_t neighborhood_size = 10);
 }
+
+#include ".src/segmentation.inl"

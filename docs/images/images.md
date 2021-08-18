@@ -184,7 +184,7 @@ auto sprite = Sprite();
 auto image = ColorImage( //...
 
 // bind image to a sprite:
-sprite.load_from(image);
+sprite.create_from(image);
 
 // rescale the image to twice the size
 sprite.scale(2);

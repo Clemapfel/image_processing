@@ -71,6 +71,46 @@ namespace crisp
             // @returns enum constant of the padding type
             PaddingType get_padding_type() const;
 
+            // @brief elementwise addition
+            // @param another image of the same size as this
+            // @returns deep-copy of the resulting image
+            auto operator+(const Image<Value_t>&) const;
+
+            // @brief elementwise subtraction
+            // @param another image of the same size as this
+            // @returns deep-copy of the resulting image
+            auto operator-(const Image<Value_t>&) const;
+
+            // @brief elementwise inner product
+            // @param another image of the same size as this
+            // @returns deep-copy of the resulting image
+            auto operator*(const Image<Value_t>&) const;
+
+            // @brief elementwise inner division
+            // @param another image of the same size as this
+            // @returns deep-copy of the resulting image
+            auto operator/(const Image<Value_t>&) const;
+
+            // @brief elementwise addition assignment
+            // @param another image of the same size as this
+            // @returns reference to self
+            Image<Value_t>& operator+=(const Image<Value_t>&);
+
+            // @brief elementwise subtraction assignment
+            // @param another image of the same size as this
+            // @returns reference to self
+            Image<Value_t>& operator-=(const Image<Value_t>&);
+
+            // @brief elementwise inner product assignment
+            // @param another image of the same size as this
+            // @returns reference to self
+            Image<Value_t>& operator*=(const Image<Value_t>&);
+
+            // @brief elementwise inner division assignment
+            // @param another image of the same size as this
+            // @returns reference to self
+            Image<Value_t>& operator/=(const Image<Value_t>&);
+
             // @brief get an iterator to the first pixel
             // @returns iterator pointing to (0, 0)
             // @note the iterator will advance left to right, top to bottom

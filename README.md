@@ -44,7 +44,7 @@ int main() {
   
   // to display an image we need to bind it to renderable sprite
   auto sprite = Sprite();
-  sprite.load_from(image);
+  sprite.create_from(image);
   sprite.align_center_with(Vector2f(window.get_resolution().at(0) * 0.5f, window.get_resolution().at(1) * 0.5f));
   
 while (window.is_open())

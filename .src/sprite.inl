@@ -9,7 +9,7 @@ namespace crisp
 {
 
     template<>
-    void Sprite::load_from<Color>(const Image<Color>& image)
+    void Sprite::create_from<Color>(const Image<Color>& image)
     {
         sf::Image temp;
         temp.create(image.get_size().x, image.get_size().y);
@@ -30,7 +30,7 @@ namespace crisp
     }
 
     template<typename Value_t>
-    void Sprite::load_from(const Image<Value_t>& image)
+    void Sprite::create_from(const Image<Value_t>& image)
     {
         sf::Image temp;
         temp.create(image.get_size().x, image.get_size().y);
@@ -53,7 +53,7 @@ namespace crisp
     }
 
     template<typename Value_t>
-    void Sprite::load_from(const Histogram <Value_t>& histogram, long height, bool show_mean)
+    void Sprite::create_from(const Histogram <Value_t>& histogram, long image_height, bool show_mean)
     {
         auto& counts = histogram.get_counts();
         size_t n_buckets = std::numeric_limits<Value_t>::max();
@@ -61,7 +61,7 @@ namespace crisp
         if (counts.empty())
         {
             sf::Image img;
-            img.create(n_buckets, height, sf::Color::Black);
+            img.create(n_buckets, image_height, sf::Color::Black);
 
             _texture.loadFromImage(img);
             _sprite.setTextureRect(sf::IntRect(0, 0, img.getSize().x, img.getSize().y));
@@ -87,13 +87,13 @@ namespace crisp
         if (show_mean)
             mean /= n;
 
-        size_t step = ceil( float(max) / (0.85 * height));
+        size_t step = ceil( float(max) / (0.85 * image_height));
 
         if (n_buckets > 1920)
             std::cerr << "[Warning] rendering a histogram with " << n_buckets << " different values to a texture will take up a large amount of memory" << std::endl;
 
         sf::Image temp;
-        temp.create(n_buckets, height, sf::Color::Black);
+        temp.create(n_buckets, image_height, sf::Color::Black);
 
         auto mean_x = size_t(round(mean));
         for (size_t x = 0; x < n_buckets; ++x)
@@ -114,7 +114,7 @@ namespace crisp
         _sprite.setPosition(0, 0);
     }
 
-    inline void Sprite::load_from(const FrequencyDomainFilter& filter)
+    inline void Sprite::create_from(const FrequencyDomainFilter& filter)
     {
         sf::Image temp;
         temp.create(filter.get_size().x, filter.get_size().y);
@@ -138,7 +138,7 @@ namespace crisp
     }
 
     template<typename Image_t>
-    void Sprite::load_from(const SpatialFilter<Image_t>& filter)
+    void Sprite::create_from(const SpatialFilter<Image_t>& filter)
     {
         sf::Image temp;
         temp.create(filter.get_size().x, filter.get_size().y);
@@ -186,7 +186,7 @@ namespace crisp
         _top_left_pos.y = round(center.at(1) - _texture.getSize().y * 0.5);
     }
 
-    inline void Sprite::zoom(float factor, bool smooth)
+    inline void Sprite::scale(float factor, bool smooth)
     {
         _zoom_factor = factor;
         if (smooth != _texture.isSmooth())
