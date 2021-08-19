@@ -8,26 +8,26 @@
 namespace crisp
 {
     template<typename Value_t>
-    void ImageSegment<Value_t>::create(Image <Value_t>* original, std::vector<sf::Vector2<long>> coords)
+    void ImageSegment<Value_t>::create(Image <Value_t>* original, std::vector<Vector2ui> coords)
     {
         _image = original;
-        _x_bounds.x = std::numeric_limits<long>::max();
-        _x_bounds.y = long(0);
+        _x_bounds.x() = std::numeric_limits<long>::max();
+        _x_bounds.y() = long(0);
         _y_bounds = _x_bounds;
 
         for (auto& coord : coords)
         {
-            if (_x_bounds.x > coord.x)
-                _x_bounds.x = coord.x;
+            if (_x_bounds.x() > coord.x())
+                _x_bounds.x() = coord.x();
 
-            if (_x_bounds.y < coord.x)
-                _x_bounds.y = coord.x;
+            if (_x_bounds.y() < coord.x())
+                _x_bounds.y() = coord.x();
 
-            if (_y_bounds.x > coord.y)
-                _y_bounds.x = coord.y;
+            if (_y_bounds.x() > coord.y())
+                _y_bounds.x() = coord.y();
 
-            if (_y_bounds.y < coord.y)
-                _y_bounds.y = coord.y;
+            if (_y_bounds.y() < coord.y())
+                _y_bounds.y() = coord.y();
 
             _pixels.insert(coord);
         }
@@ -38,10 +38,10 @@ namespace crisp
     Image_t ImageSegment<Value_t>::to_new_image() const
     {
         Image_t out;
-        out.create(_x_bounds.y - _x_bounds.x + 1, _y_bounds.y - _y_bounds.x + 1, Value_t(0));
+        out.create(_x_bounds.y() - _x_bounds.x() + 1, _y_bounds.y() - _y_bounds.x() + 1, Value_t(0));
 
         for (auto& coord : _pixels)
-            out(coord.x - _x_bounds.x, coord.y - _y_bounds.x) = _image->operator()(coord.x, coord.y);
+            out(coord.x() - _x_bounds.x(), coord.y() - _y_bounds.x()) = _image->operator()(coord.x(), coord.y());
 
         return out;
     }

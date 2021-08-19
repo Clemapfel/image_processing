@@ -10,7 +10,6 @@
 #include <image.hpp>
 #include <grayscale_image.hpp>
 
-
 namespace crisp
 {
     // image whos pixels are color vectors
@@ -23,7 +22,7 @@ namespace crisp
             // @param width: the x-dimension of the image
             // @param height: the y-dimension of the image
             // @param : color all pixels will be assigned to, rgba(0, 0, 0, 1) by default
-            void create(long width, long height, Color = Color(0, 0, 0, 1)) override;
+            void create(long width, long height, Color = Color(0, 0, 0)) override;
             
             // @brief create an image from a file
             // @param path: the absolute path to the file
@@ -85,30 +84,21 @@ namespace crisp
             // @param : the grayscale image
             void set_lightness_plane(const GrayScaleImage&);
 
-            // @brief access all transparency components
-            // @returns grayscale image with intensities equal to the values of the components
-            GrayScaleImage get_alpha_plane() const;
-
-            // @brief set all transparency components
-            // @param : the grayscale image
-            void set_alpha_plane(const GrayScaleImage&);
-
             // @override, c.f. Image<...>::get_size in image.hpp
-            [[nodiscard]] sf::Vector2<long> get_size() const override;
+            [[nodiscard]] Vector2ui get_size() const override;
 
-        protected:
+        private:
             Color  get_pixel(long x, long y) const override;
             Color& get_pixel(long x, long y) override;
 
-        private:
-            sf::Vector2<long> _size;
-            Eigen::Matrix<Color, Eigen::Dynamic, Eigen::Dynamic> _rgba;
+            Vector2ui _size;
+            Eigen::Matrix<Color, Eigen::Dynamic, Eigen::Dynamic> _rgb;
     };
 
     void ColorImage::create(long width, long height, Color color)
     {
-        _rgba.resize(width, height);
-        _rgba.setConstant(color);
+        _rgb.resize(width, height);
+        _rgb.setConstant(color);
     }
 
     void ColorImage::create_from_file(std::string path)
@@ -116,132 +106,113 @@ namespace crisp
         sf::Image image;
         image.loadFromFile(path);
 
-        _size.x = image.getSize().x;
-        _size.y = image.getSize().y;
-        _rgba.resize(image.getSize().x, image.getSize().y);
+       _size.x() = image.getSize().x;
+        _size.y() = image.getSize().y;
+        _rgb.resize(image.getSize().x, image.getSize().y);
 
         for (long x = 0; x < image.getSize().x; ++x)
         {
             for (long y = 0; y < image.getSize().y; ++y)
             {
                 auto color = image.getPixel(x, y);
-                _rgba(x, y) = Color(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+                _rgb(x, y) = Color(color.r / 255.f, color.g / 255.f, color.b / 255.f);
             }
         }
     }
 
     Color & ColorImage::get_pixel(long x, long y)
     {
-        return _rgba(x, y);
+        return _rgb(x, y);
     }
 
     Color ColorImage::get_pixel(long x, long y) const
     {
-        return _rgba(x, y);
+        return _rgb(x, y);
     }
 
-    sf::Vector2<long> ColorImage::get_size() const
+    Vector2ui ColorImage::get_size() const
     {
-        return {_rgba.rows(), _rgba.cols()};
+        return {_rgb.rows(), _rgb.cols()};
     }
 
     GrayScaleImage ColorImage::get_red_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).red();
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).red();
 
         return out;
     }
 
     void ColorImage::set_red_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                _rgba(x, y).red() = plane(x, y);
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                _rgb(x, y).red() = plane(x, y);
     }
 
     GrayScaleImage ColorImage::get_blue_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).blue();
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).blue();
 
         return out;
     }
 
     void ColorImage::set_blue_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                _rgba(x, y).blue() = plane(x, y);
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                _rgb(x, y).blue() = plane(x, y);
     }
 
     GrayScaleImage ColorImage::get_green_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).green();
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).green();
 
         return out;
     }
 
     void ColorImage::set_green_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                _rgba(x, y).green() = plane(x, y);
-    }
-
-    GrayScaleImage ColorImage::get_alpha_plane() const
-    {
-        auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
-
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).alpha();
-
-        return out;
-    }
-
-    void ColorImage::set_alpha_plane(const GrayScaleImage& plane)
-    {
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                _rgba(x, y).alpha() = plane(x, y);
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                _rgb(x, y).green() = plane(x, y);
     }
 
     GrayScaleImage ColorImage::get_hue_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).as_hsv().h;
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).as_hsv().h;
 
         return out;
     }
 
     void ColorImage::set_hue_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
+        for (long x = 0; x < _rgb.rows(); ++x)
         {
-            for (long y = 0; y < _rgba.cols(); ++y)
+            for (long y = 0; y < _rgb.cols(); ++y)
             {
-                auto as_hsv = _rgba(x, y).as_hsv();
+                auto as_hsv = _rgb(x, y).as_hsv();
                 as_hsv.h = plane(x, y);
-                _rgba(x, y) = Color(as_hsv);
+                _rgb(x, y) = Color(as_hsv);
             }
         }
     }
@@ -249,24 +220,24 @@ namespace crisp
     GrayScaleImage ColorImage::get_saturiation_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).as_hsv().s;
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).as_hsv().s;
 
         return out;
     }
 
     void ColorImage::set_saturation_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
+        for (long x = 0; x < _rgb.rows(); ++x)
         {
-            for (long y = 0; y < _rgba.cols(); ++y)
+            for (long y = 0; y < _rgb.cols(); ++y)
             {
-                auto as_hsv = _rgba(x, y).as_hsv();
+                auto as_hsv = _rgb(x, y).as_hsv();
                 as_hsv.s = plane(x, y);
-                _rgba(x, y) = Color(as_hsv);
+                _rgb(x, y) = Color(as_hsv);
             }
         }
     }
@@ -274,24 +245,24 @@ namespace crisp
     GrayScaleImage ColorImage::get_value_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).as_hsv().v;
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).as_hsv().v;
 
         return out;
     }
 
     void ColorImage::set_value_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
+        for (long x = 0; x < _rgb.rows(); ++x)
         {
-            for (long y = 0; y < _rgba.cols(); ++y)
+            for (long y = 0; y < _rgb.cols(); ++y)
             {
-                auto as_hsv = _rgba(x, y).as_hsv();
+                auto as_hsv = _rgb(x, y).as_hsv();
                 as_hsv.v = plane(x, y);
-                _rgba(x, y) = Color(as_hsv);
+                _rgb(x, y) = Color(as_hsv);
             }
         }
     }
@@ -299,24 +270,24 @@ namespace crisp
     GrayScaleImage ColorImage::get_lightness_plane() const
     {
         auto out = GrayScaleImage();
-        out.create(_rgba.rows(), _rgba.cols());
+        out.create(_rgb.rows(), _rgb.cols());
 
-        for (long x = 0; x < _rgba.rows(); ++x)
-            for (long y = 0; y < _rgba.cols(); ++y)
-                out(x, y) = _rgba(x, y).as_hsl().l;
+        for (long x = 0; x < _rgb.rows(); ++x)
+            for (long y = 0; y < _rgb.cols(); ++y)
+                out(x, y) = _rgb(x, y).as_hsl().l;
 
         return out;
     }
 
     void ColorImage::set_lightness_plane(const GrayScaleImage& plane)
     {
-        for (long x = 0; x < _rgba.rows(); ++x)
+        for (long x = 0; x < _rgb.rows(); ++x)
         {
-            for (long y = 0; y < _rgba.cols(); ++y)
+            for (long y = 0; y < _rgb.cols(); ++y)
             {
-                auto as_hsl = _rgba(x, y).as_hsl();
+                auto as_hsl = _rgb(x, y).as_hsl();
                 as_hsl.l = plane(x, y);
-                _rgba(x, y) = Color(as_hsl);
+                _rgb(x, y) = Color(as_hsl);
             }
         }
     }

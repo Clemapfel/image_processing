@@ -64,8 +64,8 @@ int main()
         window.draw(image_sprite);
         window.draw(histogram_sprite);
 
-        image_pos.x += image.get_size().x + border;
-        hist_pos.x += image.get_size().x + border;
+        image_pos.x += image.get_size().x() + border;
+        hist_pos.x += image.get_size().x() + border;
     };
 
     window.clear();

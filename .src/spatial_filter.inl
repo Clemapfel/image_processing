@@ -13,19 +13,19 @@ namespace crisp
     convolute(Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> image,
               Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> right)
     {
-        sf::Vector2<long> size = {image.rows(), image.cols()};
+        Vector2ui size = {image.rows(), image.cols()};
 
         assert(image.cols() >= right.cols() and image.rows() >= right.rows());
 
         Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> result;
-        result.resize(size.x, size.y);
+        result.resize(size.x(), size.y());
 
         long a = floor(right.rows() / 2.f);
         long b = floor(right.cols() / 2.f);
 
-        for (long i = 0; i < size.x; ++i)
+        for (long i = 0; i < size.x(); ++i)
         {
-            for (long j = 0; j < size.y; ++j)
+            for (long j = 0; j < size.y(); ++j)
             {
                 Value_t current_sum = 0;
                 for (long s = -a; s <= a; ++s)
@@ -168,7 +168,7 @@ namespace crisp
     }
 
     template<typename Image_t, typename Value_t>
-    sf::Vector2<long> SpatialFilter<Image_t, Value_t>::get_size() const
+    Vector2ui SpatialFilter<Image_t, Value_t>::get_size() const
     {
         return {_kernel.rows(), _kernel.cols()};
     }
@@ -188,14 +188,14 @@ namespace crisp
                 sum_of_elements += _kernel(i, j);
 
         Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> result;
-        result.resize(image.get_size().x, image.get_size().y);
+        result.resize(image.get_size().x(), image.get_size().y());
 
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
                 result(x, y) = _eval(image, x, y, _kernel);
 
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
                 image(x, y) = result(x, y);
     }
 

@@ -10,10 +10,10 @@ namespace crisp
     ColorImage PseudoColorTransform::transform(const GrayScaleImage& grayscale)
     {
         ColorImage out;
-        out.create(grayscale.get_size().x, grayscale.get_size().y, Color(0,0,0,1));
+        out.create(grayscale.get_size().x(), grayscale.get_size().y(), Color(0,0,0));
 
-        for (long x = 0; x < grayscale.get_size().x; ++x)
-            for (long y = 0; y < grayscale.get_size().y; ++y)
+        for (long x = 0; x < grayscale.get_size().x(); ++x)
+            for (long y = 0; y < grayscale.get_size().y(); ++y)
                 out(x, y) = _function(grayscale(x, y));
 
         return out;

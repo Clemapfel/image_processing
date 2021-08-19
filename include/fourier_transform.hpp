@@ -94,7 +94,7 @@ namespace crisp
 
             // @brief get the size of the transforms
             // @returns sf::Vector where .x is the width, .y the size of the transform
-            sf::Vector2<long> get_size() const;
+            Vector2ui get_size() const;
 
         protected:
             std::vector<Value_t>& get_spectrum();
@@ -103,7 +103,7 @@ namespace crisp
         private:
             size_t to_index(long x, long y) const;
 
-            sf::Vector2<long> _size;
+            Vector2ui _size;
             std::vector<Value_t> _spectrum,
                                  _phase_angle;
 

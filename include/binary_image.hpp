@@ -25,7 +25,7 @@ namespace crisp
             void create_from_file(std::string path, float cutoff);
 
             // @override c.f. Image<...>::get_size in image.hpp
-            sf::Vector2<long> get_size() const override;
+            [[nodiscard]] Vector2ui get_size() const override;
 
             // bitwise operators
             // @brief element-wise binary NOT operator
@@ -66,13 +66,11 @@ namespace crisp
             // @returns a reference to itself after processing
             BinaryImage& operator^=(const BinaryImage&);
 
-        protected:
-            // @override c.f. Image<...>::get_pixel in image.hpp
+        private:
             virtual bool  get_pixel(long x, long y) const;
             virtual bool& get_pixel(long x, long y);
 
-        private:
-            sf::Vector2<long> _size;
+            Vector2ui _size;
             Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> _value;
 
     };

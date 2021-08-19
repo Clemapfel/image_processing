@@ -18,8 +18,7 @@ namespace crisp
     {
         float r = 0, // red
                 g = 0, // green
-                b = 0, // blue
-                a = 1; // alpha
+                b = 0; // blue
     };
 
     // color representation in HSV system
@@ -28,8 +27,7 @@ namespace crisp
     {
         float h = 0, // hue
                 s = 0, // saturation
-                v = 0, // value (brightness), maximum value corresponds to a white light shining onto a colored object
-                a = 1; // alpha
+                v = 0; // value (brightness), maximum value corresponds to a white light shining onto a colored object
     };
 
     // color representation in HSL system
@@ -38,23 +36,19 @@ namespace crisp
     {
         float h = 0, // hue
                 s = 0, // saturation
-                l = 0, // lightness, maximum lightness corresponds to a pure white color
-                a = 1; // alpha
+                l = 0; // lightness, maximum lightness corresponds to a pure white color
     };
 
     // color representation as one grey-scale intensity v equivalent in RGB to the grey tone (v, v, v, alpha)
     // values in [0, 1]
     struct GrayScale
     {
-        float v = 0, // value
-                a = 1; // alpha
+        float v = 0; // value
     };
 
     // class representing 32-bit floating point colors
-    class Color : public Eigen::Array<float, 1, 4>
+    class Color : public Vector3f
     {
-        using Vector_t = Eigen::Array<float, 1, 4>;
-
         public:
             // @brief construct color equal to rgba(0, 0, 0, 1)
             Color();
@@ -68,7 +62,7 @@ namespace crisp
             // @param green: the green component
             // @param blue: the blue component
             // @param alpha: the transparency component
-            Color(float red, float green, float blue, float alpha = 1);
+            Color(float red, float green, float blue);
 
             // @brief construct color from RGB representation
             explicit Color(RGB rgb);
@@ -106,14 +100,6 @@ namespace crisp
             // @returns value of the component
             [[nodiscard]] float blue() const;
 
-            // @brief expose the transparency component
-            // @returns writable reference to the component
-            float& alpha();
-
-            // @brief access transparency component
-            // @returns value of the component
-            [[nodiscard]] float alpha() const;
-
             // @brief convert to RGB representation
             // @returns color in rgba format
             [[nodiscard]] RGB as_rgb() const;
@@ -150,58 +136,8 @@ namespace crisp
             // @returns reference to self after assignemnt
             Color & operator=(GrayScale);
 
-            // @brief perform element-wise addition
-            // @param : another color
-            // @returns vector of values after operation
-            using Vector_t::operator+;
-
-            // @brief perform element-wise subtraction
-            // @param : another color
-            // @returns vector of values after operation
-            using Vector_t::operator-;
-
-            // @brief perform element-wise inner product
-            // @param : another color
-            // @returns vector of values after operation
-            using Vector_t::operator*;
-
-            // @brief perform element-wise inner division
-            // @param : another color
-            // @returns vector of values after operation
-            using Vector_t::operator/;
-
-            // @brief addition assignment
-            // @param : another color
-            // @returns reference to self after assignment
-            using Vector_t::operator+=;
-
-            // @brief subtraction assignment
-            // @param : another color
-            // @returns reference to self after assignment
-            using Vector_t::operator-=;
-
-            // @brief inner product assignment
-            // @param : another color
-            // @returns reference to self after assignment
-            using Vector_t::operator*=;
-
-            // @brief inner division assignment
-            // @param : another color
-            // @returns reference to self after assignment
-            using Vector_t::operator/=;
-
-            // @brief boolean element-wise comparison
-            // @param : another color
-            // @returns true if all components of both colors are equal, false otherwise
-            using Vector_t::operator==;
-
-            // @brief boolean element-wise comparison
-            // @param : another color
-            // @returns false if all components of both colors are equal, true otherwise
-            using Vector_t::operator!=;
-
             // @brief invert color
-            // @returns: Color equal to {1 - r, 1 - g, 1 - b, a}
+            // @returns: Color equal to {1 - r, 1 - g, 1 - b}
             [[nodiscard]] Color invert() const;
     };
 

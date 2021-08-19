@@ -11,7 +11,7 @@ using Image_t = Image< //...
 auto image = Image_t();
 
 // set all pixels to black
-for (long x = 0; x < image.get_size().x; ++x)
+for (long x = 0; x < image.get_size().x(); ++x)
     for (long y = 0; y < image.get_size().y; ++y)
         image(x, y) = Image_t::Value_t(0);
     
@@ -19,11 +19,11 @@ const auto const_image = Image_t();
 
 // calculate the mean of the images values
 float mean = 0;
-for (long x = 0; x < image.get_size().x; ++x)
+for (long x = 0; x < image.get_size().x(); ++x)
     for (long y = 0; y < image.get_size().y; ++y)
         mean += static_cast<float>(image(x, y));
     
-mean /= image.get_size().x * image.get_size().y;
+mean /= image.get_size().x() * image.get_size().y;
 ```
 
 Images offer a third way to access pixels: ``Value_t get_pixel_or_padding(long x, long y) const``. Unlike the operators above, this function does no bounds checking, instead if x or y are out of bounds it accesses what is called "padding". Crisp supports 5 padding types:
@@ -123,9 +123,9 @@ image.create_from_file("colorfile.png")
 auto as_color = ColorImage();
 as_color.create_from_file("colorfile.png")
 auto image = GrayscaleImage();
-image.create(as_color.get_size().x, as_color.get_size().y);
+image.create(as_color.get_size().x(), as_color.get_size().y);
 
-for (long x = 0; x < as_color.get_size().x; ++x)
+for (long x = 0; x < as_color.get_size().x(); ++x)
     for (long y = 0; y < as_color.get_size().y; ++y)
         image(x, y) = as_color(x, y).as_hsv().s;
 ```
@@ -194,7 +194,7 @@ sprite.save_to_file("./test.png");
 
 // display the sprite in a window
 auto window = RenderWindow();
-window.create(sprite.get_size().x, sprite.get_size().y);
+window.create(sprite.get_size().x(), sprite.get_size().y);
 
 while (window.is_open())) 
 {
@@ -230,7 +230,7 @@ Now we need to implement the inherited pure virtaul functions. ``crisp::Image`` 
 
 ```cpp
 // get the images dimensions
-public: sf::Vector2<long> get_size() const
+public: Vector2ui get_size() const
 
 // access a pixel within the bounds of the image (not the padding)
 protected: Value_t  get_pixel(long x, long y) const = 0;
@@ -258,7 +258,7 @@ class CustomImage : public Image<CustomVector>
     }
     
     public:
-    sf::Vector2<long> get_size() override
+    Vector2ui get_size() override
     {
         return {_data.rows(), _data.cols()};
     }

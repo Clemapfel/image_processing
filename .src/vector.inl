@@ -3,6 +3,8 @@
 // Created on 25.07.21 by clem (mail@clemens-cords.com)
 //
 
+#include <vector.hpp>
+
 namespace crisp
 {
 
@@ -62,19 +64,26 @@ namespace crisp
 
     // ### Vector ##########################################################
     template<typename T, size_t n>
+    Vector<T, n>::Vector()
+        : Eigen::Array<T, 1, n>()
+    {
+        Eigen::Array<T, 1, n>::setConstant(0);
+    }
+
+    template<typename T, size_t n>
     Vector<T, n>::Vector(std::initializer_list<T> list)
     {
         assert(list.size() == n);
 
         size_t i = 0;
         for (auto it = list.begin(); i < n and it != list.end(); it += 1, ++i)
-            Eigen::Matrix<T, 1, n>::operator()(0, i) = *it;
+            Eigen::Array<T, 1, n>::operator()(0, i) = *it;
     }
 
     template<typename T, size_t n>
     T & Vector<T, n>::operator[](size_t i)
     {
-        return Eigen::Matrix<T, 1, n>::operator()(0, i);
+        return Eigen::Array<T, 1, n>::operator()(0, i);
     }
 
     template<typename T, size_t n>
@@ -83,7 +92,7 @@ namespace crisp
         if (i >= n)
             throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(n));
 
-        return Eigen::Matrix<T, 1, n>::operator()(0, i);;
+        return Eigen::Array<T, 1, n>::operator()(0, i);;
     }
 
     template<typename T, size_t n>
@@ -92,7 +101,7 @@ namespace crisp
         if (i >= n)
             throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(n));
 
-        return Eigen::Matrix<T, 1, n>::operator()(0, i);;
+        return Eigen::Array<T, 1, n>::operator()(0, i);;
     }
 
     template<typename T, size_t n>
@@ -105,6 +114,26 @@ namespace crisp
     auto Vector<T, n>::end()
     {
         return Vector<T, n>::Iterator(this, n);
+    }
+
+    template<typename T, size_t N>
+    bool Vector<T, N>::operator==(const Vector <T, N>& other) const
+    {
+        for (size_t i = 0; i < N; ++i)
+            if (at(i) != other.at(i))
+                return false;
+
+        return true;
+    }
+
+    template<typename T, size_t N>
+    bool Vector<T, N>::operator!=(const Vector <T, N>& other) const
+    {
+        for (size_t i = 0; i < N; ++i)
+            if (at(i) == other.at(i))
+                return false;
+
+        return true;
     }
 
     template<typename T>

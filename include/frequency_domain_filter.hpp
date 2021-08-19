@@ -26,11 +26,11 @@ namespace crisp
 
             // @brief resize the filter
             // @param : vector where .x is the x-dimensions and .y the y-dimensions of the spectrum the filter will be applied to
-            void set_size(sf::Vector2<long>);
+            void set_size(Vector2ui);
 
             // @brief get the filters dimensions
             // @returns vector where .x is the width, .y the height of the filter
-            sf::Vector2<long> get_size() const;
+            Vector2ui get_size() const;
 
             // @brief set the function that determines the shape of the filter
             // @param lambda: function that takes the x- and y-coordinate and returns an appropraite value
@@ -196,9 +196,9 @@ namespace crisp
             auto&& butterworth_bandreject(double lower_cutoff, double higher_cutoff, size_t order, double pass_factor = 1, double reject_factor = 0);
 
         private:
-            sf::Vector2<long> _size;
+            Vector2ui _size;
             bool _offset_symmetrical = true;
-            sf::Vector2<long> _offset = {0,0};
+            Vector2ui _offset = {0,0};
             std::function<double(long, long)> _function = [](long x, long y) -> double {return 1;};
             
             double distance(long x, long y);

@@ -25,12 +25,12 @@ namespace crisp
         //static_assert(which_bit < std::numeric_limits<Int_t>::digits, "n-th bit cannot be large than total number of base-radix");
 
         BinaryImage out;
-        out.create(image.get_size().x, image.get_size().y);
+        out.create(image.get_size().x(), image.get_size().y);
 
         const Int_t bitmask = Int_t(1) << (std::numeric_limits<Int_t>::digits - which_bit - 1);
 
         size_t n_false = 0, n_true = 0;
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
             for (long y = 0; y < image.get_size().y; ++y)
             {

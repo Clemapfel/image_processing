@@ -29,6 +29,20 @@ int main()
     auto image = GrayScaleImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
+    auto transform = FourierTransform<BALANCED>();
+    transform.transform_from(image);
+
+    auto filter = FrequencyDomainFilter(transform.get_size().x(), transform.get_size().y());
+    filter.set_function(filter.gaussian_lowpass(transform.get_size().x() * 0.1, 1, 2));
+    filter.apply_to(transform);
+
+    image = transform.transform_to<GrayScaleImage>();
+    auto filter_sprite = Sprite();
+    filter_sprite.create_from(filter);
+
+    auto transform_sprite = Sprite();
+    transform_sprite.create_from(transform.to_image<GrayScaleImage>());
+
     auto histogram = Histogram<uint8_t>();
     histogram.create_from(image);
 
@@ -39,18 +53,17 @@ int main()
     auto pic_sprite = Sprite();
 
     hist_sprite.create_from(histogram, 256);
-    pic_sprite.create_from(thresholded);
+    pic_sprite.create_from(image);
 
-    hist_sprite.align_topleft_with({pic_sprite.get_topleft().x + pic_sprite.get_size().x + 20, 0});
+    hist_sprite.align_topleft_with({pic_sprite.get_topleft().x() + pic_sprite.get_size().x() + 20, 0});
 
     RenderWindow window;
-    window.create(hist_sprite.get_size().x + 100 + pic_sprite.get_size().x, std::max(hist_sprite.get_size().y, pic_sprite.get_size().y));
+    window.create(transform_sprite.get_size().x(), transform_sprite.get_size().y());
 
     while (window.is_open())
     {
         window.update();
         window.clear();
-        window.draw(hist_sprite);
         window.draw(pic_sprite);
         window.display();
     }
@@ -83,13 +96,13 @@ int main()
     return 0;
 
     ColorImage with_padding;
-    with_padding.create(original.get_size().x*3, original.get_size().y*3);
+    with_padding.create(original.get_size().x()*3, original.get_size().y*3);
 
     original.set_padding_type(REPEAT);
 
-    for (long x = 0; x < with_padding.get_size().x; ++x)
+    for (long x = 0; x < with_padding.get_size().x(); ++x)
         for (long y = 0; y < with_padding.get_size().y; ++y)
-            with_padding(x, y) = original.get_pixel_or_padding(x - original.get_size().x, y - original.get_size().y);
+            with_padding(x, y) = original.get_pixel_or_padding(x - original.get_size().x(), y - original.get_size().y);
 
     GrayScaleImage original;
     original.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
@@ -117,7 +130,7 @@ int main()
     sprite.zoom(zoom);
 
     RenderWindow window;
-    window.create(sprite.get_size().x * zoom, sprite.get_size().y * zoom);
+    window.create(sprite.get_size().x() * zoom, sprite.get_size().y * zoom);
 
     window.clear();
     window.draw(sprite);
@@ -151,7 +164,7 @@ int main()
     float mean = 0;
 
     // measure
-    for (long x = 0; x < original.get_size().x; ++x)
+    for (long x = 0; x < original.get_size().x(); ++x)
         for (long y = 0; y < original.get_size().y; ++y)
         {
             auto magnitude = sqrt(x_img(x, y) * x_img(x, y) + y_img(x, y) * y_img(x, y));
@@ -160,7 +173,7 @@ int main()
             mean += magnitude;
         }
 
-    mean /= original.get_size().x * original.get_size().y;
+    mean /= original.get_size().x() * original.get_size().y;
 
     float lower = mean;
     float upper = std::min<float>(2*mean, mean + (max - mean) * 0.5);
@@ -168,7 +181,7 @@ int main()
     std::cout << "min: " << min << " max: " << max << std::endl;
     std::cout << "lower: " << lower << " upper: " << upper << std::endl;
 
-    for (long x = 0; x < original.get_size().x; ++x)
+    for (long x = 0; x < original.get_size().x(); ++x)
     {
         for (long y = 0; y < original.get_size().y; ++y)
         {
@@ -233,7 +246,7 @@ int main()
     }
     auto copy = original;
     // post process
-    for (long x = 0; x < original.get_size().x; ++x)
+    for (long x = 0; x < original.get_size().x(); ++x)
         for (long y = 0; y < original.get_size().y; ++y)
         {
             size_t count = 0;
@@ -265,7 +278,7 @@ int main()
     sprite.load_from(color_image);
 
     RenderWindow window;
-    window.create(color_image.get_size().x, image.get_size().y);
+    window.create(color_image.get_size().x(), image.get_size().y);
 
     window.clear();
     window.draw(sprite);
@@ -286,11 +299,11 @@ int main()
     FourierTransform<SPEED> fourier;
     fourier.transform_from(image_in);
 
-    auto filter = FrequencyDomainFilter(fourier.get_size().x, fourier.get_size().y);
+    auto filter = FrequencyDomainFilter(fourier.get_size().x(), fourier.get_size().y);
     filter.set_function(filter.gaussian_bandreject(10, 100));
     filter.set_offset(50, 50);
 
-    auto filter_2 = FrequencyDomainFilter(fourier.get_size().x, fourier.get_size().y);
+    auto filter_2 = FrequencyDomainFilter(fourier.get_size().x(), fourier.get_size().y);
     filter_2.set_function(filter.gaussian_bandreject(10, 100));
     filter_2.set_offset(-25, 50);
     filter *= filter_2;
@@ -303,7 +316,7 @@ int main()
     auto image_sprite = Sprite();
 
     RenderWindow window;
-    window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
+    window.create(image_in.get_size().x() * 2, image_in.get_size().y * 2);
 
     auto filter_sprite = Sprite();
 
@@ -334,11 +347,11 @@ int main()
     image_in.set_padding_type(GrayScaleImage::PaddingType::MIRROR);
 
     RenderWindow window;
-    window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
+    window.create(image_in.get_size().x() * 2, image_in.get_size().y * 2);
 
-    std::cout << "image: " << image_in.get_size().x << "x" << image_in.get_size().y << std::endl;
+    std::cout << "image: " << image_in.get_size().x() << "x" << image_in.get_size().y << std::endl;
 
-    size_t n = image_in.get_size().x * 2;
+    size_t n = image_in.get_size().x() * 2;
     size_t m = image_in.get_size().y * 2;
 
     auto* in = fftwl_alloc_complex(n*m);
@@ -474,9 +487,9 @@ int main()
     image_in.set_padding_type(GrayScaleImage::PaddingType::ONE);
 
     RenderWindow window;
-    window.create(image_in.get_size().x * 2, image_in.get_size().y * 2);
+    window.create(image_in.get_size().x() * 2, image_in.get_size().y * 2);
 
-    size_t m = image_in.get_size().x * 2;
+    size_t m = image_in.get_size().x() * 2;
     size_t n = image_in.get_size().y * 2;
 
     auto filter = FrequencyDomainFilter(m, n);
@@ -531,8 +544,8 @@ log(spectrum)
 
     ImageSegment<float> sample_segment;
 
-    std::vector<sf::Vector2<long>> sample_pixels;
-    for (long x = 0.7 * image.get_size().x; x < image.get_size().x; ++x)
+    std::vector<Vector2ui> sample_pixels;
+    for (long x = 0.7 * image.get_size().x(); x < image.get_size().x(); ++x)
         for (long y = 0.2 * image.get_size().y; y < image.get_size().y; ++y)
                 sample_pixels.emplace_back(x, y);
 
@@ -554,8 +567,8 @@ log(spectrum)
     update();
 
     image_sprite.align_topleft_with({5, 5});
-    sample_sprite.align_topleft_with({window.getSize().x - 5 - sample_sprite.get_size().x, 5});
-    sample_hist_sprite.align_topleft_with({sample_sprite.get_topleft().x - sample_hist_sprite.get_size().x - 10, sample_sprite.get_topleft().y + sample_sprite.get_size().x * 0.5f});
+    sample_sprite.align_topleft_with({window.getSize().x - 5 - sample_sprite.get_size().x(), 5});
+    sample_hist_sprite.align_topleft_with({sample_sprite.get_topleft().x - sample_hist_sprite.get_size().x() - 10, sample_sprite.get_topleft().y + sample_sprite.get_size().x() * 0.5f});
 
     float min = 0;
     float max = 0;
@@ -612,8 +625,8 @@ log(spectrum)
 
     ImageSegment<float> test;
 
-    std::vector<sf::Vector2<long>> pixels;
-    for (long x = 0; x < image.get_size().x; ++x)
+    std::vector<Vector2ui> pixels;
+    for (long x = 0; x < image.get_size().x(); ++x)
         for (long y = 0; y < image.get_size().y; ++y)
             if (image(x, y) > 0.75)
                 pixels.push_back({x, y});

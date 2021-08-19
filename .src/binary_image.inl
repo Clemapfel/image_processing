@@ -7,8 +7,8 @@ namespace crisp
 {
     inline void BinaryImage::create(long width, long height, bool init)
     {
-        _size.x = width;
-        _size.y = height;
+       _size.x() = width;
+        _size.y() = height;
         _value.resize(width, height);
         _value.setConstant(init);
     }
@@ -20,8 +20,8 @@ namespace crisp
         sf::Image image;
         image.loadFromFile(path);
 
-        _size.x = image.getSize().x;
-        _size.y = image.getSize().y;
+       _size.x() = image.getSize().x;
+        _size.y() = image.getSize().y;
         _value.resize(image.getSize().x, image.getSize().y);
 
         for (long x = 0; x < image.getSize().x; ++x)
@@ -45,7 +45,7 @@ namespace crisp
         return _value(x, y);
     }
 
-    inline sf::Vector2<long> BinaryImage::get_size() const
+    inline Vector2ui BinaryImage::get_size() const
     {
         return _size;
     }
@@ -53,10 +53,10 @@ namespace crisp
     inline BinaryImage BinaryImage::operator!() const
     {
         BinaryImage out;
-        out.create(get_size().x, get_size().y);
+        out.create(get_size().x(), get_size().y());
 
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 out(x, y) = not operator()(x, y);
 
         return out;
@@ -65,10 +65,10 @@ namespace crisp
     inline BinaryImage BinaryImage::operator&(const BinaryImage& other) const
     {
         BinaryImage out;
-        out.create(get_size().x, get_size().y);
+        out.create(get_size().x(), get_size().y());
 
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 out(x, y) = (*this)(x, y) & other(x, y);
 
         return out;
@@ -77,10 +77,10 @@ namespace crisp
     inline BinaryImage BinaryImage::operator|(const BinaryImage& other) const
     {
         BinaryImage out;
-        out.create(get_size().x, get_size().y);
+        out.create(get_size().x(), get_size().y());
 
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 out(x, y) = (*this)(x, y) | other(x, y);
 
         return out;
@@ -89,10 +89,10 @@ namespace crisp
     inline BinaryImage BinaryImage::operator^(const BinaryImage& other) const
     {
         BinaryImage out;
-        out.create(get_size().x, get_size().y);
+        out.create(get_size().x(), get_size().y());
 
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 out(x, y) = (*this)(x, y) ^ other(x, y);
 
         return out;
@@ -108,8 +108,8 @@ namespace crisp
 
     inline BinaryImage& BinaryImage::operator&=(const BinaryImage& other)
     {
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 (*this)(x, y) = (*this)(x, y) & other(x, y);
 
         return *this;
@@ -117,8 +117,8 @@ namespace crisp
 
     inline BinaryImage& BinaryImage::operator|=(const BinaryImage& other)
     {
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 (*this)(x, y) = (*this)(x, y) | other(x, y);
 
         return *this;
@@ -126,8 +126,8 @@ namespace crisp
 
     inline BinaryImage& BinaryImage::operator^=(const BinaryImage& other)
     {
-        for (long x = 0; x < get_size().x; ++x)
-            for (long y = 0; y < get_size().y; ++y)
+        for (long x = 0; x < get_size().x(); ++x)
+            for (long y = 0; y < get_size().y(); ++y)
                 (*this)(x, y) = (*this)(x, y) ^ other(x, y);
 
         return *this;

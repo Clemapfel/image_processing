@@ -170,11 +170,11 @@ namespace crisp
 
                     // @brief get the structuring elements dimensions
                     // @returns a vector of two longs where .x is the number of rows, .y the number of columns
-                    sf::Vector2<long> get_size() const;
+                    Vector2ui get_size() const;
 
                     // @brief get the origin of the structuring element, centered by default
                     // @returns vector of two longs where .x is the x-coordinate, .y is the y-coordinate of the center
-                    sf::Vector2<long> get_origin() const;
+                    Vector2ui get_origin() const;
 
                     // @brief clear all values and resize the element
                     // @param nrows: the x-dimensions of the element
@@ -238,7 +238,7 @@ namespace crisp
                     bool is_dont_care(long x, long y) const;
 
                 private:
-                    sf::Vector2<long> _origin;
+                    Vector2ui _origin;
                     Eigen::Matrix<std::optional<StructuringElementValue_t>, Eigen::Dynamic, Eigen::Dynamic> _matrix;
             };
 

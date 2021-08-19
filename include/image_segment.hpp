@@ -18,12 +18,12 @@ namespace crisp
     {
         struct PixelCoordCompare
         {
-            bool operator()(const sf::Vector2<long>& a, const sf::Vector2<long>& b) const
+            bool operator()(const Vector2ui& a, const Vector2ui& b) const
             {
-                return a.x != b.x ? a.x < b.x : a.y <= b.y;
+                return a.x() != b.x() ? a.x() < b.x() : a.y() <= b.y();
             }
         };
-        using Set_t = std::set<sf::Vector2<long>, PixelCoordCompare>;
+        using Set_t = std::set<Vector2ui, PixelCoordCompare>;
 
         public:
             ImageSegment() = default;
@@ -31,7 +31,7 @@ namespace crisp
             // @brief create the segment from an image and a vector of xy-coordinates
             // @param original: pointer to an image, must be kept in memory for the segment to stay valid
             // @param coords: vector of pixel coordinates, doublets will be ignored
-            void create(Image<Value_t>* original, std::vector<sf::Vector2<long>> coords);
+            void create(Image<Value_t>* original, std::vector<Vector2ui> coords);
 
             // @brief paste the transform onto a new image of size equal to the minimum bounding box of segments the pixel set
             // @returns an image of an arbitrary type
@@ -54,7 +54,7 @@ namespace crisp
         private:
             Image<Value_t>* _image;
 
-            sf::Vector2<long> _x_bounds,
+            Vector2ui _x_bounds,
                               _y_bounds;
 
             Set_t _pixels;

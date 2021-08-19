@@ -26,15 +26,13 @@ namespace crisp
             void create_from_file(std::string path);
 
             // @override, c.f. Image<...>::get_size in image.hpp
-            [[nodiscard]] sf::Vector2<long> get_size() const override;
+            [[nodiscard]] Vector2ui get_size() const override;
 
-        protected:
-            // @override, c.f. Image<...>::get_pixel in image.hpp
+        private:
             virtual float  get_pixel(long x, long y) const override;
             virtual float& get_pixel(long x, long y) override;
 
-        private:
-            sf::Vector2<long> _size;
+            Vector2ui _size;
             Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> _value;
     };
 }

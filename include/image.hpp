@@ -55,8 +55,8 @@ namespace crisp
             virtual Value_t get_pixel_or_padding(int x, int y) const;
 
             // @brief get the images size
-            // @return vector v such that v.x = #rows, v.y = #cols
-            [[nodiscard]] virtual sf::Vector2<long> get_size() const = 0;
+            // @return vector v such that v.x()() = #rows, v.y() = #cols
+            [[nodiscard]] virtual Vector2ui get_size() const = 0;
 
             // @brief resize an image and clear each pixel
             // @param width: number of rows
@@ -153,7 +153,7 @@ namespace crisp
 
                 private:
                     Image<Value_t>* _data;
-                    sf::Vector2<long> _size;
+                    Vector2ui _size;
                     long _x, _y = 0;
             };
 
@@ -178,7 +178,7 @@ namespace crisp
 
                 private:
                     const Image<Value_t>* _data;
-                    sf::Vector2<long> _size;
+                    Vector2ui _size;
                     long _x, _y = 0;
             };
     };

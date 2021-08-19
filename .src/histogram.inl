@@ -18,9 +18,9 @@ namespace crisp
         _max_intensity = 0;
 
         size_t n = 0;
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
-            for (long y = 0; y < image.get_size().y; ++y)
+            for (long y = 0; y < image.get_size().y(); ++y)
             {
                 auto value = float(image(x, y));
                 auto key = static_cast<DiscreteValue_t>(round(

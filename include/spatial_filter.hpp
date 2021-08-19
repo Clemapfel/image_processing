@@ -61,7 +61,7 @@ namespace crisp
 
             // @brief get size of kernel
             // @returns vector where .x is the number of rows, .y the number of columns of the kernel matrix
-            sf::Vector2<long> get_size() const;
+            Vector2ui get_size() const;
 
             // @brief set the filters evaluation function, this governs how the convluted values are added up
             // @param : the function, must be bindable to std::function<typename Image_t::value_t(const Image_t& image, long pixel_x, long pixel_y, const Kernel<Value_t>& kernel)>;

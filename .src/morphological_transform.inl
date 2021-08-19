@@ -20,24 +20,24 @@ namespace crisp
         template<typename Image_t>
         void flat_erode_aux(Image_t& image, Image_t& result, StructuringElement<bool> se)
         {
-            long n = se.get_size().x,
-                 m = se.get_size().y;
+            long n = se.get_size().x(),
+                 m = se.get_size().y();
 
             auto origin = se.get_origin();
 
-            for (long x = 0; x < image.get_size().x; ++x)
+            for (long x = 0; x < image.get_size().x(); ++x)
             {
-                for (long y = 0; y < image.get_size().y; ++y)
+                for (long y = 0; y < image.get_size().y(); ++y)
                 {
                     // BINARY IMAGE
                     if (std::is_same_v<typename Image_t::value_t, bool>)
                     {
                         bool missed = false;
-                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        for (int a = -origin.x(); a < n - origin.x(); ++a)
                         {
-                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            for (int b = -origin.y(); b < m - origin.y(); ++b)
                             {
-                                if (se.is_foreground(a + origin.x, b + origin.y) !=
+                                if (se.is_foreground(a + origin.x(), b + origin.y()) !=
                                     image.get_pixel_or_padding(x + a, y + b))
                                 {
                                     missed = true;
@@ -56,11 +56,11 @@ namespace crisp
                         using ImageValue_t = typename Image_t::value_t;
                         ImageValue_t min = image(x, y);
 
-                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        for (int a = -origin.x(); a < n - origin.x(); ++a)
                         {
-                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            for (int b = -origin.y(); b < m - origin.y(); ++b)
                             {
-                                if (se.is_foreground(a + origin.x, b + origin.y))
+                                if (se.is_foreground(a + origin.x(), b + origin.y()))
                                 {
                                    min = std::min(image.get_pixel_or_padding(x + a, y + b), min);
                                 }
@@ -76,23 +76,23 @@ namespace crisp
         template<typename Image_t>
         void flat_dilate_aux(Image_t& image, Image_t& result, StructuringElement<bool> se)
         {
-            long n = se.get_size().x,
-                 m = se.get_size().y;
+            long n = se.get_size().x(),
+                 m = se.get_size().y();
 
             auto origin = se.get_origin();
 
-            for (long x = 0; x < image.get_size().x; ++x)
+            for (long x = 0; x < image.get_size().x(); ++x)
             {
-                for (long y = 0; y < image.get_size().y; ++y)
+                for (long y = 0; y < image.get_size().y(); ++y)
                 {
                     if (std::is_same_v<typename Image_t::value_t, bool>)
                     {
                         bool found = false;
-                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        for (int a = -origin.x(); a < n - origin.x(); ++a)
                         {
-                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            for (int b = -origin.y(); b < m - origin.y(); ++b)
                             {
-                                if (se.is_foreground(a + origin.x, b + origin.y) ==
+                                if (se.is_foreground(a + origin.x(), b + origin.y()) ==
                                     image.get_pixel_or_padding(x + a, y + b))
                                 {
                                     found = true;
@@ -110,11 +110,11 @@ namespace crisp
                         using ImageValue_t = typename Image_t::value_t;
                         ImageValue_t max = image(x, y);
 
-                        for (int a = -origin.x; a < n - origin.x; ++a)
+                        for (int a = -origin.x(); a < n - origin.x(); ++a)
                         {
-                            for (int b = -origin.y; b < m - origin.y; ++b)
+                            for (int b = -origin.y(); b < m - origin.y(); ++b)
                             {
-                                if (se.is_foreground(a + origin.x, b + origin.y))
+                                if (se.is_foreground(a + origin.x(), b + origin.y()))
                                 {
                                    max = std::max(image.get_pixel_or_padding(x + a, y + b), max);
                                 }
@@ -133,13 +133,13 @@ namespace crisp
     void MorphologicalTransform<Value_t>::erode(Image_t& image)
     {
         Image_t result;
-        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(true));
+        result.create(image.get_size().x(), image.get_size().y(), typename Image_t::value_t(true));
 
         if (std::is_same_v<Value_t, bool>)
             detail::flat_erode_aux<Image_t>(image, result, _structuring_element);
 
-        for (long i = 0; i < image.get_size().x; ++i)
-            for (long j = 0; j < image.get_size().y; ++j)
+        for (long i = 0; i < image.get_size().x(); ++i)
+            for (long j = 0; j < image.get_size().y(); ++j)
                 image(i, j) = result(i, j);
     }
 
@@ -148,13 +148,13 @@ namespace crisp
     void MorphologicalTransform<Value_t>::erode(Image_t& image, const Image_t& mask)
     {
         Image_t result;
-        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(true));
+        result.create(image.get_size().x(), image.get_size().y(), typename Image_t::value_t(true));
 
         if (std::is_same_v<Value_t, bool>)
             detail::flat_erode_aux<Image_t>(image, result, _structuring_element);
 
-        for (long i = 0; i < image.get_size().x; ++i)
-            for (long j = 0; j < image.get_size().y; ++j)
+        for (long i = 0; i < image.get_size().x(); ++i)
+            for (long j = 0; j < image.get_size().y(); ++j)
                 image(i, j) = std::max(result(i, j), mask(i, j));
     }
 
@@ -163,13 +163,13 @@ namespace crisp
     void MorphologicalTransform<Value_t>::dilate(Image_t& image)
     {
         Image_t result;
-        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(false));
+        result.create(image.get_size().x(), image.get_size().y(), typename Image_t::value_t(false));
 
         if (std::is_same_v<Value_t, bool>)
             detail::flat_dilate_aux<Image_t>(image, result, _structuring_element);
 
-        for (long i = 0; i < image.get_size().x; ++i)
-            for (long j = 0; j < image.get_size().y; ++j)
+        for (long i = 0; i < image.get_size().x(); ++i)
+            for (long j = 0; j < image.get_size().y(); ++j)
                 image(i, j) = result(i, j);
     }
 
@@ -178,13 +178,13 @@ namespace crisp
     void MorphologicalTransform<Value_t>::dilate(Image_t& image, const Image_t& mask)
     {
         Image_t result;
-        result.create(image.get_size().x, image.get_size().y, typename Image_t::value_t(false));
+        result.create(image.get_size().x(), image.get_size().y(), typename Image_t::value_t(false));
 
         if (std::is_same_v<Value_t, bool>)
             detail::flat_dilate_aux<Image_t>(image, result, _structuring_element);
 
-        for (long i = 0; i < image.get_size().x; ++i)
-            for (long j = 0; j < image.get_size().y; ++j)
+        for (long i = 0; i < image.get_size().x(); ++i)
+            for (long j = 0; j < image.get_size().y(); ++j)
                 image(i, j) = std::min(result(i, j), mask(i, j));
     }
 
@@ -211,27 +211,27 @@ namespace crisp
         if (not std::is_same_v<Value_t, bool> and std::is_same_v<typename Image_t::value_t, bool>)
             std::cerr << "[WARNING] hit-or-miss template matching a binary image with a non-flat structuring element is discouraged as all non-zero elements of the structuring element will be treated as true (white) during comparison" << std::endl;
 
-        long n = _structuring_element.get_size().x,
-             m = _structuring_element.get_size().y;
+        long n = _structuring_element.get_size().x(),
+             m = _structuring_element.get_size().y();
 
         auto origin = _structuring_element.get_origin();
 
         Image_t result;
-        result.create(image.get_size().x, image.get_size().y, Value_t(0.f));
+        result.create(image.get_size().x(), image.get_size().y(), Value_t(0.f));
 
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
-            for (long y = 0; y < image.get_size().y; ++y)
+            for (long y = 0; y < image.get_size().y(); ++y)
             {
-                for (int a = -origin.x; a < n - origin.x; ++a)
+                for (int a = -origin.x(); a < n - origin.x(); ++a)
                 {
-                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    for (int b = -origin.y(); b < m - origin.y(); ++b)
                     {
-                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                        if (_structuring_element.is_dont_care(a + origin.x(), b + origin.y()))
                             continue;
 
                         if (image.get_pixel_or_padding(x + a, y + b) !=
-                            _structuring_element.get_value(a + origin.x, b + origin.y))
+                            _structuring_element.get_value(a + origin.x(), b + origin.y()))
                         {
                             goto no_hit;
                         }
@@ -245,8 +245,8 @@ namespace crisp
             }
         }
 
-        for (long i = 0; i < image.get_size().x; ++i)
-            for (long j = 0; j < image.get_size().y; ++j)
+        for (long i = 0; i < image.get_size().x(); ++i)
+            for (long j = 0; j < image.get_size().y(); ++j)
                 image(i, j) = result(i, j);
     }
 
@@ -257,26 +257,26 @@ namespace crisp
         if (not std::is_same_v<Value_t, bool> and std::is_same_v<typename Image_t::value_t, bool>)
             std::cerr << "[WARNING] hit-or-miss template matching a binary image with a non-flat structuring element is discouraged as all non-zero elements of the structuring element will be treated as true (white) during comparison" << std::endl;
 
-        long n = _structuring_element.get_size().x,
-             m = _structuring_element.get_size().y;
+        long n = _structuring_element.get_size().x(),
+             m = _structuring_element.get_size().y();
 
         auto origin = _structuring_element.get_origin();
 
         Image_t result = image;
 
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
-            for (long y = 0; y < image.get_size().y; ++y)
+            for (long y = 0; y < image.get_size().y(); ++y)
             {
-                for (int a = -origin.x; a < n - origin.x; ++a)
+                for (int a = -origin.x(); a < n - origin.x(); ++a)
                 {
-                    for (int b = -origin.y; b < m - origin.y; ++b)
+                    for (int b = -origin.y(); b < m - origin.y(); ++b)
                     {
-                        if (_structuring_element.is_dont_care(a + origin.x, b + origin.y))
+                        if (_structuring_element.is_dont_care(a + origin.x(), b + origin.y()))
                             continue;
 
                         if (image.get_pixel_or_padding(x + a, y + b) !=
-                            _structuring_element.get_value(a + origin.x, b + origin.y))
+                            _structuring_element.get_value(a + origin.x(), b + origin.y()))
                         {
                             goto no_hit;
                         }
@@ -290,8 +290,8 @@ namespace crisp
             }
         }
 
-        for (long i = 0; i < image.get_size().x; ++i)
-            for (long j = 0; j < image.get_size().y; ++j)
+        for (long i = 0; i < image.get_size().x(); ++i)
+            for (long j = 0; j < image.get_size().y(); ++j)
                 image(i, j) = result(i, j);
     }
 
@@ -304,13 +304,13 @@ namespace crisp
     }
 
     template<typename Value_t>
-    sf::Vector2<long> MorphologicalTransform<Value_t>::StructuringElement::get_size() const
+    Vector2ui MorphologicalTransform<Value_t>::StructuringElement::get_size() const
     {
         return {_matrix.rows(), _matrix.cols()};
     }
 
     template<typename Value_t>
-    sf::Vector2<long> MorphologicalTransform<Value_t>::StructuringElement::get_origin() const
+    Vector2ui MorphologicalTransform<Value_t>::StructuringElement::get_origin() const
     {
         return _origin;
     }

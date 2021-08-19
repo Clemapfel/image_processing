@@ -12,14 +12,14 @@ namespace crisp
     void Sprite::create_from<Color>(const Image<Color>& image)
     {
         sf::Image temp;
-        temp.create(image.get_size().x, image.get_size().y);
+        temp.create(image.get_size().x(), image.get_size().y());
 
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
-            for (long y = 0; y < image.get_size().y; ++y)
+            for (long y = 0; y < image.get_size().y(); ++y)
             {
                 auto color = image(x, y);
-                temp.setPixel(x, y, sf::Color(color.red() * 255, color.green() * 255, color.blue() * 255, color.alpha() * 255));
+                temp.setPixel(x, y, sf::Color(color.red() * 255, color.green() * 255, color.blue() * 255, 255));
             }
         }
 
@@ -33,11 +33,11 @@ namespace crisp
     void Sprite::create_from(const Image<Value_t>& image)
     {
         sf::Image temp;
-        temp.create(image.get_size().x, image.get_size().y);
+        temp.create(image.get_size().x(), image.get_size().y());
 
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
-            for (long y = 0; y < image.get_size().y; ++y)
+            for (long y = 0; y < image.get_size().y(); ++y)
             {
                 float value_f = float(image(x, y));
                 value_f = clamp(0.f, 1.f, value_f);
@@ -117,7 +117,7 @@ namespace crisp
     inline void Sprite::create_from(const FrequencyDomainFilter& filter)
     {
         sf::Image temp;
-        temp.create(filter.get_size().x, filter.get_size().y);
+        temp.create(filter.get_size().x(), filter.get_size().y());
 
         const auto& values = filter.get_values();
 
@@ -141,11 +141,11 @@ namespace crisp
     void Sprite::create_from(const SpatialFilter<Image_t>& filter)
     {
         sf::Image temp;
-        temp.create(filter.get_size().x, filter.get_size().y);
+        temp.create(filter.get_size().x(), filter.get_size().y());
 
-        for (long x = 0; x < filter.get_size().x; ++x)
+        for (long x = 0; x < filter.get_size().x(); ++x)
         {
-            for (long y = 0; y < filter.get_size().y; ++y)
+            for (long y = 0; y < filter.get_size().y(); ++y)
             {
                 float value = filter(x, y);
                 temp.setPixel(x, y, sf::Color(value * 255, value * 255, value * 255, 255));
@@ -158,32 +158,33 @@ namespace crisp
         _sprite.setPosition(0, 0);
     }
 
-    inline sf::Vector2f Sprite::get_size() const
+    inline Vector2f Sprite::get_size() const
     {
-        return {_texture.getSize().x * _sprite.getScale().x, _texture.getSize().y * _sprite.getScale().y};
+        return Vector2f{_texture.getSize().x * _sprite.getScale().x, _texture.getSize().y * _sprite.getScale().y};
     }
 
-    inline sf::Vector2f Sprite::get_topleft() const
+    inline Vector2f Sprite::get_topleft() const
     {
         return _top_left_pos;
     }
 
-    inline sf::Vector2f Sprite::get_center() const
+    inline Vector2f Sprite::get_center() const
     {
         auto size = get_size();
-        return {_top_left_pos.x + size.x * 0.5f, _top_left_pos.y + size.y * 0.5f};
+        return {_top_left_pos.x() + size.x() * 0.5f, _top_left_pos.y() + size.y()
+        * 0.5f};
     }
 
         inline void Sprite::align_topleft_with(Vector2f top_left)
     {
-        _top_left_pos.x = round(top_left.at(0));
-        _top_left_pos.y = round(top_left.at(1));
+        _top_left_pos.x() = round(top_left.at(0));
+        _top_left_pos.y() = round(top_left.at(1));
     }
 
     inline void Sprite::align_center_with(Vector2f center)
     {
-        _top_left_pos.x = round(center.at(0) - _texture.getSize().x * 0.5);
-        _top_left_pos.y = round(center.at(1) - _texture.getSize().y * 0.5);
+        _top_left_pos.x() = round(center.at(0) - _texture.getSize().x * 0.5);
+        _top_left_pos.y() = round(center.at(1) - _texture.getSize().y * 0.5);
     }
 
     inline void Sprite::scale(float factor, bool smooth)
@@ -195,7 +196,7 @@ namespace crisp
 
     inline void Sprite::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
-        states.transform.translate(_top_left_pos.x, _top_left_pos.y);
+        states.transform.translate(_top_left_pos.x(), _top_left_pos.y());
         states.transform.scale(_zoom_factor, _zoom_factor);
         states.texture = &_texture;
         target.draw(_sprite, states);

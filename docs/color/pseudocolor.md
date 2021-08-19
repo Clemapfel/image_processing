@@ -117,7 +117,7 @@ auto infrared = GrayScaleImage();
     sprite.create_from(color);
 
     RenderWindow window;
-    window.create(sprite.get_size().x, sprite.get_size().y);
+    window.create(sprite.get_size().x(), sprite.get_size().y);
 
     while (window.is_open())
     {

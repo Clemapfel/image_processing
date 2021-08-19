@@ -93,8 +93,8 @@ namespace crisp
     {
         static_assert(std::is_same_v<Value_t, typename Image_t::value_t>, "image and transform must work in the same value domain");
 
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
                 image(x, y) = (*this)(image(x, y), x, y);
     }
 }

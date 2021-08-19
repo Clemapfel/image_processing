@@ -10,10 +10,10 @@ namespace crisp
     Image_t FourierTransform<Mode>::to_image() const
     {
         Image_t out;
-        out.create(get_size().x, get_size().y);
+        out.create(get_size().x(), get_size().y());
 
-        long m = get_size().x,
-             n = get_size().y;
+        long m = get_size().x(),
+             n = get_size().y();
 
         for (long x = 0, i = 0; x < m; ++x)
         {
@@ -43,10 +43,10 @@ namespace crisp
     Image_t FourierTransform<Mode>::phase_angle_to_image() const
     {
         Image_t out;
-        out.create(get_size().x, get_size().y);
+        out.create(get_size().x(), get_size().y());
 
-        long m = get_size().x,
-             n = get_size().y;
+        long m = get_size().x(),
+             n = get_size().y();
 
         for (long x = 0, i = 0; x < m; ++x)
         {
@@ -71,7 +71,7 @@ namespace crisp
     template<FourierTransformMode Mode>
     size_t FourierTransform<Mode>::to_index(long x, long y) const
     {
-        return y + get_size().y*x;
+        return y + get_size().y()*x;
     }
 
     template<FourierTransformMode Mode>
@@ -105,7 +105,7 @@ namespace crisp
     }
 
     template<FourierTransformMode Mode>
-    sf::Vector2<long> FourierTransform<Mode>::get_size() const
+    Vector2ui FourierTransform<Mode>::get_size() const
     {
         return _size;
     }
@@ -126,8 +126,8 @@ namespace crisp
     template<typename Image_t>
     void FourierTransform<SPEED>::transform_from(const Image_t& image_in)
     {
-        long m = image_in.get_size().x * 2;
-        long n = image_in.get_size().y * 2;
+        long m = image_in.get_size().x() * 2;
+        long n = image_in.get_size().y() * 2;
 
         _size = {m, n};
 
@@ -182,10 +182,10 @@ namespace crisp
     Image_t FourierTransform<SPEED>::transform_to() const
     {
         Image_t image_out;
-        image_out.create(get_size().x / 2, get_size().y / 2);
+        image_out.create(get_size().x() / 2, get_size().y() / 2);
 
-        long m = get_size().x;
-        long n = get_size().y;
+        long m = get_size().x();
+        long n = get_size().y();
 
         auto* values = fftwf_alloc_complex(m*n);
         auto plan = fftwf_plan_dft_2d(m, n, values, values, FFTW_BACKWARD, FFTW_ESTIMATE);
@@ -223,8 +223,8 @@ namespace crisp
     template<typename Image_t>
     void FourierTransform<Mode>::transform_from(const Image_t& image_in)
     {
-        long m = image_in.get_size().x * 2;
-        long n = image_in.get_size().y * 2;
+        long m = image_in.get_size().x() * 2;
+        long n = image_in.get_size().y() * 2;
 
         _size = {m, n};
 
@@ -279,10 +279,10 @@ namespace crisp
     Image_t FourierTransform<Mode>::transform_to() const
     {
         Image_t image_out;
-        image_out.create(get_size().x / 2, get_size().y / 2);
+        image_out.create(get_size().x() / 2, get_size().y() / 2);
 
-        long m = get_size().x;
-        long n = get_size().y;
+        long m = get_size().x();
+        long n = get_size().y();
 
         auto* values = fftwl_alloc_complex(m*n);
         auto plan = fftwl_plan_dft_2d(m, n, values, values, FFTW_BACKWARD, int(Mode) == 1 ? FFTW_ESTIMATE_PATIENT : FFTW_MEASURE);

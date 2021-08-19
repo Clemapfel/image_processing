@@ -58,8 +58,8 @@ namespace crisp
             using sf::RenderWindow::draw;
 
             // @brief clear the render area
-            // @param color: overrides all pixels with the specified current, RGB{0, 0, 0, 0} (transparency) by default
-            void clear(Color = Color(0, 0, 0, 0));
+            // @param color: overrides all pixels with the specified current, RGB{0, 0, 0} (transparency) by default
+            void clear(Color = Color(0, 0, 0));
 
             // @brief update the operating systems window by displayed all bound entities
             using sf::RenderWindow::display;

@@ -28,16 +28,16 @@ namespace crisp
     inline void FrequencyDomainFilter::set_offset(long x_dist_from_center, long y_dist_from_center, bool force_symmetry)
     {
         _offset_symmetrical = force_symmetry;
-        _offset = {x_dist_from_center, y_dist_from_center};
+        _offset = Vector2ui(x_dist_from_center, y_dist_from_center);
         _values_initialized = false;
     }
 
-    inline sf::Vector2<long> FrequencyDomainFilter::get_size() const
+    inline Vector2ui FrequencyDomainFilter::get_size() const
     {
         return _size;
     }
 
-    inline void FrequencyDomainFilter::set_size(sf::Vector2<long> size)
+    inline void FrequencyDomainFilter::set_size(Vector2ui size)
     {
         _size = size;
         _values_initialized = false;
@@ -46,19 +46,19 @@ namespace crisp
     inline void FrequencyDomainFilter::initialize() const
     {
         _values.clear();
-        _values.reserve(_size.x * _size.y);
+        _values.reserve(_size.x() * _size.y());
 
-        for (long x = 0, i = 0; x < _size.x; ++x)
-            for (long y = 0; y < _size.y; ++y, ++i)
-                _values.emplace_back(_function(x - _offset.x, y - _offset.y) * (_offset_symmetrical ? _function(x + _offset.x, y + _offset.y) : 1));
+        for (long x = 0, i = 0; x <_size.x(); ++x)
+            for (long y = 0; y < _size.y(); ++y, ++i)
+                _values.emplace_back(_function(x - _offset.x(), y - _offset.y()) * (_offset_symmetrical ? _function(x + _offset.x(), y + _offset.y()) : 1));
 
         _values_initialized = true;
     }
 
     inline double FrequencyDomainFilter::distance(long x_in, long y_in)
     {
-        auto x = x_in - _size.x / 2.f;
-        auto y = y_in - _size.y / 2.f;
+        auto x = x_in -_size.x() / 2.f;
+        auto y = y_in - _size.y() / 2.f;
         return sqrt(x*x + y*y);
     }
 
@@ -188,13 +188,13 @@ namespace crisp
     template<FourierTransformMode Mode>
     void FrequencyDomainFilter::apply_to(FourierTransform<Mode>& fourier) const
     {
-        assert(fourier.get_size().x == get_size().x and fourier.get_size().y == get_size().y);
+        assert(fourier.get_size().x() == get_size().x() and fourier.get_size().y() == get_size().y());
 
         if (not _values_initialized)
             initialize();
 
-        for (long x = 0, i = 0; x < fourier.get_size().x; ++x)
-            for (long y = 0; y < fourier.get_size().y; ++y, ++i)
+        for (long x = 0, i = 0; x < fourier.get_size().x(); ++x)
+            for (long y = 0; y < fourier.get_size().y(); ++y, ++i)
                 fourier.get_component(x, y) *= _values.at(i);
     }
 
@@ -202,7 +202,7 @@ namespace crisp
     {
         assert(_size == other._size);
 
-        auto out = FrequencyDomainFilter(_size.x, _size.y);
+        auto out = FrequencyDomainFilter(_size.x(), _size.y());
         out._values.clear();
 
         if (not _values_initialized)
@@ -221,7 +221,7 @@ namespace crisp
     {
         assert(_size == other._size);
 
-        auto out = FrequencyDomainFilter(_size.x, _size.y);
+        auto out = FrequencyDomainFilter(_size.x(), _size.y());
         out._values.clear();
 
         if (not _values_initialized)
@@ -240,7 +240,7 @@ namespace crisp
     {
         assert(_size == other._size);
 
-        auto out = FrequencyDomainFilter(_size.x, _size.y);
+        auto out = FrequencyDomainFilter(_size.x(), _size.y());
         out._values.clear();
 
         if (not _values_initialized)
@@ -259,7 +259,7 @@ namespace crisp
     {
         assert(_size == other._size);
 
-        auto out = FrequencyDomainFilter(_size.x, _size.y);
+        auto out = FrequencyDomainFilter(_size.x(), _size.y());
         out._values.clear();
 
         if (not _values_initialized)
@@ -340,11 +340,11 @@ namespace crisp
 
     inline double& FrequencyDomainFilter::operator()(long x, long y)
     {
-        return _values.at(y + _size.y * x);
+        return _values.at(y + _size.y() * x);
     }
 
     inline double FrequencyDomainFilter::operator()(long x, long y) const
     {
-        return _values.at(y + _size.y * x);
+        return _values.at(y + _size.y() * x);
     }
 }

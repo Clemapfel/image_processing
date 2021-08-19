@@ -8,6 +8,7 @@
 namespace crisp
 {
     inline GrayScaleImage::GrayScaleImage()
+        : _size(0, 0)
     {}
 
     inline float & GrayScaleImage::get_pixel(long x, long y)
@@ -22,8 +23,8 @@ namespace crisp
 
     inline void GrayScaleImage::create(long width, long height, float init)
     {
-        _size.x = width;
-        _size.y = height;
+       _size.x() = width;
+        _size.y() = height;
         _value.resize(static_cast<Eigen::Index>(width), static_cast<Eigen::Index>(height));
 
         if (init >= 0)
@@ -35,8 +36,8 @@ namespace crisp
         sf::Image image;
         image.loadFromFile(path);
 
-        _size.x = image.getSize().x;
-        _size.y = image.getSize().y;
+       _size.x() = image.getSize().x;
+        _size.y() = image.getSize().y;
         _value.resize(image.getSize().x, image.getSize().y);
 
         for (long x = 0; x < image.getSize().x; ++x)
@@ -50,7 +51,7 @@ namespace crisp
         }
     }
 
-    inline sf::Vector2<long> GrayScaleImage::get_size() const
+    inline Vector2ui GrayScaleImage::get_size() const
     {
         return _size;
     }

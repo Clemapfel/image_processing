@@ -18,14 +18,14 @@ namespace crisp::EdgeDetection
         float max = 0;
 
         if (should_measure)
-            magnitude_img.create(original.get_size().x, original.get_size().y);
+            magnitude_img.create(original.get_size().x(), original.get_size().y());
         else
             threshold *= 2;
-        out.create(original.get_size().x, original.get_size().y);
+        out.create(original.get_size().x(), original.get_size().y());
 
-        for (long x = 0; x < original.get_size().x; ++x)
+        for (long x = 0; x < original.get_size().x(); ++x)
         {
-            for (long y = 0; y < original.get_size().y; ++y)
+            for (long y = 0; y < original.get_size().y(); ++y)
             {
                 float x_sum = 0;
                 for (long s = 0; s < kernel_x.rows(); ++s)
@@ -65,8 +65,8 @@ namespace crisp::EdgeDetection
 
         threshold = 0.05 * max;
 
-        for (long x = 0; x < original.get_size().x; ++x)
-            for (long y = 0; y < original.get_size().y; ++y)
+        for (long x = 0; x < original.get_size().x(); ++x)
+            for (long y = 0; y < original.get_size().y(); ++y)
                 out(x, y) = magnitude_img(x, y) >= threshold;
 
         return out;
@@ -91,14 +91,14 @@ namespace crisp::EdgeDetection
         float max = 0;
 
         if (should_measure)
-            magnitude_img.create(original.get_size().x, original.get_size().y);
+            magnitude_img.create(original.get_size().x(), original.get_size().y());
         else
             threshold *= 4;
-        out.create(original.get_size().x, original.get_size().y);
+        out.create(original.get_size().x(), original.get_size().y());
 
-        for (long x = 0; x < original.get_size().x; ++x)
+        for (long x = 0; x < original.get_size().x(); ++x)
         {
-            for (long y = 0; y < original.get_size().y; ++y)
+            for (long y = 0; y < original.get_size().y(); ++y)
             {
                 float x_sum = 0;
                 for (long s : {-1, 1})  // skipping the zeros has same performance as seperating the kernels
@@ -138,8 +138,8 @@ namespace crisp::EdgeDetection
 
         threshold = 0.05 * max;
 
-        for (long x = 0; x < original.get_size().x; ++x)
-            for (long y = 0; y < original.get_size().y; ++y)
+        for (long x = 0; x < original.get_size().x(); ++x)
+            for (long y = 0; y < original.get_size().y(); ++y)
                 out(x, y) = magnitude_img(x, y) >= threshold;
 
         return out;
@@ -158,11 +158,11 @@ namespace crisp::EdgeDetection
         auto kernel_y = GrayScaleFilter::sobel_y();
 
         GrayScaleImage magnitude_img;
-        magnitude_img.create(original.get_size().x, original.get_size().y);
+        magnitude_img.create(original.get_size().x(), original.get_size().y());
         magnitude_img.set_padding_type(ZERO);
 
         GrayScaleImage angle_img = original;
-        angle_img.create(original.get_size().x, original.get_size().y);
+        angle_img.create(original.get_size().x(), original.get_size().y());
         angle_img.set_padding_type(STRETCH);
 
         float min = 0;
@@ -170,9 +170,9 @@ namespace crisp::EdgeDetection
         float total_sum = 0;
 
         // compute magnitude and angle
-        for (long x = 0; x < original.get_size().x; ++x)
+        for (long x = 0; x < original.get_size().x(); ++x)
         {
-            for (long y = 0; y < original.get_size().y; ++y)
+            for (long y = 0; y < original.get_size().y(); ++y)
             {
                 float x_sum = 0;
                 for (long s : {-1, 1})  // skipping the zeros has same performance as seperating the kernels
@@ -205,17 +205,17 @@ namespace crisp::EdgeDetection
             }
         }
 
-        float mean = total_sum / (original.get_size().x*original.get_size().y);
+        float mean = total_sum / (original.get_size().x()*original.get_size().y());
         float lower = (lower_threshold == -1 ? mean : lower_threshold * 4);
         float upper = (upper_threshold == -1 ? 2*mean : upper_threshold * 4);
 
         BinaryImage out;
-        out.create(original.get_size().x, original.get_size().y);
+        out.create(original.get_size().x(), original.get_size().y());
 
         // find weak and strong edges and link
-        for (long x = 0; x < original.get_size().x; ++x)
+        for (long x = 0; x < original.get_size().x(); ++x)
         {
-            for (long y = 0; y < original.get_size().y; ++y)
+            for (long y = 0; y < original.get_size().y(); ++y)
             {
                 Eigen::Matrix<float, 3, 3> neighborhood;
                 for (int i = -1; i <= 1; i++)
@@ -274,8 +274,8 @@ namespace crisp::EdgeDetection
         }
 
         // post process away small edges
-        for (long x = 0; x < out.get_size().x; ++x)
-            for (long y = 0; y < out.get_size().y; ++y)
+        for (long x = 0; x < out.get_size().x(); ++x)
+            for (long y = 0; y < out.get_size().y(); ++y)
             {
                 if (out(x, y) != true)
                     continue;

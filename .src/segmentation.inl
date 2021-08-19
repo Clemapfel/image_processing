@@ -70,10 +70,10 @@ namespace crisp::Segmentation
         }
 
         auto out = BinaryImage();
-        out.create(image.get_size().x, image.get_size().y);
+        out.create(image.get_size().x(), image.get_size().y());
 
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
                 out(x, y) = image(x, y) > (new_threshold / 255.f);
 
         return out;
@@ -85,7 +85,7 @@ namespace crisp::Segmentation
         histogram.create_from(image);
 
         std::map<uint8_t, std::pair<float, float>> threshold_to_sums;   // k: {cumulative_sum, intensity_sum}
-        float mn = image.get_size().x * image.get_size().y;
+        float mn = image.get_size().x() * image.get_size().y();
         float global_mean = 0;
 
         for (uint8_t k = 0; k < 255; ++k)
@@ -124,10 +124,10 @@ namespace crisp::Segmentation
         float result = max_k / 255.f;
 
         auto out = BinaryImage();
-        out.create(image.get_size().x, image.get_size().y);
+        out.create(image.get_size().x(), image.get_size().y());
 
-        for (long x = 0; x < image.get_size().x; ++x)
-            for (long y = 0; y < image.get_size().y; ++y)
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
                 out(x, y) = image(x, y) > result;
 
         return out;
@@ -136,12 +136,12 @@ namespace crisp::Segmentation
     BinaryImage variable_threshold(const GrayScaleImage& image, float constant)
     {
         BinaryImage out;
-        out.create(image.get_size().x, image.get_size().y);
+        out.create(image.get_size().x(), image.get_size().y());
 
         std::list<float> tail;
         float current_sum = 0;
 
-        size_t tail_length = constant * std::min(image.get_size().x, image.get_size().y);
+        size_t tail_length = constant * std::min(image.get_size().x(), image.get_size().y());
         size_t k = 0;
 
         auto update = [&](size_t x, size_t y, size_t i)
@@ -158,7 +158,7 @@ namespace crisp::Segmentation
             current_sum += tail.back();
         };
 
-        int top = 0, bottom = image.get_size().x - 1, left = 0, right = image.get_size().y - 1;
+        int top = 0, bottom = image.get_size().x() - 1, left = 0, right = image.get_size().y() - 1;
         int direction = 1;
 
         while (top <= bottom and left <= right)
@@ -206,14 +206,14 @@ namespace crisp::Segmentation
     BinaryImage neighborhood_threshold(const GrayScaleImage& image, size_t neighborhood_size)
     {
         auto out = BinaryImage();
-        out.create(image.get_size().x, image.get_size().y);
+        out.create(image.get_size().x(), image.get_size().y());
 
         const int spread = 7;
         const int half_spread = spread * 0.5;
 
-        for (long x = 0; x < image.get_size().x; ++x)
+        for (long x = 0; x < image.get_size().x(); ++x)
         {
-            for (long y = 0; y < image.get_size().y; ++y)
+            for (long y = 0; y < image.get_size().y(); ++y)
             {
                 float mean = 0;
                 size_t count = 0;

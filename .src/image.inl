@@ -25,13 +25,13 @@ namespace crisp
     template<typename Value_t>
     typename Image<Value_t>::Iterator Image<Value_t>::end()
     {
-        return Image::Iterator(this, get_size().x, get_size().y);
+        return Image::Iterator(this, get_size().x(), get_size().y());
     }
 
     template<typename Value_t>
     typename Image<Value_t>::ConstIterator Image<Value_t>::end() const
     {
-        return Image::ConstIterator(this, get_size().x, get_size().y);
+        return Image::ConstIterator(this, get_size().x(), get_size().y());
     }
 
     template<typename Value_t>
@@ -55,7 +55,7 @@ namespace crisp
     template<typename Value_t>
     Value_t& Image<Value_t>::operator()(long x, long y)
     {
-        if (x < 0 or x >= get_size().x or y < 0 or y >= get_size().y)
+        if (x < 0 or x >= get_size().x() or y < 0 or y >= get_size().y())
             throw std::out_of_range("index outside of image bounds, please use get_pixel_or_padding() to access padding");
 
         return get_pixel(x, y);
@@ -64,7 +64,7 @@ namespace crisp
     template<typename Value_t>
     Value_t Image<Value_t>::operator()(long x, long y) const
     {
-        if (x < 0 or x >= get_size().x or y < 0 or y >= get_size().y)
+        if (x < 0 or x >= get_size().x() or y < 0 or y >= get_size().y())
             throw std::out_of_range("index outside of image bounds, please use get_pixel_or_padding() to access padding");
 
         return get_pixel(x, y);
@@ -73,7 +73,7 @@ namespace crisp
     template<typename Value_t>
     Value_t Image<Value_t>::get_pixel_out_of_bounds(int x, int y) const
     {
-        if (x >= 0 and x < get_size().x and y >= 0 and y < get_size().y)
+        if (x >= 0 and x < get_size().x() and y >= 0 and y < get_size().y())
             return get_pixel(x, y);
 
         switch (_padding_type)
@@ -84,30 +84,30 @@ namespace crisp
                 return Value_t(1);
             case REPEAT:
             {
-                int x_mod = x % int(get_size().x);
-                int y_mod = y % int(get_size().y);
+                int x_mod = x % int(get_size().x());
+                int y_mod = y % int(get_size().y());
 
                 if (x_mod < 0)
-                    x_mod += get_size().x;
+                    x_mod += get_size().x();
 
                 if (y_mod < 0)
-                    y_mod += get_size().y;
+                    y_mod += get_size().y();
 
                 return get_pixel(x_mod, y_mod);
             }
             case MIRROR:
             {
-                int new_x = x % (get_size().x - 1);
+                int new_x = x % (get_size().x() - 1);
                 if (x < 0)
                     new_x = abs(new_x);
-                else if (x >= get_size().x)
-                    new_x = get_size().x - 1 - new_x;
+                else if (x >= get_size().x())
+                    new_x = get_size().x() - 1 - new_x;
 
-                int new_y = y % (get_size().y - 1);
+                int new_y = y % (get_size().y() - 1);
                 if (y < 0)
                     new_y = abs(new_y);
-                else if (y >= get_size().y)
-                    new_y = get_size().y - 1 - new_y;
+                else if (y >= get_size().y())
+                    new_y = get_size().y() - 1 - new_y;
 
                 return get_pixel(new_x, new_y);
             }
@@ -116,14 +116,14 @@ namespace crisp
                 int new_x = x;
                 if (x < 0)
                     new_x = 0;
-                if (x >= get_size().x)
-                    new_x = get_size().x - 1;
+                if (x >= get_size().x())
+                    new_x = get_size().x() - 1;
 
                 int new_y = y;
                 if (y < 0)
                     new_y = 0;
-                if (y >= get_size().y)
-                    new_y = get_size().y - 1;
+                if (y >= get_size().y())
+                    new_y = get_size().y() - 1;
 
                 return get_pixel(new_x, new_y);
             }
@@ -235,7 +235,7 @@ namespace crisp
     // ### Iterator ##################################################
     template<typename Value_t>
     Image<Value_t>::Iterator::Iterator(Image<Value_t>* data, size_t x, size_t y)
-        : _data(data), _x(x), _y(y), _size(_data->get_size().x, _data->get_size().y)
+        : _data(data), _x(x), _y(y), _size(_data->get_size().x(), _data->get_size().y())
     {}
 
     template<typename Value_t>
@@ -253,9 +253,9 @@ namespace crisp
     template<typename Value_t>
     typename Image<Value_t>::Iterator & Image<Value_t>::Iterator::operator++()
     {
-        if (_x < _size.x - 1)
+        if (_x <_size.x() - 1)
             _x++;
-        else if (_y < _size.y - 1)
+        else if (_y < _size.y() - 1)
         {
             _x = 0;
             _y++;
@@ -276,7 +276,7 @@ namespace crisp
             _x--;
         else if (_y > 0)
         {
-            _x = _size.x - 1;
+            _x =_size.x() - 1;
             _y--;
         }
 
@@ -300,7 +300,7 @@ namespace crisp
 
     template<typename Value_t>
     Image<Value_t>::ConstIterator::ConstIterator(const Image<Value_t>* data, size_t x, size_t y)
-        : _data(data), _x(x), _y(y), _size(_data->get_size().x, _data->get_size().y)
+        : _data(data), _x(x), _y(y), _size(_data->get_size().x(), _data->get_size().y())
     {}
 
     template<typename Value_t>
@@ -318,9 +318,9 @@ namespace crisp
     template<typename Value_t>
     typename Image<Value_t>::ConstIterator & Image<Value_t>::ConstIterator::operator++()
     {
-        if (_x < _size.x - 1)
+        if (_x <_size.x() - 1)
             _x++;
-        else if (_y < _size.y - 1)
+        else if (_y < _size.y() - 1)
         {
             _x = 0;
             _y++;
@@ -341,7 +341,7 @@ namespace crisp
             _x--;
         else if (_y > 0)
         {
-            _x = _size.x - 1;
+            _x =_size.x() - 1;
             _y--;
         }
 

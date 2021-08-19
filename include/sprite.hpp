@@ -48,17 +48,17 @@ namespace crisp
 
             // @brief get the size of the sprite, including scaling
             // @returns vector where .x is the width, .y the height of the sprite
-            sf::Vector2f get_size() const;
+            Vector2f get_size() const;
 
             // @brief get the top left position of the sprite relative to the render window origin
             // @returns vector where .x is the x-coordinate, .y the y-coordinate of the top left origin
-            sf::Vector2f get_topleft() const;
+            Vector2f get_topleft() const;
 
             // @brief get the center position of the sprite relative to the render window origin
             // @returns vector where .x is the x-coordinate, .y the y-coordinate of the center
             //
             // @note equivalent to {get_topleft() + get_size()*0.5}
-            sf::Vector2f get_center() const;
+            Vector2f get_center() const;
 
             // @brief set the sprites position by specifying the new top left
             // @param : the point, relative to the render windows origin
@@ -84,7 +84,7 @@ namespace crisp
             void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
 
             float _zoom_factor = 1;
-            sf::Vector2f _top_left_pos = {0, 0};
+            Vector2f _top_left_pos = {0, 0};
     };
 }
 
