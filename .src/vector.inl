@@ -29,7 +29,7 @@ namespace crisp
     template<typename T, size_t N>
     typename Vector<T, N>::Iterator& Vector<T, N>::Iterator::operator++()
     {
-        if (_i < n)
+        if (_i < N)
             _i++;
 
         return *this;
@@ -73,10 +73,10 @@ namespace crisp
     template<typename T, size_t N>
     Vector<T, N>::Vector(std::initializer_list<T> list)
     {
-        assert(list.size() == n);
+        assert(list.size() == N);
 
         size_t i = 0;
-        for (auto it = list.begin(); i < n and it != list.end(); it += 1, ++i)
+        for (auto it = list.begin(); i < N and it != list.end(); it += 1, ++i)
             Eigen::Array<T, 1, N>::operator()(0, i) = *it;
     }
 
@@ -89,8 +89,8 @@ namespace crisp
     template<typename T, size_t N>
     T & Vector<T, N>::at(size_t i)
     {
-        if (i >= n)
-            throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(n));
+        if (i >= N)
+            throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(N));
 
         return Eigen::Array<T, 1, N>::operator()(0, i);;
     }
@@ -98,8 +98,8 @@ namespace crisp
     template<typename T, size_t N>
     T Vector<T, N>::at(size_t i) const
     {
-        if (i >= n)
-            throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(n));
+        if (i >= N)
+            throw std::out_of_range("Index " + std::to_string(i) + " out of range for vector of size " + std::to_string(N));
 
         return Eigen::Array<T, 1, N>::operator()(0, i);;
     }
@@ -113,7 +113,7 @@ namespace crisp
     template<typename T, size_t N>
     auto Vector<T, N>::end()
     {
-        return Vector<T, N>::Iterator(this, n);
+        return Vector<T, N>::Iterator(this, N);
     }
 
     template<typename T, size_t N>
@@ -154,7 +154,7 @@ namespace crisp
     template<typename T, size_t N>
     Vector<T, N> clamp(Vector<T, N> min, Vector<T, N> max, Vector<T, N> value)
     {
-        for (size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < N; ++i)
         {
             if (value.at(i) < min.at(i))
                 value[i] = min.at(i);
@@ -181,7 +181,7 @@ namespace crisp
     {
         T current_min = std::numeric_limits<T>::max();
 
-        for (size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < N; ++i)
             current_min = std::min(vector[i], current_min);
 
         return current_min;
@@ -192,7 +192,7 @@ namespace crisp
     {
         T current_max = std::numeric_limits<T>::min();
 
-        for (size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < N; ++i)
             current_max = std::max(vector[i], current_max);
 
         return current_max;

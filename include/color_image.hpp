@@ -132,7 +132,7 @@ namespace crisp
 
     Vector2ui ColorImage::get_size() const
     {
-        return {_rgb.rows(), _rgb.cols()};
+        return Vector2ui{static_cast<unsigned long>(_rgb.rows()), static_cast<unsigned long>(_rgb.cols())};
     }
 
     GrayScaleImage ColorImage::get_red_plane() const

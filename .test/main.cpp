@@ -26,45 +26,23 @@ using namespace crisp;
 
 int main()
 {
-    auto image = GrayScaleImage();
+    auto image = ColorImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
-    auto transform = FourierTransform<BALANCED>();
-    transform.transform_from(image);
+    image = Segmentation::superpixel_clustering(image, 500);
 
-    auto filter = FrequencyDomainFilter(transform.get_size().x(), transform.get_size().y());
-    filter.set_function(filter.gaussian_lowpass(transform.get_size().x() * 0.1, 1, 2));
-    filter.apply_to(transform);
+    auto window = RenderWindow();
+    window.create(image.get_size().x() * 2, image.get_size().y() * 2);
 
-    image = transform.transform_to<GrayScaleImage>();
-    auto filter_sprite = Sprite();
-    filter_sprite.create_from(filter);
-
-    auto transform_sprite = Sprite();
-    transform_sprite.create_from(transform.to_image<GrayScaleImage>());
-
-    auto histogram = Histogram<uint8_t>();
-    histogram.create_from(image);
-
-    sf::Clock clock;
-    BinaryImage thresholded = Segmentation::basic_threshold(image);
-    std::cout << clock.restart().asSeconds() << std::endl;
-    auto hist_sprite = Sprite();
-    auto pic_sprite = Sprite();
-
-    hist_sprite.create_from(histogram, 256);
-    pic_sprite.create_from(image);
-
-    hist_sprite.align_topleft_with({pic_sprite.get_topleft().x() + pic_sprite.get_size().x() + 20, 0});
-
-    RenderWindow window;
-    window.create(transform_sprite.get_size().x(), transform_sprite.get_size().y());
+    auto sprite = Sprite();
+    sprite.create_from(image);
+    sprite.scale(2, false);
 
     while (window.is_open())
     {
         window.update();
         window.clear();
-        window.draw(pic_sprite);
+        window.draw(sprite);
         window.display();
     }
 
