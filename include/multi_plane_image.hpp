@@ -7,6 +7,7 @@
 
 #include <image.hpp>
 #include <grayscale_image.hpp>
+#include <color_image.hpp>
 #include <vector.hpp>
 
 namespace crisp
@@ -35,6 +36,13 @@ namespace crisp
             // @param : GrayScaleImage holding the values
             void set_nth_plane(const GrayScaleImage&);
 
+            // @brief transform to rgb image by selecting three of the n planes
+            // @param red_plane_i: component index translated to red
+            // @param green_plane_i: component index translated to green
+            // @param blue_plane_i: component index translated to blue
+            // @returns rgb image
+            ColorImage to_rgb_image(size_t red_plane_i, size_t green_plane_i, size_t blue_plane_i);
+
         protected:
             Vector2ui _size;
             Eigen::Matrix<Value_t, Eigen::Dynamic, Eigen::Dynamic> _values;
@@ -43,50 +51,6 @@ namespace crisp
             Value_t get_pixel(long x, long y) const override;
             Value_t& get_pixel(long x, long y) override;
     };
-
-    template<typename VectorValue_t, size_t N>
-    void MultiPlaneImage<VectorValue_t, N>::create(long width, long height, MultiPlaneImage::Value_t init)
-    {
-        _values.resize(width, height);
-        _values.setConstant(init);
-       _size.x() = width;
-        _size.y() = height;
-    }
-
-    template<typename VectorValue_t, size_t N>
-    GrayScaleImage MultiPlaneImage<VectorValue_t, N>::get_nth_plane(size_t n)
-    {
-        assert(n < N);
-
-        GrayScaleImage out;
-
-        for (long x = 0; x <_size.x(); ++x)
-            for (long y = 0; y < _size.y(); ++y)
-                out(x, y) = _values(x, y).at(n);
-
-        return out;
-    }
-
-    template<typename VectorValue_t, size_t N>
-    void MultiPlaneImage<VectorValue_t, N>::set_nth_plane(const GrayScaleImage& in)
-    {
-        assert(in.get_size() == _size);
-
-        for (long x = 0; x <_size.x(); ++x)
-            for (long y = 0; y < _size.y(); ++y)
-                _values(x, y).at(n) = in(x, y);
-    }
-
-    template<typename VectorValue_t, size_t N>
-    typename MultiPlaneImage<VectorValue_t, N>::Value_t MultiPlaneImage<VectorValue_t, N>::get_pixel(long x, long y) const
-    {
-        return _values(x, y);
-    }
-
-    template<typename VectorValue_t, size_t N>
-    typename MultiPlaneImage<VectorValue_t, N>::Value_t& MultiPlaneImage<VectorValue_t, N>::get_pixel(long x, long y)
-    {
-        return _values(x, y);
-    }
-
 }
+
+#include ".src/multi_plane_image.inl"
