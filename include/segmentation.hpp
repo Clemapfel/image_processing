@@ -44,6 +44,9 @@ namespace crisp::Segmentation
     //
     // @complexity: amortized o(8 * neighborhood_size * m * n), where m,n size of the image
     BinaryImage neighborhood_threshold(const GrayScaleImage& image, size_t neighborhood_size = 10);
+
+    //
+    ColorImage superpixel_clustering(const ColorImage&, size_t n_superpixel);
 }
 
 #include ".src/segmentation.inl"

@@ -236,4 +236,100 @@ namespace crisp::Segmentation
 
         return out;
     }
+
+    ColorImage superpixel_clustering(const ColorImage& image, size_t n_superpixel)
+    {
+        auto spacing = sqrt((image.get_size().x() * image.get_size().y()) / n_superpixel);
+
+        float constant = spacing * spacing; // maximum expected color distance
+
+        auto distance = [&](const Color& c_a, const Vector2ui& xy_a, const Color& c_b, const Vector2ui& xy_b)
+        {
+            float d_c = dist(c_a, c_b);
+            float d_xy = dist(xy_a, xy_b);
+
+            float c_term = d_c * d_c;
+            float xy_term = (d_xy / spacing) * (d_xy / spacing);
+            return sqrt(c_term + xy_term * constant);
+        };
+
+        std::vector<Vector2ui> centers;
+        std::vector<Color> center_color_sum;
+        std::vector<size_t> center_n;
+
+        centers.reserve(n_superpixel);
+        center_color_sum.reserve(n_superpixel);
+        center_n.reserve(n_superpixel);
+
+        for (long x = 0; x < image.get_size().x(); x += spacing)
+        {
+            for (long y = 0; y < image.get_size().y(); y += spacing)
+            {
+                centers.emplace_back(Vector2ui(x, y));
+                center_color_sum.emplace_back(image(x, y));
+                center_n.emplace_back(1);
+            }
+        }
+
+        // use color image as labeling space [-1, 0, 1, ... centers.size()-1] to save memory and allocation time
+        // r = label
+        // g = distance
+        // b = 0
+        ColorImage out;
+        out.create(image.get_size().x(), image.get_size().y(), Color(-1, std::numeric_limits<float>::infinity(), 0));
+
+        while (true)
+        {
+            size_t max_n_changed = 0;
+            for (size_t center_i = 0; center_i < centers.size(); ++center_i)
+            {
+                auto center = centers.at(center_i);
+                size_t n_changed = 0;
+
+                for (int i = -spacing; i < +spacing; ++i)
+                {
+                    for (int j = -spacing; j < +spacing; ++j)
+                    {
+                        if ((center.x() + i < 0 or center.x() + i >= image.get_size().x()) or  (center.y() + i < 0 or center.y() + i >= image.get_size().y()))
+                            continue;
+
+                        auto new_c = image(center.x() + i, center.y() + j);
+                        auto new_pos = Vector2ui(center.x() + i, center.y() + j);
+
+                        auto mean_color = center_color_sum.at(center_i);
+                        mean_color /= center_n.at(center_i);
+
+                        auto dist = distance(mean_color, center, new_c, new_pos);
+                        if (dist < out(new_pos.x(), new_pos.y()).y())
+                        {
+                            out(new_pos.x(), new_pos.y()).x() = center_i;
+                            out(new_pos.x(), new_pos.y()).y() = dist;
+
+                            center_n.at(center_i) += 1;
+                            center_color_sum.at(center_i) += image(new_pos.x(), new_pos.y());
+
+                            n_changed += 1;
+                        }
+                    }
+                }
+
+                max_n_changed = std::max(n_changed, max_n_changed);
+            }
+
+            if (max_n_changed < 2)  //TODO: might deadlock?
+                break;
+        }
+
+        for (auto& px : out)
+        {
+            size_t which = px.x();
+            Color mean = center_color_sum.at(which);
+            mean /= center_n.at(which);
+
+            px = mean;
+        }
+
+        return out;
+    }
+
 }

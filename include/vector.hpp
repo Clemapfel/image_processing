@@ -53,7 +53,7 @@ namespace crisp
 
     // @brief: wrapper for Eigen::Vector that offers std::vector-like style convenience
     template<typename T, size_t N>
-    class Vector : protected Eigen::Array<T, 1, N>
+    class Vector : public Eigen::Array<T, 1, N>
     {
         using Super_t = Eigen::Array<T, 1, N>;
         
