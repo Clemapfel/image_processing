@@ -47,6 +47,10 @@ namespace crisp
     template<typename T, size_t N>
     T max(Vector<T, N> vector);
 
+    // @brief get euclidian distance between two vectors
+    template<typename T, size_t N>
+    double dist(const Vector<T, N>& a, const Vector<T, N>& b);
+
     // @brief: wrapper for Eigen::Vector that offers std::vector-like style convenience
     template<typename T, size_t N>
     class Vector : protected Eigen::Array<T, 1, N>
