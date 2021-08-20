@@ -29,7 +29,9 @@ int main()
     auto image = ColorImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
-    image = Segmentation::superpixel_clustering(image, 250);
+    sf::Clock clock;
+    image = Segmentation::superpixel_clustering(image, 300);
+    std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);

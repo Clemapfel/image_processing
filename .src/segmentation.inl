@@ -237,7 +237,8 @@ namespace crisp::Segmentation
         return out;
     }
 
-    ColorImage superpixel_clustering(const ColorImage& image, size_t n_superpixel)
+    /*
+    ColorImage __superpixel_clustering(const ColorImage& image, size_t n_superpixel)
     {
         auto spacing = sqrt((image.get_size().x() * image.get_size().y()) / n_superpixel);
 
@@ -306,6 +307,8 @@ namespace crisp::Segmentation
         int n_changed = 0;
         size_t n_converged = 0;
         size_t max_change = 0;
+
+        size_t n_assigned = 0;
         do
         {
             n_changed_before = n_changed;
@@ -329,6 +332,12 @@ namespace crisp::Segmentation
                 mean_pos /= pair.second.n;
                 auto& center = mean_pos;
 
+                size_t n = 1;
+                while (n < spacing)
+                {
+                    for (int i = -n; i < +n; ++i)
+                    {}
+                }
                 for (int i = -spacing; i < +spacing; ++i)
                 {
                     for (int j = -spacing; j < +spacing; ++j)
@@ -374,6 +383,8 @@ namespace crisp::Segmentation
 
                              n_changed += 1;
                              n_local_changed += 1;
+
+                             n_assigned += 1;
                          }
                     }
                 }
@@ -386,9 +397,10 @@ namespace crisp::Segmentation
                 }
             }
 
+
             std::cout << n_changed << std::endl;
 
-        } while (n_converged < clusters.size());
+        } while (n_assigned < image.get_size().x() * image.get_size().y());
 
         std::cout << "max: " << max_change << std::endl;
         std::cout << "spacing: " << spacing << std::endl;
@@ -410,26 +422,165 @@ namespace crisp::Segmentation
         }
 
         return out;
+    }*/
+
+    ColorImage superpixel_clustering(const ColorImage& image, size_t n_superpixel)
+    {
+        const size_t n_pixels = image.get_size().x() * image.get_size().y();
+        auto spacing = sqrt(n_pixels / double(n_superpixel));
+
+        auto color_distance = [&](const Color& a, const Color& b) -> float
+        {
+            float out = 0;
+            out += (a.x() - b.x()) * (a.x() - b.x());
+            out += (a.y() - b.y()) * (a.y() - b.y());
+            out += (a.z() - b.z()) * (a.z() - b.z());
+
+            return out;
+        };
+
+        auto xy_distance = [&](const Vector2f& a, const Vector2f& b)
+        {
+            float out = 0;
+            out += (a.x() - b.x()) * (a.x() - b.x());
+            out += (a.y() - b.y()) * (a.y() - b.y());
+
+            return out / (2*spacing*spacing);
+        };
+
+        struct Cluster
+        {
+            Vector2f center;
+            Color color_sum;
+            Vector2f xy_sum;
+            size_t n;
+
+            Color final_color; // unused until post-processing
+        };
+
+        std::map<size_t, Cluster> clusters;
+
+        for (long x = spacing / 2, cluster_i = 1; x < image.get_size().x(); x += spacing)
+            for (long y = spacing / 2; y < image.get_size().y(); y += spacing, cluster_i++)
+            {
+                long new_x = x,
+                     new_y = y;
+
+
+                float max_gradient = 0;
+                for (int i = -1; i < 1; ++i)
+                {
+                    for (int j = -1; j < 1; ++j)
+                    {
+                        float x_gradient = color_distance(image(x + i + 0, y + j), image(x + i + 1, y + j));
+                        float y_gradient = color_distance(image(x + i, y + j + 0), image(x + i, y + j + 1));
+
+                        float gradient = abs(x_gradient) + abs(y_gradient);
+
+                        if (gradient > max_gradient)
+                        {
+                            max_gradient = gradient;
+                            new_x = x + i;
+                            new_y = y + j;
+                        }
+                    }
+                }
+
+                clusters.emplace(cluster_i, Cluster{Vector2f(new_x, new_y), image(new_x, new_y), Vector2f(new_x, new_y), 1});
+            }
+
+        // use color image as labeling space [-1, 0, 1, ... centers.size()-1] to save memory and allocation time
+        // r = label
+        // g = distance
+        // b = 0
+        ColorImage out;
+        out.create(image.get_size().x(), image.get_size().y(), Color(0, std::numeric_limits<float>::infinity(), 0));
+
+        size_t n_pixels_visited = 0;
+        size_t n_assigned = 0;
+
+        for (auto& pair : clusters)
+        {
+            size_t cluster_i = pair.first;
+            Color mean_color = pair.second.color_sum;
+            mean_color /= pair.second.n;
+
+            Vector2f mean_pos = pair.second.xy_sum;
+            mean_pos /= pair.second.n;
+            auto& center = mean_pos;
+
+            for (int i = -spacing; i < +spacing; ++i)
+            {
+                for (int j = -spacing; j < +spacing; ++j)
+                {
+                    if (center.x() + i < 0 or center.x() + i >= image.get_size().x() or center.y() + j < 0 or center.y() + j >= image.get_size().y())
+                        continue;
+
+                    n_pixels_visited += 1;
+
+                    auto& current = out(center.x() + i, center.y() +j);
+                    int old_i = current.x();
+                    if (old_i == cluster_i)
+                        continue;
+
+                    auto pos = Vector2ui(center.x() + i, center.y() + j);
+                    auto color = image(pos.x(), pos.y());
+                    auto color_dist = color_distance(mean_color, color);
+                    auto xy_dist = xy_distance(mean_pos, Vector2f(pos.x(), pos.y())) / (2*spacing);
+                    auto new_dist = color_dist + xy_dist;
+                    auto old_dist = current.y();
+
+                    if (new_dist < old_dist)
+                    {
+                        out(pos.x(), pos.y()).x() = cluster_i;
+                        out(pos.x(), pos.y()).y() = new_dist;
+
+                        pair.second.n += 1;
+                        pair.second.color_sum += color;
+                        pair.second.xy_sum += Vector2f(pos.x(), pos.y());
+
+                        if (old_i != 0)
+                        {
+                            auto& cluster = clusters.at(old_i);
+                            cluster.color_sum -= color;
+                            cluster.xy_sum += Vector2f(pos.x(), pos.y());
+                            cluster.n -= 1;
+                        }
+
+                        n_assigned += 1;
+                        mean_color = pair.second.color_sum;
+                        mean_color /= pair.second.n;
+                    }
+                }
+            }
+        }
+
+        //std::cout << n_pixels_visited << " / " << n_pixels << std::endl;  // O(N*spacing*spacing + n*m)
+
+        for (auto& c : clusters)
+        {
+            auto color = c.second.color_sum;
+            color /= c.second.n;
+            c.second.final_color = color;
+        }
+
+        float threshold = 1 / 255.f;
+        for (size_t i = 1; i < clusters.size(); ++i)
+        {
+            auto& current = clusters.at(i).final_color;
+            auto& next = clusters.at(i+1).final_color;
+
+            if (color_distance(current, next) < threshold)
+            {
+                current += next;
+                current /= 2;
+                next = current;
+            }
+        }
+
+        for (auto& px : out)
+            px = clusters.at(px.x()).final_color;
+
+        return out;
     }
-
-
-    /*
-     *
-                             // schedule merge
-                             if (old_i != -1)
-                             {
-                                 auto& old = clusters.at(old_i);
-                                 auto old_color = old.sum;
-                                 old_color /= float(old.n);
-                                 if (color_dist(mean_color, old_color) < 0.01)
-                                 {
-                                     clusters.at(cluster_i).sum += old.sum;
-                                     clusters.at(cluster_i).n += old.n;
-                                     n_changed += old.n;
-
-                                     do_merge.emplace(old_i, std::make_pair(cluster_i, 0));
-                                 }
-                             }
-
-     */
 }
