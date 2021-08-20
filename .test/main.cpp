@@ -26,11 +26,11 @@ using namespace crisp;
 
 int main()
 {
-    auto image = ColorImage();
+    auto image = GrayScaleImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
     sf::Clock clock;
-    image = Segmentation::superpixel_clustering(image, 300);
+    image = Segmentation::superpixel_clustering(image, 1000);
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
     auto window = RenderWindow();
