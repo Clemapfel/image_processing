@@ -281,7 +281,6 @@ namespace crisp::Segmentation
             Color color_sum;
             Vector2f xy_sum;
             size_t n;
-            size_t last_n_changed = 0;
             bool converged = false;
         };
 
@@ -302,27 +301,33 @@ namespace crisp::Segmentation
         ColorImage out;
         out.create(image.get_size().x(), image.get_size().y(), Color(-1, std::numeric_limits<float>::infinity(), 0));
 
-        std::map<int, int> do_merge; // old_id: new_id, n_passes
-
+        size_t saved = 0;
         int n_changed_before = 0;
         int n_changed = 0;
+        size_t n_converged = 0;
+        size_t max_change = 0;
         do
         {
             n_changed_before = n_changed;
             n_changed = 0;
             for (auto& pair : clusters)
             {
-                if (pair.second.converged == true)
+                if (pair.second.converged)
+                {
+                    saved++;
                     continue;
+                }
+
+                auto n_before = pair.second.n;
 
                 size_t n_local_changed = 0;
                 size_t cluster_i = pair.first;
-                auto& center = pair.second.center;
                 Color mean_color = pair.second.color_sum;
                 mean_color /= pair.second.n;
 
                 Vector2f mean_pos = pair.second.xy_sum;
                 mean_pos /= pair.second.n;
+                auto& center = mean_pos;
 
                 for (int i = -spacing; i < +spacing; ++i)
                 {
@@ -333,12 +338,9 @@ namespace crisp::Segmentation
                              continue;
 
                          int old_i = out(center.x() + i, center.y() + j).x();
-                         bool join_always = false;
 
                          if (old_i == cluster_i)
                             continue;
-                         else if (do_merge.find(old_i) != do_merge.end())
-                             join_always = true;
 
                          auto pos = Vector2ui(center.x() + i, center.y() + j);
 
@@ -356,6 +358,7 @@ namespace crisp::Segmentation
                              pair.second.n += 1;
                              pair.second.color_sum += image(pos.x(), pos.y());
                              pair.second.xy_sum += Vector2f(pos.x(), pos.y());
+                             pair.second.converged = false;
 
                              if (old_i != -1)
                              {
@@ -363,28 +366,42 @@ namespace crisp::Segmentation
                                  old.n -= 1;
                                  old.color_sum -= image(pos.x(), pos.y());
                                  old.xy_sum -= Vector2f(pos.x(), pos.y());
+                                 old.converged = false;
                              }
 
                              mean_color = pair.second.color_sum;
                              mean_color /= pair.second.n;
-
-                             mean_pos = pair.second.xy_sum;
-                             mean_pos /= pair.second.n;
 
                              n_changed += 1;
                              n_local_changed += 1;
                          }
                     }
                 }
+
+                max_change = std::max(n_local_changed, max_change);
+                if (std::abs<int>(n_before - pair.second.n) < 1)
+                {
+                    pair.second.converged = true;
+                    n_converged++;
+                }
             }
 
             std::cout << n_changed << std::endl;
 
-        } while (std::abs<int>(n_changed_before - n_changed) > 4*spacing);
+        } while (n_converged < clusters.size());
+
+        std::cout << "max: " << max_change << std::endl;
+        std::cout << "spacing: " << spacing << std::endl;
 
         for (auto& px : out)
         {
             size_t which = px.x();
+
+            if (which == -1)
+            {
+                px = Color(0,0,0);
+                continue;
+            }
             const auto& cluster = clusters.at(which);
 
             Color mean = cluster.color_sum;
