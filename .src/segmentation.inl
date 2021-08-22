@@ -550,4 +550,135 @@ namespace crisp::Segmentation
         return out;
     }
 
+    ColorImage region_growing_clustering(const ColorImage& image, std::vector<Vector2ui> seeds)
+    {
+        // citations:
+        // https://ieeexplore.ieee.org/document/295913
+        // https://sci-hub.se/https://www.sciencedirect.com/science/article/abs/pii/S0262885605000673
+
+        // iterate through regions in order of size, smallest first
+        // if other region with same mean encountered, merge both
+        // find all neighbor pixels of region, order by color-distance
+
+        struct Region
+        {
+            size_t n;
+            Color color_sum;
+            std::vector<Vector2ui> potential_neighbours;
+            bool converged = false;
+            Color final_color = Color(-1, -1, -1);  // only used in post-processing
+        };
+
+        std::map<size_t, Region> regions;
+
+        size_t k = 1;
+        for (auto& seed : seeds)
+        {
+            regions.emplace(k, Region{1, image(seed.x(), seed.y()), std::vector<Vector2ui>()});
+            for (int i = -1; i <= 1; ++i)
+            {
+                for (int j = -1; j <= 1; ++j)
+                {
+                    if (seed.x() + i < 0 or seed.x() + i >= image.get_size().x() or
+                        seed.y() + j < 0 or seed.y() + j >= image.get_size().y())
+                        continue;
+
+                    regions.at(k).potential_neighbours.emplace_back(seed.x() + i, seed.y() + j);
+                }
+            }
+        }
+
+        auto color_distance = [](const Color& a, const Color& b) -> float {};
+        float threshold = 0.5;
+
+        ColorImage out; // .r is region label
+        out.create(image.get_size().x(), image.get_size().y(), Color(0, -1, -1));
+
+        size_t n_converged = 0;
+        while (n_converged < regions.size())
+        {
+            for (auto& pair : regions)
+            {
+                size_t region_i = pair.first;
+                auto mean_color = pair.second.color_sum;
+                mean_color /= pair.second.n;
+
+                auto to_test = pair.second.potential_neighbours;
+                pair.second.potential_neighbours.clear();
+
+                for (auto& point : to_test)
+                {
+                    auto new_color = image(point.x(), point.y());
+                    if (color_distance(new_color, mean_color) < threshold)
+                    {
+                        out(point.x(), point.y()).x() = region_i;
+                        pair.second.n += 1;
+                        pair.second.color_sum += new_color;
+
+                        for (int i = -1; i <= 1; ++i)
+                        {
+                            for (int j = -1; j <= 1; ++j)
+                            {
+                                if (point.x() + i < 0 or point.x() + i >= image.get_size().x() or
+                                    point.y() + j < 0 or point.y() + j >= image.get_size().y())
+                                    continue;
+
+                                if (out(point.x(), point.y()).x() == region_i)
+                                    continue;
+
+                                if (out(point.x(), point.y()).x() != 0) // no merge for now
+                                    continue;
+
+                                pair.second.potential_neighbours.emplace_back(point.x() + i, point.y() + j);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (auto& px : out)
+        {
+            if (px.x() == 0)
+            {
+                px = Color(0, 0, 0);
+                continue;
+            }
+
+            auto& region = regions.at(px.x());
+
+            if (region.final_color == Color(-1, -1, -1))
+            {
+                region.final_color = region.color_sum;
+                region.color_sum /= n;
+            }
+
+            px = region.final_color;
+        }
+
+        return out;
+    }
+
+    ColorImage region_growing_clustering(const ColorImage& image, size_t n_seeds)
+    {
+        float spacing = sqrt(image.get_size().x() * image.get_size().y() / n_seeds);
+
+        std::random_device device;
+        std::mt19937 engine;
+        engine.seed(device());
+
+        std::vector<Vector2ui> seeds;
+
+        for (long x = ceil(spacing / 2); x < image.get_size().x() - 1; x += spacing)
+        {
+            auto x_dist = std::uniform_int_distribution<int>(x - spacing/2, x + spacing/2);
+            for (long y = ceil(spacing / 2); y < image.get_size().y() - 1; y += spacing)
+            {
+                auto y_dist = std::uniform_int_distribution<int>(y - spacing/2, y + spacing/2);
+                seeds.emplace_back(x_dist(engine), y_dist(engine));
+            }
+        }
+
+        return region_growing_clustering(image, seeds);
+    }
 }
