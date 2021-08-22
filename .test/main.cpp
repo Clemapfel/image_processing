@@ -30,7 +30,8 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
     sf::Clock clock;
-    image = Segmentation::region_growing_clustering(image, {Vector2ui(image.get_size().x() * 0.5, image.get_size().y() * 0.5)});
+    image = Segmentation::region_growing_clustering(image, 4);
+
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
     auto window = RenderWindow();
