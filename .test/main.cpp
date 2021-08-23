@@ -33,7 +33,11 @@ int main()
     auto grayscale = GrayScaleImage();
     grayscale.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
-    grayscale = Segmentation::region_growing_clustering(grayscale, 3, 0.2, 0.01);
+    SpatialFilter<ColorImage> filter;
+    filter.set_kernel(filter.gaussian(5));
+    filter.apply_to(image);
+
+    image = Segmentation::region_growing_clustering(image, 3000, 0.1, 0.04);
 
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
@@ -41,7 +45,7 @@ int main()
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);
 
     auto sprite = Sprite();
-    sprite.create_from(grayscale);
+    sprite.create_from(image);
     sprite.scale(2, false);
 
     while (window.is_open())
