@@ -654,7 +654,7 @@ namespace crisp
             {
                 for (long t = -b; t <= b; ++t)
                 {
-                    if (kernel(a + s, b + t) == 0)
+                    if (kernel(a + s, b + t) == Value_t(0))
                         continue;
 
                     auto first = kernel(a + s, b + t);
