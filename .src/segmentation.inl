@@ -552,15 +552,17 @@ namespace crisp::Segmentation
         return out;
     }
 
-    ColorImage region_growing_clustering(const ColorImage& image, std::vector<Vector2ui> seeds)
+    ColorImage region_growing_clustering(
+            const ColorImage& image,
+            std::vector<Vector2ui> seeds,
+            float add_threshold,
+            float merge_threshold)
     {
         // citations:
         // https://ieeexplore.ieee.org/document/295913
         // https://sci-hub.se/https://www.sciencedirect.com/science/article/abs/pii/S0262885605000673
 
-        // iterate through regions in order of size, smallest first
-        // if other region with same mean encountered, merge both
-        // find all neighbor pixels of region, order by color-distance
+        std::cout << "[LOG] starting seeded region growing clustering with " << seeds.size() << " seeds." << std::endl;
 
         struct point_compare
         {
@@ -592,11 +594,20 @@ namespace crisp::Segmentation
         };
 
         std::map<size_t, Region> regions;
+        std::map<size_t, size_t> merge_map;
+        size_t n_converged = 0;
 
+        ColorImage out; // .r is region label, .g is distance
+        out.create(image.get_size().x(), image.get_size().y(), Color(0, std::numeric_limits<float>::max(), -1));
+
+        const size_t n_before_merge = regions.size();
+        size_t n_merged = 0;
         size_t k = 1;
         for (auto& seed : seeds)
         {
             regions.emplace(k, Region{1, image(seed.x(), seed.y()), Set_t()});
+            out(seed.x(), seed.y()) = k;
+            size_t n_neighbouring_regions = 0;
             for (int i = -1; i <= 1; ++i)
             {
                 for (int j = -1; j <= 1; ++j)
@@ -604,6 +615,9 @@ namespace crisp::Segmentation
                     if (seed.x() + i < 0 or seed.x() + i >= image.get_size().x() or
                         seed.y() + j < 0 or seed.y() + j >= image.get_size().y())
                         continue;
+
+                    if (i == 0 or j == 0 and out(seed.x() + i, seed.y() + j).x() != 0)
+                        n_neighbouring_regions += 1;
 
                     regions.at(k).potential_neighbours.insert(Vector2ui(seed.x() + i, seed.y() + j));
                 }
@@ -615,22 +629,14 @@ namespace crisp::Segmentation
         auto color_distance = [](const Color& a, const Color& b) -> float {
             return dist(a, b);
         };
-        float threshold = 0.1;
 
-        ColorImage out; // .r is region label, .g is distance
-        out.create(image.get_size().x(), image.get_size().y(), Color(0, std::numeric_limits<float>::max(), -1));
-
-        size_t n_found = 0;
-
-        std::map<size_t, size_t> merge_map;
-        size_t n_merges = 0;
-        size_t n_converged = 0;
-        while (n_converged < regions.size())
+        size_t n_regions = regions.size();
+        while (n_converged < n_regions)
         {
-            std::vector<size_t> scheduled_for_deletion;
+            std::set<size_t> scheduled_for_deletion;
             for (auto& pair : regions)
             {
-                if (pair.second.converged)
+                if (pair.second.converged or scheduled_for_deletion.find(pair.first) != scheduled_for_deletion.end())
                     continue;
 
                 size_t region_i = pair.first;
@@ -639,15 +645,13 @@ namespace crisp::Segmentation
 
                 auto to_test = pair.second.potential_neighbours;
                 std::vector<Vector2ui> checked_this_iteration;
-                bool found = false;
                 for (auto& point : to_test)
                 {
                     auto new_color = image(point.x(), point.y());
                     auto distance = color_distance(new_color, mean_color);
                     checked_this_iteration.push_back(point);
-                    if (distance < threshold)
+                    if (distance < add_threshold)
                     {
-                        n_found++;
                         out(point.x(), point.y()).x() = region_i;
                         out(point.x(), point.y()).y() = distance;
 
@@ -664,7 +668,7 @@ namespace crisp::Segmentation
 
                                 auto& current = out(point.x() + i, point.y() + j);
 
-                                if (merge_map.find(current.x()) != merge_map.end())
+                                while (merge_map.find(current.x()) != merge_map.end())
                                     current.x() = merge_map.at(current.x());
 
                                 if (current.x() == region_i)
@@ -677,7 +681,9 @@ namespace crisp::Segmentation
                                     auto old_region = regions.at(current.x());
                                     auto old_region_color = regions.at(current.x()).color_sum;
                                     old_region_color /= old_region.n;
-                                    if (dist(old_region_color, mean_color) < 0.2 and merge_map.find(current.x()) == merge_map.end())
+                                    if ((old_region.n < 5 and old_region.converged) or  // swallow small stagnant
+                                        (dist(old_region_color, mean_color) < merge_threshold // merge if similar
+                                            and merge_map.find(current.x()) == merge_map.end())) // but not if already merged with someone else
                                     {
                                         if (merge_map.find(region_i) != merge_map.end() and merge_map.at(region_i) == current.x())
                                             continue;
@@ -690,14 +696,13 @@ namespace crisp::Segmentation
 
                                         old_region.converged = true;
                                         old_region.potential_neighbours.clear();
-                                        old_region.color_sum = Color(1, 1, 1);
+                                        old_region.color_sum = Color(0, 0, 0);
                                         old_region.n = 0;
-                                        n_converged += 1;
 
+                                        n_converged++;
                                         merge_map.insert({current.x(), region_i});
-                                        n_merges += 1;
-                                        scheduled_for_deletion.emplace_back(current.x());
-                                        //goto restart_after_merge;
+                                        scheduled_for_deletion.insert(current.x());
+                                        n_merged += 1;
                                     }
                                     else continue;
                                 }
@@ -708,22 +713,20 @@ namespace crisp::Segmentation
                     }
                 }
 
-                for (auto i : scheduled_for_deletion)
-                {
-                    regions.erase(i);
-                }
-
-                scheduled_for_deletion.clear();
-
                 for (auto& point : checked_this_iteration)
-                    pair.second.potential_neighbours.erase(point);
+                        pair.second.potential_neighbours.erase(point);
 
                 if (pair.second.potential_neighbours.empty())
                 {
                     pair.second.converged = true;
-                    n_converged += 1;
+                    n_converged++;
                 }
             }
+
+            for (auto i : scheduled_for_deletion)
+                    regions.erase(i);
+
+            scheduled_for_deletion.clear();
         }
 
         // post process away single pixel holes in regions
@@ -772,11 +775,13 @@ namespace crisp::Segmentation
             }
         }
 
+        size_t not_segmented = 0;
         for (auto& px : out)
         {
             if (px.x() == 0)
             {
-                px = Color(-1, -1, -1);
+                px = Color(1, 0, 1);
+                not_segmented += 1;
                 continue;
             }
 
@@ -794,29 +799,44 @@ namespace crisp::Segmentation
             px = region.final_color;
         }
 
+        std::cout << "[LOG] done. Merged " << n_merged << " clusters resulting in a segmentation with a total of " << regions.size() << " clusters" << std::endl;
         return out;
     }
 
-    ColorImage region_growing_clustering(const ColorImage& image, size_t n_seeds)
+    ColorImage region_growing_clustering(const ColorImage& image, size_t n_seeds, float add_threshold, float merge_threshold)
     {
-        float spacing = sqrt(image.get_size().x() * image.get_size().y() / n_seeds);
+        float spacing = std::max(image.get_size().x(), image.get_size().y()) / sqrt(n_seeds);
 
         std::random_device device;
         std::mt19937 engine;
         engine.seed(device());
 
         std::vector<Vector2ui> seeds;
+        int hs = ceil(spacing / 2);
 
-        for (long x = ceil(spacing / 2); x < image.get_size().x(); x += spacing)
+        for (long x = hs; x < image.get_size().x(); x += 2 * hs)
         {
-            auto x_dist = std::uniform_int_distribution<int>(x - spacing/2 + 1, x + spacing/2 - 1);
-            for (long y = ceil(spacing / 2); y < image.get_size().y(); y += spacing)
+            auto x_dist = std::uniform_int_distribution<int>(x - hs + 1, std::min<int>(image.get_size().x() - 1, x + hs));
+            for (long y = hs; y < image.get_size().y(); y += 2 * hs)
             {
-                auto y_dist = std::uniform_int_distribution<int>(y - spacing/2 + 1, y + spacing/2 - 1);
+                auto y_dist = std::uniform_int_distribution<int>(y - hs + 1, std::min<int>(image.get_size().y() - 1, y + hs));
                 seeds.emplace_back(x_dist(engine), y_dist(engine));
             }
         }
 
-        return region_growing_clustering(image, seeds);
+        return region_growing_clustering(image, seeds, add_threshold, merge_threshold);
+    }
+
+    ColorImage region_growing_clustering(const ColorImage& image, BinaryImage seed_image, float add_threshold, float merge_threshold)
+    {
+        std::vector<Vector2ui> seeds;
+
+        for (long x = 0; x < seed_image.get_size().x(); ++x)
+            for (long y = 0; y < seed_image.get_size().y(); ++y)
+                if (seed_image(x, y))
+                    seeds.push_back(Vector2ui(x, y));
+
+        return region_growing_clustering(image, seeds, add_threshold, merge_threshold);
     }
 }
+

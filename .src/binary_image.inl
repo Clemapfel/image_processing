@@ -13,7 +13,7 @@ namespace crisp
         _value.setConstant(init);
     }
 
-    inline void BinaryImage::create_from_file(std::string path, float cutoff)
+    inline void BinaryImage::create_from_file(std::string path, float cutoff = 0.5)
     {
         assert(cutoff > 0 and cutoff < 1 && "specifying a cutoff outside of (0, 1) will create a picture that is all a single color, if you want that behavior please use create(long, long)");
 

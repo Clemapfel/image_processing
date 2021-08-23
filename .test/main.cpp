@@ -30,7 +30,11 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
     sf::Clock clock;
-    image = Segmentation::region_growing_clustering(image, 4);
+    auto grayscale = GrayScaleImage();
+    grayscale.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
+    auto seed = Segmentation::neighborhood_threshold(grayscale);
+    seed.invert();
+    image = Segmentation::region_growing_clustering(image, 3000, 0.2, 0.05);
 
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
