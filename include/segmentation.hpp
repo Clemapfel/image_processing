@@ -19,8 +19,7 @@ namespace crisp::Segmentation
     // @param min_region_size: threshold n such that all regions with number of pixels less than n will be removed
     // @returns vector of 4-connected regions
     //
-    // @complexity: O(k*m*n) where k, number of resulting regions and m, n size of the image
-    // @note unless discarded because of size, all pixels of the image will be allocated to a region
+    // @complexity: O(k*m*n) where k, number of pairwise different values in image, m,n size of the image
     std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, size_t min_region_size = 2);
     std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, size_t min_region_size = 2);
     std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, size_t min_region_size = 2);
@@ -31,11 +30,18 @@ namespace crisp::Segmentation
     // @param min_region_size: threshold n such that all regions with number of pixels less than n will be removed
     // @returns vector of 4-connected regions
     //
-    // @complexity: O(k*m*n) where k, number of allowed regions and m, n size of the image
+    // @complexity: O(k*m*n) where k, number of pairwise different allowed values and m, n size of the image
     // @note unless discarded because of size, all pixels of the image will be allocated to a region
     std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, std::vector<bool> allowed_values, size_t min_region_size = 2);
     std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, std::vector<float> allowed_values, size_t min_region_size = 2);
     std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, std::vector<Color> allowed_values, size_t min_region_size = 2);
+
+    // @brief threshold grayscale image with manually specified threshold
+    // @param image: the image to be thresholded
+    // @returns binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
+    //
+    // @complexity amortized o(m*n) where m,n size of image
+    [[nodiscard]] BinaryImage manual_threshold(const GrayScaleImage& image, float threshold);
 
     // @brief recursively modify threshold until convergence is achieved, simple but decent
     // @param image: the image to be thresholded

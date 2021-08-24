@@ -29,13 +29,14 @@ int main()
     auto image = ColorImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
-    sf::Clock clock;
     auto grayscale = GrayScaleImage();
     grayscale.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
-    auto binary = Segmentation::variable_threshold(grayscale, 25);
+    auto binary = Segmentation::manual_threshold(grayscale, 0.01);
     binary.invert();
 
-    auto segments = Segmentation::decompose_into_segments(binary, 100);
+    sf::Clock clock;
+    auto segments = Segmentation::decompose_into_segments(binary, {true}, 100);
+    std::cout << clock.restart().asSeconds() << std::endl;
 
     float hue = 0;
     for (auto& segment : segments)
@@ -47,7 +48,6 @@ int main()
             image(point.x(), point.y()) = HSV{hue, 1, 1};
     }
 
-    std::cout << clock.restart().asSeconds() << std::endl;
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);

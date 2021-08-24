@@ -73,7 +73,7 @@ namespace crisp::Segmentation
 
         BinaryImage seen;
         seen.create(image.get_size().x(), image.get_size().y(), false);
-        float color = -1;
+        int color = -1;
 
         for (long x = 0; x < seen.get_size().x(); ++x)
         {
@@ -84,7 +84,7 @@ namespace crisp::Segmentation
 
                 if (not seen(x, y))
                 {
-                    color = floor(image(x, y) * 255);
+                    color = int(image(x, y) * 255);
 
                     segments.emplace_back();
                     std::deque<Vector2ui> to_add;
@@ -102,7 +102,7 @@ namespace crisp::Segmentation
                                     seen(current.x() + i, current.y() + j))
                                     continue;
 
-                                if (floor(image(current.x() + i, current.y() + j) * 255) == color)
+                                if (int(image(current.x() + i, current.y() + j) * 255) == color)
                                 {
                                     to_add.emplace_back(current.x() + i, current.y() + j);
                                     seen(current.x() + i, current.y() + j) = true;
@@ -143,9 +143,9 @@ namespace crisp::Segmentation
                 if (not seen(x, y))
                 {
                     color = image(x, y);
-                    color.red() = floor(255 * color.red());
-                    color.green() = floor(255 * color.green());
-                    color.blue() = floor(255 * color.blue());
+                    color.red() = int(255 * color.red());
+                    color.green() = int(255 * color.green());
+                    color.blue() = int(255 * color.blue());
 
                     segments.emplace_back();
                     std::deque<Vector2ui> to_add;
@@ -165,9 +165,9 @@ namespace crisp::Segmentation
 
                                 auto current_color = image(current.x() + i, current.y() + j);
 
-                                if (floor(current_color.red() * 255) == color.red() and
-                                    floor(current_color.green() * 255) == color.green() and
-                                    floor(current_color.blue() * 255) == color.blue())
+                                if (int(current_color.red() * 255) == color.red() and
+                                    int(current_color.green() * 255) == color.green() and
+                                    int(current_color.blue() * 255) == color.blue())
                                 {
                                     to_add.emplace_back(current.x() + i, current.y() + j);
                                     seen(current.x() + i, current.y() + j) = true;
@@ -190,6 +190,238 @@ namespace crisp::Segmentation
         return segments;
     }
 
+    std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, std::vector<bool> allowed_values, size_t min_region_size)
+    {
+        std::vector<ImageSegment> segments;
+
+        BinaryImage seen;
+        seen.create(image.get_size().x(), image.get_size().y(), false);
+        bool color = false;
+
+        auto is_allowed = [&](bool value) -> bool
+        {
+            for (auto v : allowed_values)
+                if (v == value)
+                    return true;
+
+            return false;
+        };
+
+        for (long x = 0; x < seen.get_size().x(); ++x)
+        {
+            for (long y = 0; y < seen.get_size().y(); ++y)
+            {
+                if (seen(x, y))
+                    continue;
+
+                if (not seen(x, y) and is_allowed(image(x, y)))
+                {
+                    color = image(x, y);
+
+                    segments.emplace_back();
+                    std::deque<Vector2ui> to_add;
+                    to_add.emplace_front(x, y);
+
+                    while (not to_add.empty())
+                    {
+                        auto current = to_add.front();
+                        for (long i : {-1, 1, 0, 0})
+                        {
+                            for (long j : {0, 0, -1, 1})
+                            {
+                                if (current.x() + i < 0 or current.x() + i >= seen.get_size().x() or
+                                    current.y() + j < 0 or current.y() + j >= seen.get_size().y() or
+                                    seen(current.x() + i, current.y() + j))
+                                    continue;
+
+                                if (image(current.x() + i, current.y() + j) == color)
+                                {
+                                    to_add.emplace_back(current.x() + i, current.y() + j);
+                                    seen(current.x() + i, current.y() + j) = true;
+                                }
+                                else if (not is_allowed(image(current.x() + i, current.y() + j)))
+                                    seen(current.x() + i, current.y() + j) = true;
+                            }
+                        }
+
+                        segments.back().add(to_add.front());
+                        to_add.pop_front();
+                    }
+
+                    if (segments.back().size() < min_region_size)
+                        segments.erase(segments.end() - 1);
+
+                    color = false;
+                }
+                else
+                    seen(x, y) = true;
+            }
+        }
+
+        return segments;
+    }
+
+    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, std::vector<float> allowed_values, size_t min_region_size)
+    {
+        std::vector<ImageSegment> segments;
+
+        BinaryImage seen;
+        seen.create(image.get_size().x(), image.get_size().y(), false);
+        int color = -1;
+
+        std::set<int> allowed;
+        for (auto v : allowed_values)
+        {
+            allowed.insert(int(v * 255));
+        }
+
+        auto is_allowed = [&](float v) -> bool
+        {
+            return allowed.find(int(v * 255)) != allowed.end();
+        };
+
+        for (long x = 0; x < seen.get_size().x(); ++x)
+        {
+            for (long y = 0; y < seen.get_size().y(); ++y)
+            {
+                if (seen(x, y))
+                    continue;
+
+                if (not seen(x, y) and is_allowed(image(x, y)))
+                {
+                    color = image(x, y);
+
+                    segments.emplace_back();
+                    std::deque<Vector2ui> to_add;
+                    to_add.emplace_front(x, y);
+
+                    while (not to_add.empty())
+                    {
+                        auto current = to_add.front();
+                        for (long i : {-1, 1, 0, 0})
+                        {
+                            for (long j : {0, 0, -1, 1})
+                            {
+                                if (current.x() + i < 0 or current.x() + i >= seen.get_size().x() or
+                                    current.y() + j < 0 or current.y() + j >= seen.get_size().y() or
+                                    seen(current.x() + i, current.y() + j))
+                                    continue;
+
+                                if (image(current.x() + i, current.y() + j) == color)
+                                {
+                                    to_add.emplace_back(current.x() + i, current.y() + j);
+                                    seen(current.x() + i, current.y() + j) = true;
+                                }
+                                else if (not is_allowed(image(current.x() + i, current.y() + j)))
+                                    seen(current.x() + i, current.y() + j) = true;
+                            }
+                        }
+
+                        segments.back().add(to_add.front());
+                        to_add.pop_front();
+                    }
+
+                    if (segments.back().size() < min_region_size)
+                        segments.erase(segments.end() - 1);
+
+                    color = false;
+                }
+                else
+                    seen(x, y) = true;
+            }
+        }
+
+        return segments;
+    }
+
+    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, std::vector<Color> allowed_values, size_t min_region_size)
+    {
+        std::vector<ImageSegment> segments;
+
+        BinaryImage seen;
+        seen.create(image.get_size().x(), image.get_size().y(), false);
+        Color color = Color(-1, -1, -1);
+
+        std::set<std::string> allowed;
+        for (auto v : allowed_values)
+        {
+            std::stringstream str;
+            str << std::hex << int(v.red() * 255) << int(v.green() * 255) << int(v.blue() * 255);
+            allowed.insert(str.str());
+        }
+
+        auto is_allowed = [&](Color v) -> bool
+        {
+            std::stringstream str;
+            str << std::hex << int(v.red() * 255) << int(v.green() * 255) << int(v.blue() * 255);
+            return allowed.find(str.str()) != allowed.end();
+        };
+
+        for (long x = 0; x < seen.get_size().x(); ++x)
+        {
+            for (long y = 0; y < seen.get_size().y(); ++y)
+            {
+                if (seen(x, y))
+                    continue;
+
+                if (not seen(x, y) and is_allowed(image(x, y)))
+                {
+                    color = image(x, y);
+
+                    segments.emplace_back();
+                    std::deque<Vector2ui> to_add;
+                    to_add.emplace_front(x, y);
+
+                    while (not to_add.empty())
+                    {
+                        auto current = to_add.front();
+                        for (long i : {-1, 1, 0, 0})
+                        {
+                            for (long j : {0, 0, -1, 1})
+                            {
+                                if (current.x() + i < 0 or current.x() + i >= seen.get_size().x() or
+                                    current.y() + j < 0 or current.y() + j >= seen.get_size().y() or
+                                    seen(current.x() + i, current.y() + j))
+                                    continue;
+
+                                if (image(current.x() + i, current.y() + j) == color)
+                                {
+                                    to_add.emplace_back(current.x() + i, current.y() + j);
+                                    seen(current.x() + i, current.y() + j) = true;
+                                }
+                                else if (not is_allowed(image(current.x() + i, current.y() + j)))
+                                    seen(current.x() + i, current.y() + j) = true;
+                            }
+                        }
+
+                        segments.back().add(to_add.front());
+                        to_add.pop_front();
+                    }
+
+                    if (segments.back().size() < min_region_size)
+                        segments.erase(segments.end() - 1);
+
+                    color = false;
+                }
+                else
+                    seen(x, y) = true;
+            }
+        }
+
+        return segments;
+    }
+
+    BinaryImage manual_threshold(const GrayScaleImage& image, float threshold)
+    {
+        BinaryImage out;
+        out.create(image.get_size().x(), image.get_size().y());
+
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
+                    out(x, y) = image(x, y) > threshold;
+
+        return out;
+    }
 
     BinaryImage basic_threshold(const GrayScaleImage& image)
     {
