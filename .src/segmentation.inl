@@ -980,8 +980,6 @@ namespace crisp::Segmentation
         // https://ieeexplore.ieee.org/document/295913
         // https://sci-hub.se/https://www.sciencedirect.com/science/article/abs/pii/S0262885605000673
 
-        std::cout << "[LOG] starting seeded region growing clustering with " << seeds.size() << " seeds." << std::endl;
-
         struct point_compare
         {
             bool operator()(const Vector2ui& a, const Vector2ui& b) const
@@ -1216,8 +1214,6 @@ namespace crisp::Segmentation
             px = region.final_color;
         }
 
-        std::cout << "[LOG] done. Merged " << n_merged << " clusters resulting in a segmentation with a total of "
-                  << regions.size() << " clusters" << std::endl;
         return out;
     }
 
@@ -1227,12 +1223,6 @@ namespace crisp::Segmentation
             float add_upper_threshold,
             float merge_upper_threshold)
     {
-                // citations:
-        // https://ieeexplore.ieee.org/document/295913
-        // https://sci-hub.se/https://www.sciencedirect.com/science/article/abs/pii/S0262885605000673
-
-        std::cout << "[LOG] starting seeded region growing clustering with " << seeds.size() << " seeds." << std::endl;
-
         struct point_compare
         {
             bool operator()(const Vector2ui& a, const Vector2ui& b) const
@@ -1464,11 +1454,146 @@ namespace crisp::Segmentation
             px = region.final_color;
         }
 
-        std::cout << "[LOG] done. Merged " << n_merged << " clusters resulting in a segmentation with a total of "
-                  << regions.size() << " clusters" << std::endl;
         return out;
     }
-    
+
+    template<typename Image_t>
+    Image_t region_growing_clustering(const Image_t& image, BinaryImage seed_image, float add_upper_threshold,
+                                         float merge_upper_threshold)
+    {
+        std::vector<Vector2ui> seeds;
+
+        for (long x = 0; x < seed_image.get_size().x(); ++x)
+            for (long y = 0; y < seed_image.get_size().y(); ++y)
+                if (seed_image(x, y))
+                    seeds.push_back(Vector2ui(x, y));
+
+        return region_growing_clustering(image, seeds, add_upper_threshold, merge_upper_threshold);
+    }
+
+    GrayScaleImage k_means_clustering(const GrayScaleImage& image, size_t n_clusters, size_t max_n_iterations)
+    {
+        // initial clusters
+        struct Cluster
+        {
+           float color_sum;
+           size_t n;
+
+           float mean_color = float(-1); // unused until post-processing
+        };
+
+        std::vector<Cluster> clusters;
+
+        std::mt19937 engine;
+        std::uniform_int_distribution<int> x_dist(0, image.get_size().x());
+        std::uniform_int_distribution<int> y_dist(0, image.get_size().y());
+
+        for (size_t i = 0; i < n_clusters; ++i)
+        {
+            auto pos = Vector2ui(x_dist(engine), y_dist(engine));
+            clusters.push_back(Cluster{image(pos.x(), pos.y()), 1});
+            clusters.back().mean_color = clusters.back().color_sum;
+        }
+
+        auto dist = [](float a, float b) -> int
+        {
+            return abs(int(a * 255) - int(b * 255));
+        };
+
+        GrayScaleImage out;
+        out.create(image.get_size().x(), image.get_size().y(), -1);
+
+        size_t n_changed = 1;
+        size_t n_iterations = 0;
+        while (n_changed != 0 and n_iterations < max_n_iterations)
+        {
+            n_changed = 0;
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                for (long y = 0; y < image.get_size().y(); ++y)
+                {
+                    float min_distance = std::numeric_limits<float>::infinity();
+                    size_t min_cluster_i = -1;
+
+                    for (size_t i = 0; i < clusters.size(); ++i)
+                    {
+                        auto current_distance = dist(image(x, y), clusters.at(i).mean_color);
+                        if (current_distance < min_distance)
+                        {
+                            min_distance = current_distance;
+                            min_cluster_i = i;
+                        }
+                    }
+
+                    int old_i = int(out(x, y));
+
+                    if (old_i < 0 or old_i >= clusters.size())
+                    {
+                        out(x, y) = min_cluster_i;
+                        n_changed++;
+                    }
+                    else if (out(x, y) != min_cluster_i)
+                    {
+                        auto before_dist = dist(clusters.at(old_i).mean_color, clusters.at(min_cluster_i).mean_color);
+
+                        clusters.at(old_i).n -= 1;
+                        clusters.at(old_i).color_sum -= image(x, y);
+                        clusters.at(old_i).mean_color = clusters.at(old_i).color_sum;
+                        clusters.at(old_i).mean_color /= clusters.at(old_i).n;
+
+                        out(x, y) = min_cluster_i;
+
+                        clusters.at(min_cluster_i).n += 1;
+                        clusters.at(min_cluster_i).color_sum += image(x, y);
+                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
+                        auto after_dist = dist(clusters.at(old_i).mean_color, clusters.at(min_cluster_i).mean_color);
+
+                        if (abs(after_dist - before_dist) > 0)
+                            n_changed++;
+                    }
+                }
+            }
+
+            std::cout << n_iterations << ": " << n_changed << std::endl;
+            n_iterations++;
+        }
+
+        for (size_t i = 0; i < clusters.size(); ++i)
+        {
+            for (size_t j = 0; j < clusters.size(); ++j)
+            {
+                if (i == j)
+                    continue;
+
+                // pseudo merge
+                if (dist(clusters.at(i).mean_color, clusters.at(j).mean_color) < 1)
+                {
+                    size_t new_n = clusters.at(i).n + clusters.at(j).n;
+                    float new_sum = clusters.at(i).color_sum + clusters.at(j).color_sum;
+                    clusters.at(i).color_sum = new_sum;
+                    clusters.at(i).n = new_n;
+                    clusters.at(i).mean_color = new_sum;
+                    clusters.at(i).mean_color /= clusters.at(i).n;
+
+                    clusters.at(j).color_sum = new_sum;
+                    clusters.at(j).n = new_n;
+                    clusters.at(j).mean_color = new_sum;
+                    clusters.at(j).mean_color /= clusters.at(j).n;
+                }
+            }
+        }
+
+        for (auto& px : out)
+        {
+            px = clusters.at(px).mean_color;
+        }
+
+        return out;
+    }
+
+    /*
     template<typename Image_t>
     Image_t region_growing_clustering(const Image_t& image, size_t n_seeds, float add_upper_threshold,
                                          float merge_upper_threshold)
@@ -1495,19 +1620,6 @@ namespace crisp::Segmentation
 
         return region_growing_clustering(image, seeds, add_upper_threshold, merge_upper_threshold);
     }
-
-    template<typename Image_t>
-    Image_t region_growing_clustering(const Image_t& image, BinaryImage seed_image, float add_upper_threshold,
-                                         float merge_upper_threshold)
-    {
-        std::vector<Vector2ui> seeds;
-
-        for (long x = 0; x < seed_image.get_size().x(); ++x)
-            for (long y = 0; y < seed_image.get_size().y(); ++y)
-                if (seed_image(x, y))
-                    seeds.push_back(Vector2ui(x, y));
-
-        return region_growing_clustering(image, seeds, add_upper_threshold, merge_upper_threshold);
-    }
+     */
 }
 
