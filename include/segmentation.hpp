@@ -107,13 +107,13 @@ namespace crisp::Segmentation
     // @brief segment image by k-means clustering with a fixed number of k. No merging will take place
     // @param image: image to be segmented
     // @param n_clusters: number of clusters
-    // @param max_n_iterations: maximum number of iterations unless convergence is achieved earlier, default: infinite
+    // @param max_n_iterations: maximum number of iterations unless convergence is achieved earlier
+    //                          default: infinite, recommended: more than 2, less than 20
     // @returns segmented image of corresponding type
     //
-    // @complexity: O(N*k*m*n) where k number of clusters, N max number of iterations, m, n size of image
-    GrayScaleImage k_means_clustering(const GrayScaleImage& image, size_t n_clusters, size_t max_n_iterations = -1);
-    template<typename Image_t>
-    [[nodiscard]] Image_t k_means_clustering(const Image_t& image, size_t n_clusters, size_t max_n_iterations = -1);
+    // @complexity: amortized o(N*k*m*n) where k number of clusters, N max number of iterations, m, n size of image
+    [[nodiscard]] GrayScaleImage k_means_clustering(const GrayScaleImage& image, size_t n_clusters, size_t max_n_iterations = 2);
+    [[nodiscard]] ColorImage k_means_clustering(const ColorImage& image, size_t n_clusters, size_t max_n_iterations = 2);
 }
 
 #include ".src/segmentation.inl"

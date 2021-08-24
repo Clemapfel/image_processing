@@ -185,7 +185,7 @@ namespace crisp
         auto max = from.r > from.g ? from.r : from.g;
         max = max  > from.b ? max  : from.b;
 
-        auto delta = min - max;
+        auto delta = max - min;
 
         if (delta > 0)
         {
@@ -217,7 +217,7 @@ namespace crisp
 
         HSV out;
 
-        out.h = h / 360;
+        out.h = h / 360.f;
         out.s = s;
         out.v = v;
 

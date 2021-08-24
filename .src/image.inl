@@ -25,7 +25,7 @@ namespace crisp
     template<typename Value_t>
     typename Image<Value_t>::Iterator Image<Value_t>::end()
     {
-        return Image::Iterator(this, get_size().x(), get_size().y());
+        return Image::Iterator(this, get_size().x() , get_size().y());
     }
 
     template<typename Value_t>

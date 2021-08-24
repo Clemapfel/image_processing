@@ -1478,22 +1478,41 @@ namespace crisp::Segmentation
         {
            float color_sum;
            size_t n;
-
-           float mean_color = float(-1); // unused until post-processing
+           float mean_color;
         };
 
         std::vector<Cluster> clusters;
 
-        std::mt19937 engine;
-        std::uniform_int_distribution<int> x_dist(0, image.get_size().x());
-        std::uniform_int_distribution<int> y_dist(0, image.get_size().y());
+        std::map<int, size_t> intensity_histogram;
 
+        for (long x = 0; x < image.get_size().x(); ++x)
+            for (long y = 0; y < image.get_size().y(); ++y)
+            {
+                int value = int(image(x, y) * 255)
+                if (intensity_histogram.find() != )
+                {
+
+                }
+            }
+
+        int interval = int(255.f / n_clusters);
         for (size_t i = 0; i < n_clusters; ++i)
         {
-            auto pos = Vector2ui(x_dist(engine), y_dist(engine));
-            clusters.push_back(Cluster{image(pos.x(), pos.y()), 1});
-            clusters.back().mean_color = clusters.back().color_sum;
+            int max_intensity = i * interval;
+            size_t max_intensity_n = 0;
+
+            for (int value = i * interval; value < 255 and value < (i+1) * interval; ++value)
+            {
+                if (intensity_histogram.at(value).second > max_intensity_n)
+                {
+                    max_intensity = value;
+                    max_intensity_n = intensity_histogram.at(value).second;
+                }
+
+                clusters.emplace_back(Cluster{max_intensity / 255.f, 1, max_intensity / 255.f});
+            }
         }
+
 
         auto dist = [](float a, float b) -> int
         {
@@ -1505,7 +1524,7 @@ namespace crisp::Segmentation
 
         size_t n_changed = 1;
         size_t n_iterations = 0;
-        while (n_changed != 0 and n_iterations < max_n_iterations)
+        while (n_changed != 0)
         {
             n_changed = 0;
             for (long x = 0; x < image.get_size().x(); ++x)
@@ -1530,6 +1549,11 @@ namespace crisp::Segmentation
                     if (old_i < 0 or old_i >= clusters.size())
                     {
                         out(x, y) = min_cluster_i;
+                        clusters.at(min_cluster_i).n += 1;
+                        clusters.at(min_cluster_i).color_sum += image(x, y);
+                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
                         n_changed++;
                     }
                     else if (out(x, y) != min_cluster_i)
@@ -1588,6 +1612,181 @@ namespace crisp::Segmentation
         for (auto& px : out)
         {
             px = clusters.at(px).mean_color;
+        }
+
+        return out;
+    }
+
+    ColorImage k_means_clustering(const ColorImage& image, size_t n_clusters, size_t max_n_iterations)
+    {
+        // initial clusters
+        struct Cluster
+        {
+           Color color_sum;
+           size_t n;
+
+           Color mean_color;
+        };
+
+        std::vector<Cluster> clusters;
+
+        struct hue_element
+        {
+            size_t n;
+            float s_sum;
+            float v_sum;
+        };
+
+        std::vector<std::pair<int, hue_element>> hue_histogram;
+
+        for (size_t i = 0; i < 255; ++i)
+            hue_histogram.emplace_back(i, hue_element{0, 0, 0});
+
+        for (long x = 0; x < image.get_size().x(); ++x)
+        {
+            for (long y = 0; y < image.get_size().y(); ++y)
+            {
+                auto hsv = image(x, y).as_hsv();
+                auto& element = hue_histogram.at(int(hsv.h * 255)).second;
+                element.n += 1;
+                element.s_sum += hsv.s;
+                element.v_sum += hsv.v;
+            }
+        }
+
+        int interval = int(255 / (n_clusters));
+        for (size_t i = 0; i < n_clusters; ++i)
+        {
+            int max_hue = i * interval;
+            int max_hue_n = 0;
+
+            size_t n_steps = 0;
+            float v_sum = 0;
+            float s_sum = 0;
+            for (size_t hue = i * interval; hue < hue_histogram.size() and hue < (i+1) * interval; ++hue)
+            {
+                if (hue_histogram.at(hue).second.n > max_hue_n)
+                {
+                    max_hue = hue_histogram.at(hue).first;
+                    max_hue_n = hue_histogram.at(hue).second.n;
+                }
+
+                n_steps += 1;
+                v_sum += hue_histogram.at(max_hue).second.s_sum / max_hue_n;
+                s_sum += hue_histogram.at(max_hue).second.v_sum / max_hue_n;
+            }
+
+            auto hsv = HSV{max_hue / 255.f, s_sum / n_steps, v_sum / n_steps};
+            auto color = Color(hsv);
+            clusters.push_back(Cluster{color, 1, color});
+        }
+
+        auto dist = [](Color a, Color b) -> int
+        {
+            auto a_hsv = a.as_hsv(), b_hsv = b.as_hsv();
+
+            int score = abs(int(a.red() * 255) - int(b.red() * 255)) +
+                        abs(int(a.green() * 255) - int(b.green() * 255)) +
+                        abs(int(a.blue() * 255) - int(b.blue() * 255));
+
+            return score;
+        };
+
+        ColorImage out; // .r is cluster index
+        out.create(image.get_size().x(), image.get_size().y(), Color(-1, 0, 0));
+
+        size_t n_changed = 1;
+        size_t n_iterations = 0;
+        while (n_changed != 0 and n_iterations < max_n_iterations)
+        {
+            n_changed = 0;
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                for (long y = 0; y < image.get_size().y(); ++y)
+                {
+                    int min_distance = std::numeric_limits<int>::max();
+                    size_t min_cluster_i = -1;
+
+                    for (size_t i = 0; i < clusters.size(); ++i)
+                    {
+                        auto current_distance = dist(image(x, y), clusters.at(i).mean_color);
+                        if (current_distance < min_distance)
+                        {
+                            min_distance = current_distance;
+                            min_cluster_i = i;
+                        }
+                    }
+
+                    int old_i = int(out(x, y).x());
+
+                    if (old_i < 0 or old_i >= clusters.size())
+                    {
+                        out(x, y) = min_cluster_i;
+                        clusters.at(min_cluster_i).n += 1;
+                        clusters.at(min_cluster_i).color_sum += image(x, y);
+                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
+                        n_changed++;
+                    }
+                    else if (out(x, y).x() != min_cluster_i)
+                    {
+                        auto before_dist = dist(clusters.at(old_i).mean_color, clusters.at(min_cluster_i).mean_color);
+
+                        clusters.at(old_i).n -= 1;
+                        clusters.at(old_i).color_sum -= image(x, y);
+                        clusters.at(old_i).mean_color = clusters.at(old_i).color_sum;
+                        clusters.at(old_i).mean_color /= clusters.at(old_i).n;
+
+                        out(x, y) = min_cluster_i;
+
+                        clusters.at(min_cluster_i).n += 1;
+                        clusters.at(min_cluster_i).color_sum += image(x, y);
+                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
+                        auto after_dist = dist(clusters.at(old_i).mean_color, clusters.at(min_cluster_i).mean_color);
+
+                        if (abs(after_dist - before_dist) > 0)
+                            n_changed++;
+                    }
+                }
+            }
+
+            std::cout << n_iterations << ": " << n_changed << std::endl;
+            n_iterations++;
+        }
+
+        for (size_t i = 0; i < clusters.size(); ++i)
+        {
+            for (size_t j = 0; j < clusters.size(); ++j)
+            {
+                if (i == j)
+                    continue;
+
+                // pseudo merge
+                if (dist(clusters.at(i).mean_color, clusters.at(j).mean_color) < 1)
+                {
+                    size_t new_n = clusters.at(i).n + clusters.at(j).n;
+                    Color new_sum = clusters.at(i).color_sum;
+                    new_sum += clusters.at(j).color_sum;
+
+                    clusters.at(i).color_sum = new_sum;
+                    clusters.at(i).n = new_n;
+                    clusters.at(i).mean_color = new_sum;
+                    clusters.at(i).mean_color /= clusters.at(i).n;
+
+                    clusters.at(j).color_sum = new_sum;
+                    clusters.at(j).n = new_n;
+                    clusters.at(j).mean_color = new_sum;
+                    clusters.at(j).mean_color /= clusters.at(j).n;
+                }
+            }
+        }
+
+        for (auto& px : out)
+        {
+            px = clusters.at(px.x()).mean_color;
         }
 
         return out;
