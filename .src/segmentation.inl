@@ -4,9 +4,67 @@
 //
 
 #include <unordered_set>
+#include <deque>
+#include <cassert>
 
 namespace crisp::Segmentation
 {
+    std::vector<ImageSegment> decompose_binary_image(const BinaryImage& image, size_t min_region_size)
+    {
+        std::vector<ImageSegment> segments;
+
+        BinaryImage seen;
+        seen.create(image.get_size().x(), image.get_size().y(), false);
+
+        for (long x = 0; x < seen.get_size().x(); ++x)
+        {
+            for (long y = 0; y < seen.get_size().y(); ++y)
+            {
+                if (seen(x, y))
+                    continue;
+
+                seen(x, y) = true;
+
+                if (image(x, y) == true)
+                {
+                    segments.emplace_back();
+                    std::deque<Vector2ui> to_add;
+                    to_add.emplace_front(x, y);
+
+                    while (not to_add.empty())
+                    {
+                        auto current = to_add.front();
+                        for (long i : {-1, 1, 0, 0})
+                        {
+                            for (long j : {0, 0, -1, 1})
+                            {
+                                if (current.x() + i < 0 or current.x() + i >= seen.get_size().x() or
+                                    current.y() + j < 0 or current.y() + j >= seen.get_size().y() or
+                                    seen(current.x() + i, current.y() + j))
+                                    continue;
+
+                                seen(current.x() + i, current.y() + j) = true;
+
+                                if (image(current.x() + i, current.y() + j))
+                                {
+                                    to_add.emplace_back(current.x() + i, current.y() + j);
+                                }
+                            }
+                        }
+
+                        segments.back().add(to_add.front());
+                        to_add.pop_front();
+                    }
+
+                    if (segments.back().size() < min_region_size)
+                        segments.erase(segments.end() - 1);
+                }
+            }
+        }
+
+        return segments;
+    }
+
     BinaryImage basic_threshold(const GrayScaleImage& image)
     {
         const float convergence_treshold = 1 / 255.f;

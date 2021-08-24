@@ -14,18 +14,25 @@
 
 namespace crisp::Segmentation
 {
+    // @brief extracts all 4-connected regions from a binary image
+    // @param image: binary image containing the regions
+    // @param ignore_regions_smaller_then: threshold n such that all regions with number of pixels less than n will be removed
+    // @returns vector of 4-connected regions
+    // @complexity: amortized o(m*n) where m, n size of the image
+    std::vector<ImageSegment> decompose_binary_image(const BinaryImage& image, size_t min_region_size = 2);
+
     // @brief recursively modify threshold until convergence is achieved, simple but decent
     // @param image: the image to be thresholded
     // @returns binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
     //
-    // @complexity O(k * log(k)) where k is the number of pairwise different intensities in the image
+    // @complexity O(k * log(k) + m*n) where k is the number of pairwise different intensities in the image
     [[nodiscard]] BinaryImage basic_threshold(const GrayScaleImage& image);
 
     // @brief applies otsu method to arrive at a mean that optimizes the between-class variance
     // @param image: the image to be thresholded
     // @returns a binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
     //
-    // @complexity O(255 * k) where k is the number of pairwise different intensities
+    // @complexity O(255 * k + m*n) where k is the number of pairwise different intensities
     [[nodiscard]] BinaryImage otsu_threshold(const GrayScaleImage& image);
 
     // @brief iterate through the image in a spiraling pattern, calculating the local mean based on the pixels previously visited
@@ -34,7 +41,7 @@ namespace crisp::Segmentation
     // @param constant: a constant modifying how many pixels are taken into account when calculating the local mean
     // @returns binary image where a pixel is false (black) if it is equal to below the threshold, white otherwise
     //
-    // @complexity: amortized o(constant * max(m, n) * m * n) where m, n the size of the image
+    // @complexity: amortized o(constant * m * n) where m, n the size of the image
     [[nodiscard]] BinaryImage variable_threshold(const GrayScaleImage& image, float constant = 0.25);
 
     // @brief compute the local threshold based on the local neighborhood of each pixel. Slow but most resistant to non-uniform lighting
@@ -66,20 +73,22 @@ namespace crisp::Segmentation
     [[nodiscard]] ColorImage region_growing_clustering(const ColorImage& image, std::vector<Vector2ui> seeds, float add_upper_threshold, float merge_upper_threshold);
     [[nodiscard]] GrayScaleImage region_growing_clustering(const GrayScaleImage& image, std::vector<Vector2ui> seeds, float add_upper_threshold, float merge_upper_threshold);
 
+   // @overload: see above
     // @brief segment an image by region growing by specifying a binary image that is treated as the set of seeds
     // @param image: image to be segmented
     // @param seed_image: binary image where each true (white) pixel corresponds to one seed position
     // @param add_upper_threshold: threshold T1 such that when a region encounters a pixel, if the color-distance between the pixel and the region is smaller than T1, it is added to the cluster
     // @param merge_upper_threshold: threshold T2 such that when a region encounters another region, if the color-distance between the two regions mean colors is samller than T2, the are merged
-    // @return segmented image of the corresponding type
+    // @returns segmented image of the corresponding type
     template<typename Image_t>
     [[nodiscard]] Image_t region_growing_clustering(const Image_t& image, BinaryImage seed_image, float add_upper_threshold, float merge_upper_threshold);
+
     // @brief segment an image by region growing by n seeds, each randomly position in exactly one equally sized region
     // @param image: image to be segmented
     // @param n_seed: the number of seeds
     // @param add_upper_threshold: threshold T1 such that when a region encounters a pixel, if the color-distance between the pixel and the region is smaller than T1, it is added to the cluster
     // @param merge_upper_threshold: threshold T2 such that when a region encounters another region, if the color-distance between the two regions mean colors is samller than T2, the are merged
-    // @return segmented image of the corresponding type
+    // @returns segmented image of the corresponding type
     //
     // @note: as each seed boundary region is a sqaure, depending on the images ratio the number of seeds may be less than specified
     template<typename Image_t>

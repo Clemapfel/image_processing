@@ -8,7 +8,8 @@
 namespace crisp
 {
     template<typename Value_t>
-    void ImageSegment<Value_t>::create(Image <Value_t>* original, std::vector<Vector2ui> coords)
+    void ImageSegment<Value_t>::create(Image <Value_t>* original, std::ve
+            void add(ctor<Vector2ui> coords)
     {
         _image = original;
         _x_bounds.x() = std::numeric_limits<long>::max();
@@ -45,6 +46,7 @@ namespace crisp
 
         return out;
     }
+
 
     template<typename Value_t>
     auto ImageSegment<Value_t>::begin()

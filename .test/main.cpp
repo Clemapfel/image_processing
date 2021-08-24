@@ -32,14 +32,20 @@ int main()
     sf::Clock clock;
     auto grayscale = GrayScaleImage();
     grayscale.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
+    auto binary = Segmentation::neighborhood_threshold(grayscale);
+    binary.invert();
 
-    SpatialFilter<ColorImage> filter;
-    filter.set_kernel(filter.gaussian(5));
-    filter.apply_to(image);
+    auto segments = Segmentation::decompose_binary_image(binary, 50);
 
-    image = Segmentation::region_growing_clustering(image, 3000, 0.1, 0.04);
+    float hue = 0;
+    for (auto& segment : segments)
+    {
+        auto color = Color(HSV{hue, 1, 1});
+        hue = fmod((hue + 1.61803398875), 1);
 
-    std::cout << clock.restart().asSeconds() << "s" << std::endl;
+        for (auto& point : segment)
+            image(point.x(), point.y()) = color;
+    }
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);
