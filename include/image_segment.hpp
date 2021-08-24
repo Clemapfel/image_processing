@@ -12,7 +12,7 @@
 
 namespace crisp
 {
-    // a set of pixel belonging to an image
+    // a set of unique pixel coordinates, usually restrained to all being in a 4-connected cluster
     class ImageSegment
     {
         struct PixelCoordCompare
@@ -27,10 +27,22 @@ namespace crisp
         public:
             ImageSegment() = default;
 
+            // @brief create the segment from a vector of pixel coordinates
+            // @param coords: vector of coordinates
             void create(std::vector<Vector2ui> coords);
+
+            // @brief add pixel coordinate to the segment
             void add(Vector2ui);
+
+            // @brief remove a pixel coordinate from the segment
+            // @param : coordinate to be removed
             void remove(Vector2ui);
+
+            // @brief remove all pixel coordinates in the the segment
             void clear();
+
+            // @brief get number of pixel coordinates in segment
+            // @returns number of coordinates, 0 if empty
             size_t size();
 
             // @brief paste the transform onto a new image of size equal to the minimum bounding box of segments the pixel set
@@ -40,12 +52,12 @@ namespace crisp
             NewImage_t to_new_image() const;
 
             // @brief get an iterator to the first pixel in the segment
-            // @returns bidirectional non-const iterator
+            // @returns bidirectional (const) iterator
             auto begin();
             auto begin() const;
 
             // @brief get an iterator to the past-the-end element of the segment
-            // @returns bidirectional non-const iterator
+            // @returns bidirectional (const) iterator
             auto end();
             auto end() const;
 
@@ -54,36 +66,6 @@ namespace crisp
                       _y_bounds;
 
             Set_t _pixels;
-
-            /*
-            template<typename SetIterator_t>
-            struct Iterator
-            {
-                public:
-                    Iterator(Image_t*, SetIterator_t);
-
-                    using iterator_category = std::bidirectional_iterator_tag;
-                    using value_type = typename Image_t::value_t;
-                    using difference_type = int;
-                    using pointer = typename Image_t::value_t*;
-                    using reference = typename Image_t::value_t&;
-
-                    bool operator==(Iterator& other) const;
-                    bool operator!=(Iterator& other) const;
-
-                    Iterator& operator++();
-                    Iterator& operator--();
-
-                    typename Image_t::value_t& operator*() const;
-                    explicit operator typename Image_t::value_t() const;
-
-                    void operator=(typename Image_t::value_t new_value);
-
-                private:
-                    Image_t* _image;
-                    SetIterator_t _it;
-            };
-            */
     };
 
     void ImageSegment::create(std::vector<Vector2ui> coords)

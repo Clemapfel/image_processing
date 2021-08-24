@@ -14,12 +14,28 @@
 
 namespace crisp::Segmentation
 {
-    // @brief extracts all 4-connected regions from a binary image
-    // @param image: binary image containing the regions
-    // @param ignore_regions_smaller_then: threshold n such that all regions with number of pixels less than n will be removed
+    // @brief extracts all 4-connected regions of identical value from an image
+    // @param image: image containing the regions
+    // @param min_region_size: threshold n such that all regions with number of pixels less than n will be removed
     // @returns vector of 4-connected regions
-    // @complexity: amortized o(m*n) where m, n size of the image
-    std::vector<ImageSegment> decompose_binary_image(const BinaryImage& image, size_t min_region_size = 2);
+    //
+    // @complexity: O(k*m*n) where k, number of resulting regions and m, n size of the image
+    // @note unless discarded because of size, all pixels of the image will be allocated to a region
+    std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, size_t min_region_size = 2);
+    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, size_t min_region_size = 2);
+    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, size_t min_region_size = 2);
+
+    // @brief extracts all 4-connected regions of allowed value from an image
+    // @param image: image containing the regions
+    // @param allowed_value: values that are allocated to regions
+    // @param min_region_size: threshold n such that all regions with number of pixels less than n will be removed
+    // @returns vector of 4-connected regions
+    //
+    // @complexity: O(k*m*n) where k, number of allowed regions and m, n size of the image
+    // @note unless discarded because of size, all pixels of the image will be allocated to a region
+    std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, std::vector<bool> allowed_values, size_t min_region_size = 2);
+    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, std::vector<float> allowed_values, size_t min_region_size = 2);
+    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, std::vector<Color> allowed_values, size_t min_region_size = 2);
 
     // @brief recursively modify threshold until convergence is achieved, simple but decent
     // @param image: the image to be thresholded

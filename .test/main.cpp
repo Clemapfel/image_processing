@@ -26,16 +26,17 @@ using namespace crisp;
 
 int main()
 {
-    auto image = ColorImage();
+    auto image = GrayScaleImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
     sf::Clock clock;
     auto grayscale = GrayScaleImage();
     grayscale.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
-    auto binary = Segmentation::neighborhood_threshold(grayscale);
+    auto binary = Segmentation::variable_threshold(grayscale, 25);
     binary.invert();
 
-    auto segments = Segmentation::decompose_binary_image(binary, 50);
+    image = Segmentation::superpixel_clustering(image, 50);
+    auto segments = Segmentation::decompose_into_segments(image, 100);
 
     float hue = 0;
     for (auto& segment : segments)
@@ -44,8 +45,10 @@ int main()
         hue = fmod((hue + 1.61803398875), 1);
 
         for (auto& point : segment)
-            image(point.x(), point.y()) = color;
+            image(point.x(), point.y()) = hue;
     }
+
+    std::cout << clock.restart().asSeconds() << std::endl;
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);
