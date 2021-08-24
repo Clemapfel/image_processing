@@ -15,6 +15,7 @@ namespace crisp::Segmentation
 
         BinaryImage seen;
         seen.create(image.get_size().x(), image.get_size().y(), false);
+        bool color = false;
 
         for (long x = 0; x < seen.get_size().x(); ++x)
         {
@@ -23,10 +24,10 @@ namespace crisp::Segmentation
                 if (seen(x, y))
                     continue;
 
-                seen(x, y) = true;
-
-                if (image(x, y) == true)
+                if (not seen(x, y))
                 {
+                    color = image(x, y);
+
                     segments.emplace_back();
                     std::deque<Vector2ui> to_add;
                     to_add.emplace_front(x, y);
@@ -43,11 +44,10 @@ namespace crisp::Segmentation
                                     seen(current.x() + i, current.y() + j))
                                     continue;
 
-                                seen(current.x() + i, current.y() + j) = true;
-
-                                if (image(current.x() + i, current.y() + j))
+                                if (image(current.x() + i, current.y() + j) == color)
                                 {
                                     to_add.emplace_back(current.x() + i, current.y() + j);
+                                    seen(current.x() + i, current.y() + j) = true;
                                 }
                             }
                         }
@@ -58,6 +58,8 @@ namespace crisp::Segmentation
 
                     if (segments.back().size() < min_region_size)
                         segments.erase(segments.end() - 1);
+
+                    color = false;
                 }
             }
         }
@@ -187,6 +189,7 @@ namespace crisp::Segmentation
 
         return segments;
     }
+
 
     BinaryImage basic_threshold(const GrayScaleImage& image)
     {
