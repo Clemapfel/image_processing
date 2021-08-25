@@ -111,9 +111,10 @@ namespace crisp::Segmentation
     //                          default: infinite, recommended: more than 2, less than 20
     // @returns segmented image of corresponding type
     //
-    // @complexity: amortized o(N*k*m*n) where k number of clusters, N max number of iterations, m, n size of image
-    [[nodiscard]] GrayScaleImage k_means_clustering(const GrayScaleImage& image, size_t n_clusters, size_t max_n_iterations = 2);
-    [[nodiscard]] ColorImage k_means_clustering(const ColorImage& image, size_t n_clusters, size_t max_n_iterations = 2);
+    // @complexity: amortized o(m*n + N*k*m*n) where k number of clusters, N max number of iterations, m, n size of image
+    // @note for a detail explanation of how the heuristic for the initial cluster centers work, see: TODO
+    [[nodiscard]] GrayScaleImage k_means_clustering(const GrayScaleImage& image, size_t n_clusters, size_t max_n_iterations = -1);
+    [[nodiscard]] ColorImage k_means_clustering(const ColorImage& image, size_t n_clusters, size_t max_n_iterations = -1);
 }
 
 #include ".src/segmentation.inl"

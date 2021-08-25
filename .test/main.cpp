@@ -26,24 +26,12 @@ using namespace crisp;
 
 int main()
 {
-    auto image = GrayScaleImage();
+    auto image = ColorImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
     sf::Clock clock;
-    image = Segmentation::k_means_clustering(image, 4, 10);
+    image = Segmentation::k_means_clustering(image, 10, 5);
     std::cout << clock.restart().asSeconds() << std::endl;
-
-    float hue = 0;
-    /*
-    for (auto& segment : segments)
-    {
-        auto color = Color(HSV{hue, 1, 1});
-        hue = fmod((hue + 1.61803398875), 1);
-
-        for (auto& point : segment)
-            image(point.x(), point.y()) = HSV{hue, 1, 1};
-    }*/
-
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);

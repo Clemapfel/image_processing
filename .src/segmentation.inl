@@ -1473,7 +1473,6 @@ namespace crisp::Segmentation
 
     GrayScaleImage k_means_clustering(const GrayScaleImage& image, size_t n_clusters, size_t max_n_iterations)
     {
-        // initial clusters
         struct Cluster
         {
            float color_sum;
@@ -1482,37 +1481,41 @@ namespace crisp::Segmentation
         };
 
         std::vector<Cluster> clusters;
-
         std::map<int, size_t> intensity_histogram;
 
         for (long x = 0; x < image.get_size().x(); ++x)
+        {
             for (long y = 0; y < image.get_size().y(); ++y)
             {
-                int value = int(image(x, y) * 255)
-                if (intensity_histogram.find() != )
-                {
-
-                }
+                int value = int(image(x, y) * 255);
+                if (intensity_histogram.find(value) == intensity_histogram.end())
+                    intensity_histogram.emplace(value, 1);
+                else
+                    intensity_histogram.at(value) += 1;
             }
+        }
 
-        int interval = int(255.f / n_clusters);
+        std::vector<std::pair<int, size_t>> as_vector;
+        for (auto& pair : intensity_histogram)
+            as_vector.emplace_back(pair.first, pair.second);
+
+        int interval = int(as_vector.size() / float(n_clusters));
         for (size_t i = 0; i < n_clusters; ++i)
         {
             int max_intensity = i * interval;
             size_t max_intensity_n = 0;
 
-            for (int value = i * interval; value < 255 and value < (i+1) * interval; ++value)
+            for (int j = i * interval; j < as_vector.size() and j < (i + 1) * interval; ++j)
             {
-                if (intensity_histogram.at(value).second > max_intensity_n)
+                if (as_vector.at(j).second > max_intensity_n)
                 {
-                    max_intensity = value;
-                    max_intensity_n = intensity_histogram.at(value).second;
+                    max_intensity = as_vector.at(j).first;
+                    max_intensity_n = as_vector.at(j).second;
                 }
-
-                clusters.emplace_back(Cluster{max_intensity / 255.f, 1, max_intensity / 255.f});
             }
-        }
 
+            clusters.emplace_back(Cluster{max_intensity / 255.f, 1, max_intensity / 255.f});
+        }
 
         auto dist = [](float a, float b) -> int
         {
@@ -1551,8 +1554,12 @@ namespace crisp::Segmentation
                         out(x, y) = min_cluster_i;
                         clusters.at(min_cluster_i).n += 1;
                         clusters.at(min_cluster_i).color_sum += image(x, y);
+
+                        if (n_iterations > 0)
+                        {
                         clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
                         clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+                        }
 
                         n_changed++;
                     }
@@ -1569,8 +1576,12 @@ namespace crisp::Segmentation
 
                         clusters.at(min_cluster_i).n += 1;
                         clusters.at(min_cluster_i).color_sum += image(x, y);
-                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
-                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
+                        if (n_iterations > 0)
+                        {
+                            clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                            clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+                        }
 
                         auto after_dist = dist(clusters.at(old_i).mean_color, clusters.at(min_cluster_i).mean_color);
 
@@ -1578,6 +1589,12 @@ namespace crisp::Segmentation
                             n_changed++;
                     }
                 }
+            }
+
+            if (n_iterations == 0)
+            {
+                for (auto& cluster : clusters)
+                    cluster.mean_color = cluster.color_sum / cluster.n;
             }
 
             std::cout << n_iterations << ": " << n_changed << std::endl;
@@ -1630,55 +1647,94 @@ namespace crisp::Segmentation
 
         std::vector<Cluster> clusters;
 
-        struct hue_element
+        struct HueElement
         {
             size_t n;
-            float s_sum;
-            float v_sum;
+            float saturation_sum;
+            float value_sum;
         };
 
-        std::vector<std::pair<int, hue_element>> hue_histogram;
+        // heuristic to pick initial cluster centers
+        std::vector<HueElement> hue_histogram;
+        std::vector<size_t> gray_histogram;
 
-        for (size_t i = 0; i < 255; ++i)
-            hue_histogram.emplace_back(i, hue_element{0, 0, 0});
+        for (size_t i = 0; i < 256; ++i)
+        {
+            hue_histogram.emplace_back(HueElement{0, 0});
+            gray_histogram.emplace_back(0);
+        }
 
         for (long x = 0; x < image.get_size().x(); ++x)
+        for (long y = 0; y < image.get_size().y(); ++y)
         {
-            for (long y = 0; y < image.get_size().y(); ++y)
+            auto hsv = convert_to<HSV>(image(x, y));
+
+            if (hsv.s < 0.33)
+                gray_histogram.at(int(hsv.v * 255)) += 1;
+            else
             {
-                auto hsv = image(x, y).as_hsv();
-                auto& element = hue_histogram.at(int(hsv.h * 255)).second;
+                auto& element = hue_histogram.at(int(hsv.h * 255));
                 element.n += 1;
-                element.s_sum += hsv.s;
-                element.v_sum += hsv.v;
+                element.saturation_sum += hsv.s;
+                element.value_sum += hsv.v;
             }
         }
 
+        // try to find centrum in hue band
         int interval = int(255 / (n_clusters));
+        std::vector<size_t> gray_clusters;
+
         for (size_t i = 0; i < n_clusters; ++i)
         {
             int max_hue = i * interval;
-            int max_hue_n = 0;
-
-            size_t n_steps = 0;
-            float v_sum = 0;
+            size_t max_hue_n = 0;
             float s_sum = 0;
+            float n_sum = 0;
+            float v_sum = 0;
+
             for (size_t hue = i * interval; hue < hue_histogram.size() and hue < (i+1) * interval; ++hue)
             {
-                if (hue_histogram.at(hue).second.n > max_hue_n)
+                if (hue_histogram.at(hue).n > max_hue_n)
                 {
-                    max_hue = hue_histogram.at(hue).first;
-                    max_hue_n = hue_histogram.at(hue).second.n;
+                    max_hue = hue;
+                    max_hue_n = hue_histogram.at(hue).n;
                 }
 
-                n_steps += 1;
-                v_sum += hue_histogram.at(max_hue).second.s_sum / max_hue_n;
-                s_sum += hue_histogram.at(max_hue).second.v_sum / max_hue_n;
+                s_sum += hue_histogram.at(hue).saturation_sum;
+                v_sum += hue_histogram.at(hue).value_sum;
+                n_sum += hue_histogram.at(hue).n;
             }
 
-            auto hsv = HSV{max_hue / 255.f, s_sum / n_steps, v_sum / n_steps};
-            auto color = Color(hsv);
-            clusters.push_back(Cluster{color, 1, color});
+            if (n_sum == 0 or s_sum / n_sum < 0.33 or v_sum / n_sum < 0.25)
+                gray_clusters.push_back(i);
+            else
+            {
+                auto hsv = HSV{max_hue / 255.f, s_sum / n_sum, v_sum / n_sum};
+                auto color = convert_to<Color>(hsv);
+                clusters.emplace_back(Cluster{color, 1, color});
+            }
+        }
+
+        if (gray_clusters.size() > 0)
+        {
+            interval = int(255 / gray_clusters.size());
+            for (size_t i = 0; i < gray_clusters.size(); ++i)
+            {
+                int max_gray = 0;
+                size_t max_gray_n = 0;
+
+                for (size_t gray = i * interval; gray < gray_histogram.size() and gray < (i + 1) * interval; ++gray)
+                {
+                    if (gray_histogram.at(gray) > max_gray_n)
+                    {
+                        max_gray = gray;
+                        max_gray_n = gray_histogram.at(gray);
+                    }
+                }
+
+                auto color = Color(max_gray / 255.f, max_gray / 255.f, max_gray / 255.f);
+                clusters.emplace_back(Cluster{color, 1, color});
+            }
         }
 
         auto dist = [](Color a, Color b) -> int
@@ -1724,8 +1780,12 @@ namespace crisp::Segmentation
                         out(x, y) = min_cluster_i;
                         clusters.at(min_cluster_i).n += 1;
                         clusters.at(min_cluster_i).color_sum += image(x, y);
-                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
-                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
+                        if (n_iterations > 0)
+                        {
+                            clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                            clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+                        }
 
                         n_changed++;
                     }
@@ -1735,15 +1795,23 @@ namespace crisp::Segmentation
 
                         clusters.at(old_i).n -= 1;
                         clusters.at(old_i).color_sum -= image(x, y);
-                        clusters.at(old_i).mean_color = clusters.at(old_i).color_sum;
-                        clusters.at(old_i).mean_color /= clusters.at(old_i).n;
+
+                        if (n_iterations >= 0)
+                        {
+                            clusters.at(old_i).mean_color = clusters.at(old_i).color_sum;
+                            clusters.at(old_i).mean_color /= clusters.at(old_i).n;
+                        }
 
                         out(x, y) = min_cluster_i;
 
                         clusters.at(min_cluster_i).n += 1;
                         clusters.at(min_cluster_i).color_sum += image(x, y);
-                        clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
-                        clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+
+                        if (n_iterations >= 0)
+                        {
+                            clusters.at(min_cluster_i).mean_color = clusters.at(min_cluster_i).color_sum;
+                            clusters.at(min_cluster_i).mean_color /= clusters.at(min_cluster_i).n;
+                        }
 
                         auto after_dist = dist(clusters.at(old_i).mean_color, clusters.at(min_cluster_i).mean_color);
 
@@ -1753,7 +1821,15 @@ namespace crisp::Segmentation
                 }
             }
 
-            std::cout << n_iterations << ": " << n_changed << std::endl;
+            if (n_iterations == 0)
+            {
+                for (auto& cluster : clusters)
+                {
+                    cluster.mean_color = cluster.color_sum;
+                    cluster.mean_color /= cluster.n;
+                }
+            }
+
             n_iterations++;
         }
 
