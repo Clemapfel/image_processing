@@ -29,6 +29,14 @@ int main()
     auto image = ColorImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
+    Color sum = 0;
+    for (auto& px : image)
+        sum += px;
+
+    std::cout << sum << std::endl;
+    return 0;
+
+
     sf::Clock clock;
     image = Segmentation::k_means_clustering(image, 10, 5);
     std::cout << clock.restart().asSeconds() << std::endl;

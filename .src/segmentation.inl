@@ -52,7 +52,7 @@ namespace crisp::Segmentation
                             }
                         }
 
-                        segments.back().add(to_add.front());
+                        segments.back().insert(to_add.front());
                         to_add.pop_front();
                     }
 
@@ -110,7 +110,7 @@ namespace crisp::Segmentation
                             }
                         }
 
-                        segments.back().add(to_add.front());
+                        segments.back().insert(to_add.front());
                         to_add.pop_front();
                     }
 
@@ -175,7 +175,7 @@ namespace crisp::Segmentation
                             }
                         }
 
-                        segments.back().add(to_add.front());
+                        segments.back().insert(to_add.front());
                         to_add.pop_front();
                     }
 
@@ -244,7 +244,7 @@ namespace crisp::Segmentation
                             }
                         }
 
-                        segments.back().add(to_add.front());
+                        segments.back().insert(to_add.front());
                         to_add.pop_front();
                     }
 
@@ -317,7 +317,7 @@ namespace crisp::Segmentation
                             }
                         }
 
-                        segments.back().add(to_add.front());
+                        segments.back().insert(to_add.front());
                         to_add.pop_front();
                     }
 
@@ -394,7 +394,7 @@ namespace crisp::Segmentation
                             }
                         }
 
-                        segments.back().add(to_add.front());
+                        segments.back().insert(to_add.front());
                         to_add.pop_front();
                     }
 
@@ -1868,33 +1868,9 @@ namespace crisp::Segmentation
         return out;
     }
 
-    /*
-    template<typename Image_t>
-    Image_t region_growing_clustering(const Image_t& image, size_t n_seeds, float add_upper_threshold,
-                                         float merge_upper_threshold)
+    BinaryImage morphological_watershed_segmentation(const GrayScaleImage& image, const BinaryImage& edges)
     {
-        float spacing = std::max(image.get_size().x(), image.get_size().y()) / sqrt(n_seeds);
 
-        std::random_device device;
-        std::mt19937 engine;
-        engine.seed(device());
-
-        std::vector<Vector2ui> seeds;
-        int hs = ceil(spacing / 2);
-        auto x_dist = std::uniform_int_distribution<int>(-hs + 1, +hs);
-        auto y_dist = std::uniform_int_distribution<int>(-hs + 1, +hs);
-
-        for (long x = hs; x < image.get_size().x(); x += 2 * hs)
-        {
-            for (long y = hs; y < image.get_size().y(); y += 2 * hs)
-            {
-                seeds.emplace_back(std::min<unsigned int>(x + x_dist(engine), image.get_size().x() - 1),
-                                   std::min<unsigned int>(y + y_dist(engine), image.get_size().y() - 1));
-            }
-        }
-
-        return region_growing_clustering(image, seeds, add_upper_threshold, merge_upper_threshold);
     }
-     */
 }
 
