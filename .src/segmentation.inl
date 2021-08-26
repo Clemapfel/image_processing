@@ -17,9 +17,9 @@ namespace crisp::Segmentation
         seen.create(image.get_size().x(), image.get_size().y(), false);
         bool color = false;
 
-        for (long x = 0; x < seen.get_size().x(); ++x)
+        for (long y = 0; y < seen.get_size().y(); ++y)
         {
-            for (long y = 0; y < seen.get_size().y(); ++y)
+            for (long x = 0; x < seen.get_size().x(); ++x)
             {
                 if (seen(x, y))
                     continue;
@@ -75,9 +75,9 @@ namespace crisp::Segmentation
         seen.create(image.get_size().x(), image.get_size().y(), false);
         int color = -1;
 
-        for (long x = 0; x < seen.get_size().x(); ++x)
+        for (long y = 0; y < seen.get_size().y(); ++y)
         {
-            for (long y = 0; y < seen.get_size().y(); ++y)
+            for (long x = 0; x < seen.get_size().x(); ++x)
             {
                 if (seen(x, y))
                     continue;
@@ -133,9 +133,9 @@ namespace crisp::Segmentation
         seen.create(image.get_size().x(), image.get_size().y(), false);
         Color color = Color(-1, -1, -1);
 
-        for (long x = 0; x < seen.get_size().x(); ++x)
+        for (long y = 0; y < seen.get_size().y(); ++y)
         {
-            for (long y = 0; y < seen.get_size().y(); ++y)
+            for (long x = 0; x < seen.get_size().x(); ++x)
             {
                 if (seen(x, y))
                     continue;
@@ -207,9 +207,9 @@ namespace crisp::Segmentation
             return false;
         };
 
-        for (long x = 0; x < seen.get_size().x(); ++x)
+        for (long y = 0; y < seen.get_size().y(); ++y)
         {
-            for (long y = 0; y < seen.get_size().y(); ++y)
+            for (long x = 0; x < seen.get_size().x(); ++x)
             {
                 if (seen(x, y))
                     continue;
@@ -280,9 +280,9 @@ namespace crisp::Segmentation
             return allowed.find(int(v * 255)) != allowed.end();
         };
 
-        for (long x = 0; x < seen.get_size().x(); ++x)
+        for (long y = 0; y < seen.get_size().y(); ++y)
         {
-            for (long y = 0; y < seen.get_size().y(); ++y)
+            for (long x = 0; x < seen.get_size().x(); ++x)
             {
                 if (seen(x, y))
                     continue;
@@ -357,9 +357,9 @@ namespace crisp::Segmentation
             return allowed.find(str.str()) != allowed.end();
         };
 
-        for (long x = 0; x < seen.get_size().x(); ++x)
+        for (long y = 0; y < seen.get_size().y(); ++y)
         {
-            for (long y = 0; y < seen.get_size().y(); ++y)
+            for (long x = 0; x < seen.get_size().x(); ++x)
             {
                 if (seen(x, y))
                     continue;

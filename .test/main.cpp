@@ -21,25 +21,24 @@
 #include <morphological_transform.hpp>
 #include <edge_detection.hpp>
 #include <segmentation.hpp>
+#include <image_region.hpp>
 
 using namespace crisp;
 
 int main()
 {
-    auto image = ColorImage();
+    auto image = GrayScaleImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
-    Color sum = 0;
-    for (auto& px : image)
-        sum += px;
+    auto binary = Segmentation::otsu_threshold(image);
+    auto segments = Segmentation::decompose_into_segments(binary, {false}, 50);
+    auto letter_s = segments.front();
 
-    std::cout << sum << std::endl;
-    return 0;
+    auto region_s = ImageRegion<GrayScaleImage>();
+    region_s.create_from(letter_s, image);
 
-
-    sf::Clock clock;
-    image = Segmentation::k_means_clustering(image, 10, 5);
-    std::cout << clock.restart().asSeconds() << std::endl;
+    for (auto& px : letter_s)
+        image(px.x(), px.y()) = 1;
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);

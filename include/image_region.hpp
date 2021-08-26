@@ -37,9 +37,9 @@ namespace crisp
             };
 
             std::set<Element, ElementCompare> _elements;
-            std::vector<Element*> _boundary;
+            std::vector<Vector2ui> _boundary;
 
-            std::Vector2<int> _x_bounds, _y_bounds;
+            Vector2ui _x_bounds, _y_bounds;
         };
 
     template<typename Image_t>
@@ -48,13 +48,13 @@ namespace crisp
         _elements.clear();
         ImageSegment temp_boundary;
 
-        int min_x = image.get_size().x(), max_x = 0;
-        int min_y = image.get_size().y(); max_y = 0;
+        unsigned int min_x = image.get_size().x(), max_x = 0;
+        unsigned int min_y = image.get_size().y(), max_y = 0;
         for (auto& px : segment)
         {
             size_t n_unconnected = 0;
-            for (long i = -1, i <= +1; ++i)
-                for (long j = -1; i <= +1; ++j)
+            for (long i = -1; i <= +1; ++i)
+                for (long j = -1; j <= +1; ++j)
                     if (not (i == 0 and j == 0) and segment.find(Vector2ui(px.x() + i, px.y() + j)) == segment.end())
                         n_unconnected++;
 
@@ -63,10 +63,10 @@ namespace crisp
             if (n_unconnected > 1)
                 temp_boundary.insert(px);
 
-            min_x = std::min(min_x, px.x());
-            max_x = std::max(max_x, px.x());
-            min_y = std::min(min_y, px.y());
-            max_y = std::max(max_y, px.y());
+            min_x = std::min<unsigned int>(min_x, px.x());
+            max_x = std::max<unsigned int>(max_x, px.x());
+            min_y = std::min<unsigned int>(min_y, px.y());
+            max_y = std::max<unsigned int>(max_y, px.y());
         }
 
         _x_bounds = {min_x, max_x};
@@ -74,16 +74,16 @@ namespace crisp
 
         _boundary.clear();
         _boundary.reserve(temp_boundary.size());
-        _boundary.push_back(*(temp_boundary.begin()));
+        _boundary.push_back(*temp_boundary.begin());
         temp_boundary.erase(_boundary.front());
 
         auto push_if_neighbour = [&](Vector2ui c, int x_offset, int y_offset) -> bool
         {
             auto to_check = Vector2ui(c.x() + x_offset, c.y() + y_offset);
-            if (temp_boundary.find(to_check) != temp_boundary.end()))
+            if (temp_boundary.find(to_check) != temp_boundary.end())
             {
                 _boundary.push_back(to_check);
-                temp_boundary.erase(to_check)
+                temp_boundary.erase(to_check);
                 return true;
             }
             return false;
@@ -95,11 +95,11 @@ namespace crisp
             auto current = _boundary.back();
             if (push_if_neighbour(current, -1, 0))
                 continue;
-            else if (push_if_neighbour(current, 0, -1)
+            else if (push_if_neighbour(current, 0, -1))
                 continue;
             else if (push_if_neighbour(current, +1, 0))
                 continue;
-            else if (push_if_neighbourcurrent, 0, +1)
+            else if (push_if_neighbour(current, 0, +1))
                 continue;
             else
             {
@@ -109,11 +109,11 @@ namespace crisp
                     auto back_current = _boundary.at(i);
                     if (push_if_neighbour(current, -1, 0))
                         found = true;
-                    else if (push_if_neighbour(current, 0, -1)
+                    else if (push_if_neighbour(current, 0, -1))
                         found = true;
                     else if (push_if_neighbour(current, +1, 0))
                         found = true;
-                    else if (push_if_neighbour(current, 0, +1)
+                    else if (push_if_neighbour(current, 0, +1))
                         found = true;
                     else
                         continue;
