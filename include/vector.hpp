@@ -157,6 +157,7 @@ namespace crisp
     {
         Vector2() = default;
         Vector2(T x, T y);
+        Vector2(Vector<T, 2>);
         
         using Vector<T, 2>::x;
         using Vector<T, 2>::y;
@@ -168,6 +169,7 @@ namespace crisp
     {
         Vector3() = default;
         Vector3(T x, T y, T z);
+        Vector3(Vector<T, 3>);
         
         using Vector<T, 3>::x;
         using Vector<T, 3>::y;
@@ -180,6 +182,7 @@ namespace crisp
     {
         Vector4() = default;
         Vector4(T x, T y, T z, T w);
+        Vector4(Vector<T, 4>);
         
         using Vector<T, 4>::x;
         using Vector<T, 4>::y;

@@ -210,13 +210,28 @@ namespace crisp
     {}
 
     template<typename T>
+    Vector2<T>::Vector2(Vector<T, 2> super)
+        : Vector<T, 2>(super)
+    {}
+
+    template<typename T>
     Vector3<T>::Vector3(T x, T y, T z)
         : Vector<T, 3>({x, y, z})
     {}
 
     template<typename T>
+    Vector3<T>::Vector3(Vector<T, 3> super)
+        : Vector<T, 3>(super)
+    {}
+
+    template<typename T>
     Vector4<T>::Vector4(T x, T y, T z, T w)
         : Vector<T, 4>({x, y, z, w})
+    {}
+
+    template<typename T>
+    Vector4<T>::Vector4(Vector<T, 4> super)
+        : Vector<T, 4>(super)
     {}
 
     template<typename T, size_t N>
