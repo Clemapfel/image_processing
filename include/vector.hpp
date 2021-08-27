@@ -78,56 +78,38 @@ namespace crisp
             // @param i: index of the element
             // @returns: value of the element
             T at(size_t i) const;
-            
-            // @brief perform element-wise addition
-            // @param : another vector of the same size
-            // @returns vector of values after operation
-            using Super_t::operator+;
 
-            // @brief perform element-wise subtraction
-            // @param : another vector of the same size
-            // @returns vector of values after operation
-            using Super_t::operator-;
-
-            // @brief perform element-wise inner product
-            // @param : another vector of the same size
-            // @returns vector of values after operation
+            // @brief perform elementwise vector-vector arithmetics
+            Vector<T, N> operator+(const Vector<T, N>& other) const;
+            Vector<T, N> operator-(const Vector<T, N>& other) const;
             using Super_t::operator*;
-
-            // @brief perform element-wise inner division
-            // @param : another vector of the same size
-            // @returns vector of values after operation
             using Super_t::operator/;
 
-            // @brief addition assignment
-            // @param : another vector of the same size
-            // @returns reference to self after assignment
             using Super_t::operator+=;
-
-            // @brief subtraction assignment
-            // @param : another vector of the same size
-            // @returns reference to self after assignment
             using Super_t::operator-=;
-
-            // @brief inner product assignment
-            // @param : another vector of the same size
-            // @returns reference to self after assignment
             using Super_t::operator*=;
-
-            // @brief inner division assignment
-            // @param : another vector of the same size
-            // @returns reference to self after assignment
             using Super_t::operator/=;
+
+            // @brief perform elementwise vector-scalar artihmetics
+            Vector<T, N> operator+(T scalar) const;
+            Vector<T, N> operator-(T scalar) const;
+            Vector<T, N> operator*(T scalar) const;
+            Vector<T, N> operator/(T scalar) const;
+
+            Vector<T, N>& operator+=(T scalar);
+            Vector<T, N>& operator-=(T scalar);
+            Vector<T, N>& operator*=(T scalar);
+            Vector<T, N>& operator/=(T scalar);
 
             // @brief boolean element-wise comparison
             // @param : another vector of the same size
             // @returns true if all components of both colors are equal, false otherwise
-            bool operator==(const Vector<T, N>& other) const;
+            using Super_t::operator==;
 
             // @brief boolean element-wise comparison
             // @param : another vector of the same size
             // @returns false if all components of both colors are equal, true otherwise
-            bool operator!=(const Vector<T, N>& other) const;
+            using Super_t::operator!=;
             
             // @returns: bi-directional iterator to the first element
             auto begin();

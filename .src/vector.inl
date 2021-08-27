@@ -117,23 +117,87 @@ namespace crisp
     }
 
     template<typename T, size_t N>
-    bool Vector<T, N>::operator==(const Vector <T, N>& other) const
+    Vector<T, N> Vector<T, N>::operator+(const Vector<T, N>& other) const
     {
-        for (size_t i = 0; i < N; ++i)
-            if (at(i) != other.at(i))
-                return false;
-
-        return true;
+        auto out = *this;
+        out += other;
+        return out;
     }
 
     template<typename T, size_t N>
-    bool Vector<T, N>::operator!=(const Vector <T, N>& other) const
+    Vector<T, N> Vector<T, N>::operator-(const Vector<T, N>& other) const
+    {
+        auto out = *this;
+        out *= other;
+        return out;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N> Vector<T, N>::operator+(T scalar) const
+    {
+        auto out = *this;
+        for (size_t i = 0; i < N; ++i)
+            out.at(i) += scalar;
+        return out;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N> Vector<T, N>::operator-(T scalar) const
+    {
+        auto out = *this;
+        for (size_t i = 0; i < N; ++i)
+            out.at(i) -= scalar;
+        return out;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N> Vector<T, N>::operator*(T scalar) const
+    {
+        auto out = *this;
+        for (size_t i = 0; i < N; ++i)
+            out.at(i) *= scalar;
+        return out;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N> Vector<T, N>::operator/(T scalar) const
+    {
+        auto out = *this;
+        for (size_t i = 0; i < N; ++i)
+            out.at(i) /= scalar;
+        return out;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N>& Vector<T, N>::operator+=(T scalar)
     {
         for (size_t i = 0; i < N; ++i)
-            if (at(i) == other.at(i))
-                return false;
+            this->at(i) += scalar;
+        return *this;
+    }
 
-        return true;
+    template<typename T, size_t N>
+    Vector<T, N>& Vector<T, N>::operator-=(T scalar)
+    {
+        for (size_t i = 0; i < N; ++i)
+            this->at(i) -= scalar;
+        return *this;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N>& Vector<T, N>::operator*=(T scalar)
+    {
+        for (size_t i = 0; i < N; ++i)
+            this->at(i) *= scalar;
+        return *this;
+    }
+
+    template<typename T, size_t N>
+    Vector<T, N>& Vector<T, N>::operator/=(T scalar)
+    {
+        for (size_t i = 0; i < N; ++i)
+            this->at(i) /= scalar;
+        return *this;
     }
 
     template<typename T>
