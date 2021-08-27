@@ -35,14 +35,21 @@ int main()
     auto letter_s = segments.front();
 
     for (auto& px : image)
-        px -= 0.5;
+        px = 0;
 
-    for (auto& px : letter_s)
+    for (auto& px : segments.front())
         image(px.x(), px.y()) = 0.5;
 
     auto region_s = ImageRegion<GrayScaleImage>();
     region_s.create_from(letter_s, image);
 
+    auto polygon = region_s.compute_miniminum_perimeter_polygon();
+
+    for (auto& px : polygon)
+    {
+        auto x = px.x(), y = px.y();
+        image(x, y) = 1;
+    }
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);

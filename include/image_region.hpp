@@ -41,20 +41,8 @@ namespace crisp
 
             std::set<Element, ElementCompare> _elements;
             
-            enum class BoundaryVertexDirection : uint8_t
-            {
-                WEST = 0,
-                SOUTH_WEST = 1,
-                SOUTH = 2,
-                SOUTH_EAST = 3,
-                EAST = 4,
-                NORTH_EAST = 5,
-                NORTH = 6, 
-                NORTH_WEST = 7
-            };
-            
             std::vector<Vector2ui> _boundary;
-            std::vector<BoundaryVertexDirection> _directions;
+            std::vector<uint8_t> _directions;
 
             Vector2ui _x_bounds, _y_bounds;
         };
@@ -75,7 +63,7 @@ namespace crisp
                     if (not (i == 0 and j == 0) and segment.find(Vector2ui(px.x() + i, px.y() + j)) == segment.end())
                         n_unconnected++;
 
-            bool is_boundary = n_unconnected > 0;
+            bool is_boundary = n_unconnected > 1;
 
             _elements.emplace(Element{px, image(px.x(), px.y()), is_boundary});
 
@@ -88,13 +76,12 @@ namespace crisp
             max_y = std::max<unsigned int>(max_y, px.y());
         }
 
+
         _x_bounds = {min_x, max_x};
         _y_bounds = {min_y, max_y};
 
         _boundary.clear();
         _boundary.reserve(temp_boundary.size());
-
-        std::vector<size_t> directions;
         _directions.reserve(temp_boundary.size());
 
         auto push_if_neighbour = [&](Vector2ui c, uint8_t direction) -> bool
@@ -151,8 +138,7 @@ namespace crisp
             if (temp_boundary.find(to_check) != temp_boundary.end())
             {
                 _boundary.push_back(to_check);
-                directions.push_back(direction);
-                image(_boundary.back().x(), _boundary.back().y()) = Value_t(1);
+                _directions.push_back(direction);
                 temp_boundary.erase(to_check);
                 return true;
             }
@@ -160,17 +146,16 @@ namespace crisp
         };
 
         _boundary.push_back(*temp_boundary.begin());
-        image(_boundary.back().x(), _boundary.back().y()) = Value_t(1);
         temp_boundary.erase(_boundary.back());
-        directions.push_back(0);
+        _directions.push_back(0);
 
         while (temp_boundary.size() > 0)
         {
             auto current = _boundary.back();
-            auto current_direction = directions.back();
+            auto current_direction = _directions.back();
 
             bool found = false;
-            for (size_t direction = current_direction - 1, n = 0; n < 8; ++direction, ++n)
+            for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
             {
                 if (push_if_neighbour(current, direction))
                 {
@@ -184,7 +169,7 @@ namespace crisp
                 for (size_t i = _boundary.size() - 1; i > 0; --i)
                 {
                     current = _boundary.at(i);
-                    current_direction = directions.at(i);
+                    current_direction = _directions.at(i);
 
                     for (size_t direction = current_direction - 1, n = 0; n < 8; ++direction, ++n)
                         if (push_if_neighbour(current, direction))
@@ -226,9 +211,9 @@ namespace crisp
         std::vector<Vector2ui> vertices;
         std::vector<bool> right_or_left;
 
-        for (size_t i = 1; i < _boundary.size(); ++i)
+        for (size_t i = 0; i < _boundary.size()-1; ++i)
         {
-            auto s = turn_type(i-1, i);
+            auto s = turn_type(i, i+1);
 
             if (s != 0)
             {
@@ -241,9 +226,9 @@ namespace crisp
         auto sign = [](Vector2ui a, Vector2ui b, Vector2ui c) -> int
         {
             Eigen::Matrix<int, 3, 3> matrix;
-            matrix << a.x(), a.y(), 1,
-                      b.x(), b.y(), 1,
-                      c.x(), c.y(), 1;
+            matrix << a.y(), a.x(), 1,
+                      b.y(), b.x(), 1,
+                      c.y(), c.x(), 1;
 
             auto det = matrix.determinant();
 
@@ -256,7 +241,7 @@ namespace crisp
         };
 
         std::vector<Vector2ui> out; // final vertices
-        out.push_back(_boundary.at(0) + Vector2ui(1, 1));
+        out.push_back(vertices.at(0));
 
         size_t white_crawler = 0;
         size_t blue_crawler = 0;
@@ -265,27 +250,31 @@ namespace crisp
         // convex = left
         while (current < vertices.size())
         {
-            auto white_sign = sign(out.back(), vertices.at(white_crawler), vertices.at(current));
-            auto blue_sign = sign(out.back(), vertices.at(blue_crawler), vertices.at(current));
+            auto white_sign = sign(out.back(), vertices.at(current), vertices.at(white_crawler));
+            auto blue_sign = sign(out.back(), vertices.at(current), vertices.at(blue_crawler));
 
-            if (white_sign > 0)
+            std::cout << "white: " << white_sign << " blue: " << blue_sign << std::endl;
+
+            if (white_sign < 0)
             {
                 out.push_back(vertices.at(white_crawler));
                 blue_crawler = white_crawler;
                 current = white_crawler + 1;
             }
-            else if (blue_sign < 0)
+            else if (blue_sign > 0)
             {
                 out.push_back(vertices.at(blue_crawler));
                 white_crawler = blue_crawler;
                 current = blue_crawler + 1;
             }
-            else if (white_sign <= 0 and blue_sign >= 0)
+            else
             {
                 if (not right_or_left.at(current))
                     white_crawler = current;
                 else
                     blue_crawler = current;
+
+                current += 1;
             }
         }
 
