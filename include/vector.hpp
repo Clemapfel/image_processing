@@ -98,18 +98,16 @@ namespace crisp
 
             Vector<T, N>& operator+=(T scalar);
             Vector<T, N>& operator-=(T scalar);
-            Vector<T, N>& operator*=(T scalar);
-            Vector<T, N>& operator/=(T scalar);
 
             // @brief boolean element-wise comparison
             // @param : another vector of the same size
             // @returns true if all components of both colors are equal, false otherwise
-            using Super_t::operator==;
+            bool operator==(const Vector<T, N>& other) const;
 
             // @brief boolean element-wise comparison
             // @param : another vector of the same size
             // @returns false if all components of both colors are equal, true otherwise
-            using Super_t::operator!=;
+            bool operator!=(const Vector<T, N>& other) const;
             
             // @returns: bi-directional iterator to the first element
             auto begin();

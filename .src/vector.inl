@@ -185,19 +185,23 @@ namespace crisp
     }
 
     template<typename T, size_t N>
-    Vector<T, N>& Vector<T, N>::operator*=(T scalar)
+    bool Vector<T, N>::operator==(const Vector<T, N>& other) const
     {
         for (size_t i = 0; i < N; ++i)
-            this->at(i) *= scalar;
-        return *this;
+            if (this->at(i) != other.at(i))
+                return false;
+
+        return true;
     }
 
     template<typename T, size_t N>
-    Vector<T, N>& Vector<T, N>::operator/=(T scalar)
+    bool Vector<T, N>::operator!=(const Vector<T, N>& other) const
     {
         for (size_t i = 0; i < N; ++i)
-            this->at(i) /= scalar;
-        return *this;
+            if (this->at(i) == other.at(i))
+                return false;
+
+        return true;
     }
 
     template<typename T>
