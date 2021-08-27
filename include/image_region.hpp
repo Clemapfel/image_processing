@@ -18,10 +18,9 @@ namespace crisp
 
         public:
             ImageRegion() = default;
+            ImageRegion(const ImageSegment& segment, Image_t& image);
             void create_from(const ImageSegment& segment, Image_t& image);
-
-            // @returns vector of pixels such that the **top left** of that pixel is the sub-pixel position of the vertex
-            std::vector<Vector2ui> compute_miniminum_perimeter_polygon(size_t cell_size = 1) const;
+            const std::vector<Vector2ui>& get_boundary_polygon() const;
 
         private:
             struct Element
@@ -40,12 +39,16 @@ namespace crisp
             };
 
             std::set<Element, ElementCompare> _elements;
-            
-            std::vector<Vector2ui> _boundary;
-            std::vector<uint8_t> _directions;
+            std::vector<Vector2ui> _boundary_polygon;
 
             Vector2ui _x_bounds, _y_bounds;
         };
+
+    template<typename Image_t>
+    ImageRegion<Image_t>::ImageRegion(const ImageSegment& segment, Image_t& image)
+    {
+        create_from(segment, image);
+    }
 
     template<typename Image_t>
     void ImageRegion<Image_t>::create_from(const ImageSegment& segment, Image_t& image)
@@ -80,9 +83,10 @@ namespace crisp
         _x_bounds = {min_x, max_x};
         _y_bounds = {min_y, max_y};
 
-        _boundary.clear();
-        _boundary.reserve(temp_boundary.size());
-        _directions.reserve(temp_boundary.size());
+        std::vector<Vector2ui> boundary;
+        std::vector<uint8_t> directions;
+        boundary.reserve(temp_boundary.size());
+        directions.reserve(temp_boundary.size());
 
         auto push_if_neighbour = [&](Vector2ui c, uint8_t direction) -> bool
         {
@@ -137,22 +141,22 @@ namespace crisp
             auto to_check = Vector2ui(c.x() + x_offset, c.y() + y_offset);
             if (temp_boundary.find(to_check) != temp_boundary.end())
             {
-                _boundary.push_back(to_check);
-                _directions.push_back(direction);
+                boundary.push_back(to_check);
+                directions.push_back(direction);
                 temp_boundary.erase(to_check);
                 return true;
             }
             return false;
         };
 
-        _boundary.push_back(*temp_boundary.begin());
-        temp_boundary.erase(_boundary.back());
-        _directions.push_back(0);
+        boundary.push_back(*temp_boundary.begin());
+        temp_boundary.erase(boundary.back());
+        directions.push_back(0);
 
         while (temp_boundary.size() > 0)
         {
-            auto current = _boundary.back();
-            auto current_direction = _directions.back();
+            auto current = boundary.back();
+            auto current_direction = directions.back();
 
             bool found = false;
             for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
@@ -166,10 +170,10 @@ namespace crisp
 
             if (not found)
             {
-                for (size_t i = _boundary.size() - 1; i > 0; --i)
+                for (size_t i = boundary.size() - 1; i > 0; --i)
                 {
-                    current = _boundary.at(i);
-                    current_direction = _directions.at(i);
+                    current = boundary.at(i);
+                    current_direction = directions.at(i);
 
                     for (size_t direction = current_direction - 1, n = 0; n < 8; ++direction, ++n)
                         if (push_if_neighbour(current, direction))
@@ -177,28 +181,24 @@ namespace crisp
                 }
 
                 if (not found)
-                    return; //assert(false && "region not 8-connected");
+                    assert(false && "region not 8-connected");
 
                 next:;
             }
         }
-    }
 
-    template<typename Image_t>
-    std::vector<Vector2ui> ImageRegion<Image_t>::compute_miniminum_perimeter_polygon(size_t cell_size) const
-    {
         auto turn_type = [&](size_t i_a, size_t i_b) -> int
         {
-            auto point_a = _boundary.at(i_a),
-                 point_b = _boundary.at(i_b);
+            auto point_a = boundary.at(i_a),
+                 point_b = boundary.at(i_b);
 
             // warp point
             if (abs(int(point_a.x()) - int(point_b.x())) > 1 or
                 abs(int(point_a.y()) - int(point_b.y())) > 1)
                 return 0;
 
-            auto dir_a = _directions.at(i_a),
-                 dir_b = _directions.at(i_b);
+            auto dir_a = directions.at(i_a),
+                 dir_b = directions.at(i_b);
 
             if (dir_b > dir_a or (dir_a == 7 and dir_b == 0))
                 return -1; // left-hand turn
@@ -208,74 +208,20 @@ namespace crisp
                 return 0; // colinear
         };
 
-        std::vector<Vector2ui> vertices;
-        std::vector<bool> right_or_left;
+        _boundary_polygon.clear();
 
-        for (size_t i = 0; i < _boundary.size()-1; ++i)
-        {
-            auto s = turn_type(i, i+1);
+        for (size_t i = 0; i < boundary.size()-1; ++i)
+            if (turn_type(i, i+1) != 0)
+                _boundary_polygon.push_back(boundary.at(i));
 
-            if (s != 0)
-            {
-                vertices.push_back(_boundary.at(i));
-                right_or_left.push_back(s > 0);
-            }
-        }
-
-        // MPP algorithm from "Digital Image Processing" (Gonzales, Woods, 2017), 4th edition, pg. 824
-        auto sign = [](Vector2ui a, Vector2ui b, Vector2ui c) -> int
-        {
-            Eigen::Matrix<int, 3, 3> matrix;
-            matrix << a.y(), a.x(), 1,
-                      b.y(), b.x(), 1,
-                      c.y(), c.x(), 1;
-
-            auto det = matrix.determinant();
-
-            if (det > 0)
-                return +1;
-            else if (det < 0)
-                return -1;
-            else
-                return 0;
-        };
-
-        std::vector<Vector2ui> out; // final vertices
-        out.push_back(vertices.at(0));
-
-        size_t white_crawler = 0;
-        size_t blue_crawler = 0;
-        size_t current = 0;
-
-        // convex = left
-        while (current < vertices.size())
-        {
-            auto white_sign = sign(out.back(), vertices.at(white_crawler), vertices.at(current));
-            auto blue_sign = sign(out.back(), vertices.at(blue_crawler), vertices.at(current));
-
-            if (white_sign > 0)
-            {
-                out.push_back(vertices.at(white_crawler));
-                blue_crawler = white_crawler;
-                current = white_crawler + 1;
-            }
-            else if (blue_sign < 0)
-            {
-                out.push_back(vertices.at(blue_crawler));
-                white_crawler = blue_crawler;
-                current = blue_crawler + 1;
-            }
-            else
-            {
-                if (not right_or_left.at(current))
-                    white_crawler = current;
-                else
-                    blue_crawler = current;
-
-                current += 1;
-            }
-        }
-
-        return out;
+        _boundary_polygon = boundary;
     }
+
+    template<typename Image_t>
+    const std::vector<Vector2ui>& ImageRegion<Image_t>::get_boundary_polygon() const
+    {
+        return _boundary_polygon;
+    }
+
+
 }

@@ -31,32 +31,33 @@ int main()
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
     auto binary = Segmentation::otsu_threshold(image);
-    auto segments = Segmentation::decompose_into_segments(binary, {false}, 50);
-    auto letter_s = segments.front();
+    auto segments = Segmentation::decompose_into_segments(binary, {false}, 2);
 
-    for (auto& px : image)
-        px = 0;
+    for (long x = 0; x < binary.get_size().x(); ++x)
+        for (long y = 0; y < binary.get_size().y(); ++y)
+            if (not binary(x, y))
+                image(x, y) = 0;
 
-    for (auto& px : segments.front())
-        image(px.x(), px.y()) = 0.5;
+    std::cout << segments.size() << std::endl;
 
-    auto region_s = ImageRegion<GrayScaleImage>();
-    region_s.create_from(letter_s, image);
+    sf::Clock clock;
+    std::vector<ImageRegion<GrayScaleImage>> regions;
+    for (auto& segment : segments)
+        for (auto& px : segment)
+            regions.emplace_back(segment, image);
 
-    auto polygon = region_s.compute_miniminum_perimeter_polygon();
+    std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
-    for (auto& px : polygon)
-    {
-        auto x = px.x(), y = px.y();
-        image(x, y) = 1;
-    }
+    for (auto& region : regions)
+        for (auto& px : region.get_boundary_polygon())
+            image(px.x(), px.y()) = 1;
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);
 
     auto sprite = Sprite();
     sprite.create_from(image);
-    sprite.scale(2, false);
+    sprite.scale(2);
 
     while (window.is_open())
     {
