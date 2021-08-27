@@ -250,18 +250,16 @@ namespace crisp
         // convex = left
         while (current < vertices.size())
         {
-            auto white_sign = sign(out.back(), vertices.at(current), vertices.at(white_crawler));
-            auto blue_sign = sign(out.back(), vertices.at(current), vertices.at(blue_crawler));
+            auto white_sign = sign(out.back(), vertices.at(white_crawler), vertices.at(current));
+            auto blue_sign = sign(out.back(), vertices.at(blue_crawler), vertices.at(current));
 
-            std::cout << "white: " << white_sign << " blue: " << blue_sign << std::endl;
-
-            if (white_sign < 0)
+            if (white_sign > 0)
             {
                 out.push_back(vertices.at(white_crawler));
                 blue_crawler = white_crawler;
                 current = white_crawler + 1;
             }
-            else if (blue_sign > 0)
+            else if (blue_sign < 0)
             {
                 out.push_back(vertices.at(blue_crawler));
                 white_crawler = blue_crawler;
