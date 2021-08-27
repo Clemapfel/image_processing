@@ -19,7 +19,7 @@ namespace crisp
         {
             bool operator()(const Vector2ui& a, const Vector2ui& b) const
             {
-                return a.x() != b.x() ? a.x() < b.x() : a.y() <= b.y();
+                return a.y() != b.y() ? a.y() < b.y() : a.x() < b.x();
             }
         };
     }
