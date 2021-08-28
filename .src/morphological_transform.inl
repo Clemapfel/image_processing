@@ -20,14 +20,14 @@ namespace crisp
         template<typename Image_t>
         void flat_erode_aux(Image_t& image, Image_t& result, StructuringElement<bool> se)
         {
-            long n = se.get_size().x(),
+            int n = se.get_size().x(),
                  m = se.get_size().y();
 
-            auto origin = se.get_origin();
+            Vector2i origin = {int(se.get_origin().x()), int(se.get_origin().y())};
 
-            for (long x = 0; x < image.get_size().x(); ++x)
+            for (int x = 0; x < image.get_size().x(); ++x)
             {
-                for (long y = 0; y < image.get_size().y(); ++y)
+                for (int y = 0; y < image.get_size().y(); ++y)
                 {
                     // BINARY IMAGE
                     if (std::is_same_v<typename Image_t::value_t, bool>)
@@ -37,8 +37,7 @@ namespace crisp
                         {
                             for (int b = -origin.y(); b < m - origin.y(); ++b)
                             {
-                                if (se.is_foreground(a + origin.x(), b + origin.y()) !=
-                                    image.get_pixel_or_padding(x + a, y + b))
+                                if (se.is_foreground(a + origin.x(), b + origin.y()) and not image.get_pixel_or_padding(x + a, y + b))
                                 {
                                     missed = true;
                                     goto skip;
@@ -79,7 +78,7 @@ namespace crisp
             long n = se.get_size().x(),
                  m = se.get_size().y();
 
-            auto origin = se.get_origin();
+            Vector2i origin = {int(se.get_origin().x()), int(se.get_origin().y())};
 
             for (long x = 0; x < image.get_size().x(); ++x)
             {
@@ -306,7 +305,7 @@ namespace crisp
     template<typename Value_t>
     Vector2ui MorphologicalTransform<Value_t>::StructuringElement::get_size() const
     {
-        return {_matrix.rows(), _matrix.cols()};
+        return Vector2ui(_matrix.rows(), _matrix.cols());
     }
 
     template<typename Value_t>
@@ -320,7 +319,7 @@ namespace crisp
     {
         _matrix.resize(nrows, ncols);
         _matrix.setConstant(std::nullopt);
-        _origin = {(nrows - (nrows % 2 == 1 ? 1 : 0)) / 2, (ncols - (ncols % 2 == 1 ? 1 : 0)) / 2};
+        _origin = Vector2ui((nrows - (nrows % 2 == 1 ? 1 : 0)) / 2, (ncols - (ncols % 2 == 1 ? 1 : 0)) / 2);
     }
 
     template<typename Value_t>
@@ -372,7 +371,7 @@ namespace crisp
     {
         if (row_i < 0 or row_i >= _matrix.size() or col_i < 0 or col_i >= _matrix.front().size())
             throw std::invalid_argument("origin at [" + std::to_string(row_i) + ", " + std::to_string(col_i) + "] would be outside the bounds of this " + std::to_string(_matrix.rows()) + "x" + std::to_string(_matrix.cols()) + " structuring element");
-        _origin = {row_i, col_i};
+        _origin = Vector2ui(row_i, col_i);
     }
 
     template<typename Value_t>
