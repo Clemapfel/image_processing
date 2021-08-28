@@ -72,10 +72,6 @@ namespace crisp
                 _elements.emplace(Element{px, image(px.x(), px.y()), true});
                 temp_boundary.insert(px);
             }
-            else if (n_unconnected == 1)
-            {
-                candidate_boundary.insert(px);
-            }
             else
             {
                 _elements.emplace(Element{px, image(px.x(), px.y()), false});
@@ -96,11 +92,6 @@ namespace crisp
         directions.reserve(temp_boundary.size());
 
         auto direction_to_px = [&](Vector2ui c, uint8_t direction) -> Vector2ui
-        {
-
-        };
-
-        auto push_if_neighbour = [&](Vector2ui c, uint8_t direction) -> bool
         {
             direction = direction % 8;
             int x_offset, y_offset;
@@ -150,15 +141,7 @@ namespace crisp
                     assert(false);
             }
 
-            auto to_check = Vector2ui(c.x() + x_offset, c.y() + y_offset);
-            if (temp_boundary.find(to_check) != temp_boundary.end())
-            {
-                boundary.push_back(to_check);
-                directions.push_back(direction);
-                temp_boundary.erase(to_check);
-                return true;
-            }
-            return false;
+            return Vector2ui(c.x() + x_offset, c.y() + y_offset);
         };
 
         boundary.push_back(*temp_boundary.begin());
@@ -171,46 +154,41 @@ namespace crisp
             auto current_direction = directions.back();
 
             bool found = false;
-            for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
+            for (size_t direction = current_direction, n = 0; not found and n < 8; ++direction, ++n)
             {
-                if (push_if_neighbour(current, direction))
+                auto to_check = direction_to_px(current, direction);
+                if (temp_boundary.find(to_check) != temp_boundary.end())
                 {
+                    boundary.push_back(to_check);
+                    directions.push_back(direction);
+                    temp_boundary.erase(to_check);
                     found = true;
-                    break;
+                }
+            }
+
+            if (found)
+                continue;
+
+            for (size_t i = boundary.size()-1; i > 0; --i)
+            {
+                current = boundary.at(i);
+                current_direction = directions.at(i);
+
+                for (size_t direction = current_direction, n = 0; not found and n < 8; ++direction, ++n)
+                {
+                    auto to_check = direction_to_px(current, direction);
+                    if (temp_boundary.find(to_check) != temp_boundary.end())
+                    {
+                        boundary.push_back(to_check);
+                        directions.push_back(direction);
+                        temp_boundary.erase(to_check);
+                        found = true;;
+                    }
                 }
             }
 
             if (not found)
-            {
-                for (long i = -1; i <= +1; ++i)
-                {
-                    for (long j = -1; j <= +1; ++j)
-                    {
-                        if (candidate_boundary.find(Vector2ui(current.x() + i, current.y() + j)) !=
-                            candidate_boundary.end())
-                        {
-                            candidate_boundary.erase(Vector2ui(current.x() + i, current.y() + j));
-                            temp_boundary.insert(Vector2ui(current.x() + i, current.y() + j));
-                            goto next;
-                        }
-                    }
-                }
-
-                for (size_t i = boundary.size() - 1; i > 0; --i)
-                {
-                    current = boundary.at(i);
-                    current_direction = directions.at(i);
-
-                    for (size_t direction = current_direction - 1, n = 0; n < 8; ++direction, ++n)
-                        if (push_if_neighbour(current, direction))
-                            goto next;
-                }
-
-                if (not found)
-                    break; //assert(false && "region not 8-connected");
-
-                next:;
-            }
+                break;
         }
 
         auto turn_type = [&](size_t i_a, size_t i_b) -> int
