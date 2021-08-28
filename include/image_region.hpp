@@ -67,7 +67,7 @@ namespace crisp
                     if (not (i == 0 and j == 0) and segment.find(Vector2ui(px.x() + i, px.y() + j)) == segment.end())
                         n_unconnected++;
 
-            if (n_unconnected > 0)
+            if (n_unconnected > 1)
             {
                 _elements.emplace(Element{px, image(px.x(), px.y()), true});
                 temp_boundary.insert(px);
@@ -148,21 +148,28 @@ namespace crisp
             return Vector2ui(c.x() + x_offset, c.y() + y_offset);
         };
 
-        boundary.push_back(*temp_boundary.begin());
-        temp_boundary.erase(boundary.back());
+        auto top_left = *temp_boundary.begin();
+        temp_boundary.erase(top_left);
+        boundary.push_back(top_left);
         directions.push_back(0);
 
         size_t current_i = 0;
+        size_t n_points = temp_boundary.size();
+        bool finished_maybe = false;
         do
         {
             auto current = boundary.at(current_i);
             auto current_direction = directions.at(current_i);
 
             bool found = false;
+
             // check strong candidates
             for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
             {
                 auto to_check = direction_to_px(current, direction);
+                if (to_check == top_left)
+                    finished_maybe = true;
+
                 if (temp_boundary.find(to_check) != temp_boundary.end())
                 {
                     boundary.push_back(to_check);
@@ -175,11 +182,12 @@ namespace crisp
 
             if (found)
             {
-                current_i = boundary.size()-1;
+                current_i = boundary.size() - 1;
                 continue;
             }
+            else if (finished_maybe)
+                break;
 
-            /*
             // check weak candidates
             for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
             {
@@ -196,14 +204,15 @@ namespace crisp
 
             if (found)
             {
-                current_i++;
+                current_i = boundary.size() - 1;
                 continue;
-            }*/
+            }
+            else
+                current_i--;
 
-            // traceback
-            current_i -= 1;
+        } while (current_i < n_points);
 
-        } while (temp_boundary.size() > 0 and current_i > 0);
+        done:;
 
         auto turn_type = [&](size_t i_a, size_t i_b) -> int
         {

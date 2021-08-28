@@ -35,12 +35,50 @@ int main()
 
     auto binary = Segmentation::otsu_threshold(image);
 
-    binary.invert();
-    auto morph = MorphologicalTransform<bool>();
-    morph.set_structuring_element(StructuringElement<bool>::circle(5));
-    //morph.open(binary);
 
-    auto segments = Segmentation::decompose_into_segments(binary, {true}, 500);
+    for (long x = 0; x < binary.get_size().x(); ++x)
+        for (long y = 0; y < binary.get_size().y(); ++y)
+        {
+            if (binary(x, y) == false)
+                continue;
+
+            size_t n = 0;
+            for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0}, {1,  0}, {0,  -1}, {0,  1}})
+                if (binary.get_pixel_or_padding(x + i_j.first, y + i_j.second) == false)
+                    n++;
+
+            if (n >= 3)
+            {
+                binary(x, y) = false;
+            }
+        }
+
+    size_t n_changed = 1;
+    while (n_changed > 0)
+    {
+        n_changed = 0;
+        for (long x = 0; x < binary.get_size().x(); ++x)
+            for (long y = 0; y < binary.get_size().y(); ++y)
+            {
+                if (binary(x, y) == true)
+                    continue;
+
+                size_t n = 0;
+                for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}})
+                    if (binary.get_pixel_or_padding(x + i_j.first, y + i_j.second) == false)
+                        n++;
+
+                if (n == 1)
+                {
+                    binary(x, y) = true;
+                    n_changed++;
+                }
+            }
+
+        std::cout << n_changed << std::endl;
+    }
+
+    auto segments = Segmentation::decompose_into_segments(binary, {false}, 500);
 
     for (auto& segment : segments)
         for (auto& px : segment)
@@ -52,9 +90,15 @@ int main()
     for (auto& segment : segments)
         regions.emplace_back(segment, image);
 
+    size_t i = 0;
     for (auto& region : regions)
         for (auto& px : region.get_boundary_polygon())
+        {
             image(px.x(), px.y()) = 1;
+            i++;
+        }
+
+    std::cout << "used " << i << "px" << std::endl;
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);
