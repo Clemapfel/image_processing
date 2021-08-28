@@ -75,7 +75,7 @@ namespace crisp
         template<typename Image_t>
         void flat_dilate_aux(Image_t& image, Image_t& result, StructuringElement<bool> se)
         {
-            long n = se.get_size().x(),
+            int n = se.get_size().x(),
                  m = se.get_size().y();
 
             Vector2i origin = {int(se.get_origin().x()), int(se.get_origin().y())};
@@ -91,7 +91,7 @@ namespace crisp
                         {
                             for (int b = -origin.y(); b < m - origin.y(); ++b)
                             {
-                                if (se.is_foreground(a + origin.x(), b + origin.y()) ==
+                                if (se.is_foreground(a + origin.x(), b + origin.y()) and
                                     image.get_pixel_or_padding(x + a, y + b))
                                 {
                                     found = true;
@@ -492,7 +492,9 @@ namespace crisp
     typename MorphologicalTransform<Value_t>::StructuringElement
     MorphologicalTransform<Value_t>::StructuringElement::circle(long dimensions)
     {
-        assert(dimensions % 2 == 1 && "dimensions have to be odd for the structuring element to be rotationally symmetrical");
+        if (dimensions % 2 == 0)
+            dimensions += 1;
+
         auto out = all_dont_care(dimensions, dimensions);
         
         long radius = (dimensions - 1) / 2;
