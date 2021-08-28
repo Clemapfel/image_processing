@@ -55,6 +55,7 @@ namespace crisp
     {
         _elements.clear();
         ImageSegment temp_boundary;
+        ImageSegment candidate_boundary;
 
         unsigned int min_x = image.get_size().x(), max_x = 0;
         unsigned int min_y = image.get_size().y(), max_y = 0;
@@ -66,19 +67,25 @@ namespace crisp
                     if (not (i == 0 and j == 0) and segment.find(Vector2ui(px.x() + i, px.y() + j)) == segment.end())
                         n_unconnected++;
 
-            bool is_boundary = n_unconnected > 1;
-
-            _elements.emplace(Element{px, image(px.x(), px.y()), is_boundary});
-
-            if (is_boundary)
+            if (n_unconnected > 1)
+            {
+                _elements.emplace(Element{px, image(px.x(), px.y()), true});
                 temp_boundary.insert(px);
+            }
+            else if (n_unconnected == 1)
+            {
+                candidate_boundary.insert(px);
+            }
+            else
+            {
+                _elements.emplace(Element{px, image(px.x(), px.y()), false});
+            }
 
             min_x = std::min<unsigned int>(min_x, px.x());
             max_x = std::max<unsigned int>(max_x, px.x());
             min_y = std::min<unsigned int>(min_y, px.y());
             max_y = std::max<unsigned int>(max_y, px.y());
         }
-
 
         _x_bounds = {min_x, max_x};
         _y_bounds = {min_y, max_y};
@@ -87,6 +94,11 @@ namespace crisp
         std::vector<uint8_t> directions;
         boundary.reserve(temp_boundary.size());
         directions.reserve(temp_boundary.size());
+
+        auto direction_to_px = [&](Vector2ui c, uint8_t direction) -> Vector2ui
+        {
+
+        };
 
         auto push_if_neighbour = [&](Vector2ui c, uint8_t direction) -> bool
         {
@@ -170,6 +182,20 @@ namespace crisp
 
             if (not found)
             {
+                for (long i = -1; i <= +1; ++i)
+                {
+                    for (long j = -1; j <= +1; ++j)
+                    {
+                        if (candidate_boundary.find(Vector2ui(current.x() + i, current.y() + j)) !=
+                            candidate_boundary.end())
+                        {
+                            candidate_boundary.erase(Vector2ui(current.x() + i, current.y() + j));
+                            temp_boundary.insert(Vector2ui(current.x() + i, current.y() + j));
+                            goto next;
+                        }
+                    }
+                }
+
                 for (size_t i = boundary.size() - 1; i > 0; --i)
                 {
                     current = boundary.at(i);
@@ -181,7 +207,7 @@ namespace crisp
                 }
 
                 if (not found)
-                    assert(false && "region not 8-connected");
+                    break; //assert(false && "region not 8-connected");
 
                 next:;
             }

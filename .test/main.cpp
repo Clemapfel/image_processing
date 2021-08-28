@@ -30,23 +30,27 @@ int main()
     auto image = GrayScaleImage();
     image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
 
+    auto blur = SpatialFilter<GrayScaleImage>();
+    blur.set_kernel(blur.gaussian(3));
+
     auto binary = Segmentation::otsu_threshold(image);
-    auto segments = Segmentation::decompose_into_segments(binary, {false}, 2);
 
-    for (long x = 0; x < binary.get_size().x(); ++x)
-        for (long y = 0; y < binary.get_size().y(); ++y)
-            if (not binary(x, y))
-                image(x, y) = 0;
+    binary.invert();
+    auto morph = MorphologicalTransform<bool>();
+    morph.set_structuring_element(StructuringElement<bool>::circle(5));
+    //morph.open(binary);
 
-    std::cout << segments.size() << std::endl;
+    auto segments = Segmentation::decompose_into_segments(binary, {true}, 500);
+
+    for (auto& segment : segments)
+        for (auto& px : segment)
+            image(px.x(), px.y()) = 0;
 
     sf::Clock clock;
     std::vector<ImageRegion<GrayScaleImage>> regions;
-    for (auto& segment : segments)
-        for (auto& px : segment)
-            regions.emplace_back(segment, image);
 
-    std::cout << clock.restart().asSeconds() << "s" << std::endl;
+    for (auto& segment : segments)
+        regions.emplace_back(segment, image);
 
     for (auto& region : regions)
         for (auto& px : region.get_boundary_polygon())

@@ -225,24 +225,26 @@ namespace crisp::Segmentation
                     while (not to_add.empty())
                     {
                         auto current = to_add.front();
-                        for (long i : {-1, 1, 0, 0})
-                        {
-                            for (long j : {0, 0, -1, 1})
-                            {
-                                if (current.x() + i < 0 or current.x() + i >= seen.get_size().x() or
-                                    current.y() + j < 0 or current.y() + j >= seen.get_size().y() or
-                                    seen(current.x() + i, current.y() + j))
-                                    continue;
 
-                                if (image(current.x() + i, current.y() + j) == color)
-                                {
-                                    to_add.emplace_back(current.x() + i, current.y() + j);
-                                    seen(current.x() + i, current.y() + j) = true;
-                                }
-                                else if (not is_allowed(image(current.x() + i, current.y() + j)))
-                                    seen(current.x() + i, current.y() + j) = true;
+                        for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}})
+                        {
+                            auto i = i_j.first;
+                            auto j = i_j.second;
+
+                            if (current.x() + i < 0 or current.x() + i >= seen.get_size().x() or
+                                current.y() + j < 0 or current.y() + j >= seen.get_size().y() or
+                                seen(current.x() + i, current.y() + j))
+                                continue;
+
+                            if (image(current.x() + i, current.y() + j) == color)
+                            {
+                                to_add.emplace_back(current.x() + i, current.y() + j);
+                                seen(current.x() + i, current.y() + j) = true;
                             }
+                            else if (not is_allowed(image(current.x() + i, current.y() + j)))
+                                seen(current.x() + i, current.y() + j) = true;
                         }
+
 
                         segments.back().insert(to_add.front());
                         to_add.pop_front();
