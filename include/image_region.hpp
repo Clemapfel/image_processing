@@ -67,10 +67,14 @@ namespace crisp
                     if (not (i == 0 and j == 0) and segment.find(Vector2ui(px.x() + i, px.y() + j)) == segment.end())
                         n_unconnected++;
 
-            if (n_unconnected > 1)
+            if (n_unconnected > 0)
             {
                 _elements.emplace(Element{px, image(px.x(), px.y()), true});
                 temp_boundary.insert(px);
+            }
+            else if (n_unconnected == 1)
+            {
+                candidate_boundary.insert(px);
             }
             else
             {
@@ -148,13 +152,15 @@ namespace crisp
         temp_boundary.erase(boundary.back());
         directions.push_back(0);
 
-        while (temp_boundary.size() > 0)
+        size_t current_i = 0;
+        do
         {
-            auto current = boundary.back();
-            auto current_direction = directions.back();
+            auto current = boundary.at(current_i);
+            auto current_direction = directions.at(current_i);
 
             bool found = false;
-            for (size_t direction = current_direction, n = 0; not found and n < 8; ++direction, ++n)
+            // check strong candidates
+            for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
             {
                 auto to_check = direction_to_px(current, direction);
                 if (temp_boundary.find(to_check) != temp_boundary.end())
@@ -163,33 +169,41 @@ namespace crisp
                     directions.push_back(direction);
                     temp_boundary.erase(to_check);
                     found = true;
+                    break;
                 }
             }
 
             if (found)
-                continue;
-
-            for (size_t i = boundary.size()-1; i > 0; --i)
             {
-                current = boundary.at(i);
-                current_direction = directions.at(i);
+                current_i = boundary.size()-1;
+                continue;
+            }
 
-                for (size_t direction = current_direction, n = 0; not found and n < 8; ++direction, ++n)
+            /*
+            // check weak candidates
+            for (size_t direction = current_direction, n = 0; n < 8; ++direction, ++n)
+            {
+                auto to_check = direction_to_px(current, direction);
+                if (candidate_boundary.find(to_check) != candidate_boundary.end())
                 {
-                    auto to_check = direction_to_px(current, direction);
-                    if (temp_boundary.find(to_check) != temp_boundary.end())
-                    {
-                        boundary.push_back(to_check);
-                        directions.push_back(direction);
-                        temp_boundary.erase(to_check);
-                        found = true;;
-                    }
+                    boundary.push_back(to_check);
+                    directions.push_back(direction);
+                    candidate_boundary.erase(to_check);
+                    found = true;
+                    break;
                 }
             }
 
-            if (not found)
-                break;
-        }
+            if (found)
+            {
+                current_i++;
+                continue;
+            }*/
+
+            // traceback
+            current_i -= 1;
+
+        } while (temp_boundary.size() > 0 and current_i > 0);
 
         auto turn_type = [&](size_t i_a, size_t i_b) -> int
         {
