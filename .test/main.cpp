@@ -27,9 +27,32 @@ using namespace crisp;
 
 int main()
 {
-    auto image = GrayScaleImage();
-    image.create_from_file("/home/clem/Workspace/image_processing/docs/opal_color.png");
+    auto image = ColorImage();
+    //image.create_from_file("/home/clem/Workspace/image_processing/docs/segmentation/clean.png");
+    image.create_from_file("/home/clem/Workspace/image_processing/docs/segmentation/cluster_clean.png");
 
+    auto seeds = BinaryImage();
+    seeds.create_from_file("/home/clem/Workspace/image_processing/docs/segmentation/cluster_seeds_binary.png");
+
+    sf::Clock clock;
+    auto result = Segmentation::region_growing_clustering(image, seeds, 0.3, 0.0);
+    std::cout << clock.restart().asSeconds() << std::endl;
+
+    auto window = RenderWindow();
+    window.create(image.get_size().x(), image.get_size().y());
+
+    auto sprite = Sprite();
+    sprite.create_from(result);
+    sprite.scale(1);
+
+    while (window.is_open())
+    {
+        window.update();
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
+    /*
     auto blur = SpatialFilter<GrayScaleImage>();
     blur.set_kernel(blur.gaussian(3));
 

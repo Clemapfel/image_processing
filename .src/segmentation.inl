@@ -122,7 +122,7 @@ namespace crisp::Segmentation
     }
 
 
-    std::vector<ImageSegment> decompose_into_segments(const Color& image, std::vector<Color> allowed_values, size_t min_segment_size)
+    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, std::vector<Color> allowed_values, size_t min_segment_size)
     {
         std::vector<ImageSegment> out;
         std::unordered_map<std::string, size_t> value_to_index;
@@ -137,12 +137,18 @@ namespace crisp::Segmentation
             return out;
         };
 
+        for (auto& c : allowed_values)
+        {
+            out.emplace_back();
+            value_to_index.emplace(color_to_string(c), out.size() - 1);
+        }
+
         for (long y = 0; y < image.get_size().y(); ++y)
             for (long x = 0; x < image.get_size().x(); ++x)
             {
                 auto value = color_to_string(image(x, y));
                 if (value_to_index.find(value) == value_to_index.end())
-                    value_to_index.emplace(value, out.size() - 1);
+                    continue;
 
                 out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
             }
