@@ -11,6 +11,147 @@ namespace crisp::Segmentation
 {
     std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, size_t min_region_size)
     {
+        std::vector<ImageSegment> out;
+        std::map<bool, size_t> value_to_index;
+
+        for (long y = 0; y < image.get_size().y(); ++y)
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                auto value = image(x, y);
+                if (value_to_index.find(value) == value_to_index.end())
+                    value_to_index.emplace(value, out.size() - 1);
+
+                out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
+            }
+
+        return out;
+    }
+
+    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, size_t min_region_size)
+    {
+        std::vector<ImageSegment> out;
+        std::map<uint8_t, size_t> value_to_index;
+
+        for (long y = 0; y < image.get_size().y(); ++y)
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                auto value = uint8_t(image(x, y) * 255);
+                if (value_to_index.find(value) == value_to_index.end())
+                    value_to_index.emplace(value, out.size() - 1);
+
+                out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
+            }
+
+        return out;
+    }
+
+    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, size_t min_region_size)
+    {
+        std::vector<ImageSegment> out;
+        std::unordered_map<std::string, size_t> value_to_index;
+
+        auto color_to_string = [](Color col)
+        {
+            std::string out;
+            out.push_back(uint8_t(col.red() * 255));
+            out.push_back(uint8_t(col.green() * 255));
+            out.push_back(uint8_t(col.blue() * 255));
+
+            return out;
+        };
+
+        for (long y = 0; y < image.get_size().y(); ++y)
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                auto value = color_to_string(image(x, y));
+                if (value_to_index.find(value) == value_to_index.end())
+                    value_to_index.emplace(value, out.size() - 1);
+
+                out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
+            }
+
+        return out;
+    }
+
+    std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, std::vector<bool> allowed_values, size_t min_segment_size)
+    {
+        std::vector<ImageSegment> out;
+        std::map<bool, size_t> value_to_index;
+
+        for (auto b : allowed_values)
+        {
+            out.emplace_back();
+            value_to_index.emplace(b, out.size()-1);
+        }
+
+        for (long y = 0; y < image.get_size().y(); ++y)
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                auto value = image(x, y);
+                if (value_to_index.find(value) == value_to_index.end())
+                    continue;
+
+                out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
+            }
+
+        return out;
+    }
+
+    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, std::vector<float> allowed_values, size_t min_segment_size)
+    {
+        std::vector<ImageSegment> out;
+        std::map<float, size_t> value_to_index;
+
+        for (auto f : allowed_values)
+        {
+            out.emplace_back();
+            value_to_index.emplace(uint8_t(f * 255), out.size()-1);
+        }
+
+        for (long y = 0; y < image.get_size().y(); ++y)
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                auto value = uint8_t(image(x, y) * 255);
+                if (value_to_index.find(value) == value_to_index.end())
+                    continue;
+
+                out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
+            }
+
+        return out;
+    }
+
+
+    std::vector<ImageSegment> decompose_into_segments(const Color& image, std::vector<Color> allowed_values, size_t min_segment_size)
+    {
+        std::vector<ImageSegment> out;
+        std::unordered_map<std::string, size_t> value_to_index;
+
+        auto color_to_string = [](Color col)
+        {
+            std::string out;
+            out.push_back(uint8_t(col.red() * 255));
+            out.push_back(uint8_t(col.green() * 255));
+            out.push_back(uint8_t(col.blue() * 255));
+
+            return out;
+        };
+
+        for (long y = 0; y < image.get_size().y(); ++y)
+            for (long x = 0; x < image.get_size().x(); ++x)
+            {
+                auto value = color_to_string(image(x, y));
+                if (value_to_index.find(value) == value_to_index.end())
+                    value_to_index.emplace(value, out.size() - 1);
+
+                out.at(value_to_index.at(value)).insert(Vector2ui(x, y));
+            }
+
+        return out;
+    }
+
+    std::vector<ImageSegment> decompose_into_connected_segments(const BinaryImage& image, size_t min_region_size)
+    {
         std::vector<ImageSegment> segments;
 
         BinaryImage seen;
@@ -67,7 +208,7 @@ namespace crisp::Segmentation
         return segments;
     }
 
-    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, size_t min_region_size)
+    std::vector<ImageSegment> decompose_into_connected_segments(const GrayScaleImage& image, size_t min_region_size)
     {
         std::vector<ImageSegment> segments;
 
@@ -125,7 +266,7 @@ namespace crisp::Segmentation
         return segments;
     }
 
-    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, size_t min_region_size)
+    std::vector<ImageSegment> decompose_into_connected_segments(const ColorImage& image, size_t min_region_size)
     {
         std::vector<ImageSegment> segments;
 
@@ -190,7 +331,7 @@ namespace crisp::Segmentation
         return segments;
     }
 
-    std::vector<ImageSegment> decompose_into_segments(const BinaryImage& image, std::vector<bool> allowed_values, size_t min_region_size)
+    std::vector<ImageSegment> decompose_into_connected_segments(const BinaryImage& image, std::vector<bool> allowed_values, size_t min_region_size)
     {
         std::vector<ImageSegment> segments;
 
@@ -263,7 +404,7 @@ namespace crisp::Segmentation
         return segments;
     }
 
-    std::vector<ImageSegment> decompose_into_segments(const GrayScaleImage& image, std::vector<float> allowed_values, size_t min_region_size)
+    std::vector<ImageSegment> decompose_into_connected_segments(const GrayScaleImage& image, std::vector<float> allowed_values, size_t min_region_size)
     {
         std::vector<ImageSegment> segments;
 
@@ -336,7 +477,7 @@ namespace crisp::Segmentation
         return segments;
     }
 
-    std::vector<ImageSegment> decompose_into_segments(const ColorImage& image, std::vector<Color> allowed_values, size_t min_region_size)
+    std::vector<ImageSegment> decompose_into_connected_segments(const ColorImage& image, std::vector<Color> allowed_values, size_t min_region_size)
     {
         std::vector<ImageSegment> segments;
 

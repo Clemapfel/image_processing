@@ -96,17 +96,17 @@ int main()
 
     sf::Clock clock;
     for (auto& region : regions)
-        region.compute_farthest_point_signature();
+        region.farthest_point_signature();
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
     clock.restart();
     for (auto& region : regions)
-        region.compute_radial_distance_signature();
+        region.radial_distance_signature();
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
     clock.restart();
     for (auto& region : regions)
-        region.compute_complex_coordinate_signature();
+        region.complex_coordinate_signature();
     std::cout << clock.restart().asSeconds() << "s" << std::endl;
 
 
