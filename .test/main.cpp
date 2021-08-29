@@ -35,7 +35,6 @@ int main()
 
     auto binary = Segmentation::otsu_threshold(image);
 
-
     for (long x = 0; x < binary.get_size().x(); ++x)
         for (long y = 0; y < binary.get_size().y(); ++y)
         {
@@ -43,7 +42,10 @@ int main()
                 continue;
 
             size_t n = 0;
-            for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0}, {1,  0}, {0,  -1}, {0,  1}})
+            for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0},
+                                                                            {1,  0},
+                                                                            {0,  -1},
+                                                                            {0,  1}})
                 if (binary.get_pixel_or_padding(x + i_j.first, y + i_j.second) == false)
                     n++;
 
@@ -64,7 +66,10 @@ int main()
                     continue;
 
                 size_t n = 0;
-                for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}})
+                for (std::pair<int, int> i_j : std::vector<std::pair<int, int>>{{-1, 0},
+                                                                                {1,  0},
+                                                                                {0,  -1},
+                                                                                {0,  1}})
                     if (binary.get_pixel_or_padding(x + i_j.first, y + i_j.second) == false)
                         n++;
 
@@ -84,21 +89,45 @@ int main()
         for (auto& px : segment)
             image(px.x(), px.y()) = 0;
 
-    sf::Clock clock;
     std::vector<ImageRegion<GrayScaleImage>> regions;
 
     for (auto& segment : segments)
         regions.emplace_back(segment, image);
 
+    sf::Clock clock;
+    for (auto& region : regions)
+        region.compute_farthest_point_signature();
+    std::cout << clock.restart().asSeconds() << "s" << std::endl;
+
+    clock.restart();
+    for (auto& region : regions)
+        region.compute_radial_distance_signature();
+    std::cout << clock.restart().asSeconds() << "s" << std::endl;
+
+    clock.restart();
+    for (auto& region : regions)
+        region.compute_complex_coordinate_signature();
+    std::cout << clock.restart().asSeconds() << "s" << std::endl;
+
+
     size_t i = 0;
     for (auto& region : regions)
-        for (auto& px : region.get_boundary_polygon())
+    {
+        for (auto& px : region._boundary)
         {
             image(px.x(), px.y()) = 1;
             i++;
         }
 
+        for (int j = -2; j <= 2; ++j)
+            for (int i = -2; i <= 2; ++i)
+                    if (abs(i) ==  abs(j))
+                        image(region._centroid.x() + i, region._centroid.y() + j) = 1;
+    }
+
     std::cout << "used " << i << "px" << std::endl;
+
+
 
     auto window = RenderWindow();
     window.create(image.get_size().x() * 2, image.get_size().y() * 2);
